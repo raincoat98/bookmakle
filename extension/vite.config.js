@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import { readdirSync, readFileSync, statSync } from "fs";
 
 export default defineConfig({
   build: {
@@ -25,24 +26,37 @@ export default defineConfig({
         this.emitFile({
           type: "asset",
           fileName: "manifest.json",
-          source: require("fs").readFileSync(
-            resolve(__dirname, "src/public/manifest.json")
-          ),
+          source: readFileSync(resolve(__dirname, "src/public/manifest.json")),
         });
         this.emitFile({
           type: "asset",
           fileName: "offscreen.html",
-          source: require("fs").readFileSync(
-            resolve(__dirname, "src/public/offscreen.html")
-          ),
+          source: readFileSync(resolve(__dirname, "src/public/offscreen.html")),
         });
         this.emitFile({
           type: "asset",
           fileName: "popup.html",
-          source: require("fs").readFileSync(
-            resolve(__dirname, "src/popup/popup.html")
-          ),
+          source: readFileSync(resolve(__dirname, "src/popup/popup.html")),
         });
+
+        // _locales 폴더 복사
+        const localesPath = resolve(__dirname, "src/public/_locales");
+        if (statSync(localesPath).isDirectory()) {
+          const locales = readdirSync(localesPath);
+          locales.forEach((locale) => {
+            const localePath = resolve(localesPath, locale);
+            if (statSync(localePath).isDirectory()) {
+              const messagesPath = resolve(localePath, "messages.json");
+              if (statSync(messagesPath).isFile()) {
+                this.emitFile({
+                  type: "asset",
+                  fileName: `_locales/${locale}/messages.json`,
+                  source: readFileSync(messagesPath),
+                });
+              }
+            }
+          });
+        }
       },
     },
   ],

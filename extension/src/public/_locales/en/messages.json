@@ -1,0 +1,90 @@
+{
+  "appName": {
+    "message": "Chrome Extension: Google Auth with Firebase",
+    "description": "Extension name"
+  },
+  "appDescription": {
+    "message": "Chrome extension with Google authentication using Firebase",
+    "description": "Extension description"
+  },
+  "login": {
+    "message": "Login",
+    "description": "Login button text"
+  },
+  "logout": {
+    "message": "Logout",
+    "description": "Logout button text"
+  },
+  "loggingIn": {
+    "message": "Logging in...",
+    "description": "Login in progress text"
+  },
+  "loggedIn": {
+    "message": "Logged in",
+    "description": "Logged in status text"
+  },
+  "notLoggedIn": {
+    "message": "Not logged in",
+    "description": "Not logged in status text"
+  },
+  "loginSuccess": {
+    "message": "Login successful!",
+    "description": "Login success message"
+  },
+  "logoutSuccess": {
+    "message": "Logged out successfully.",
+    "description": "Logout success message"
+  },
+  "error": {
+    "message": "Error",
+    "description": "Error prefix"
+  },
+  "unknownError": {
+    "message": "An unknown error occurred.",
+    "description": "Unknown error message"
+  },
+  "authError": {
+    "message": "Authentication error",
+    "description": "Authentication error message"
+  },
+  "popupClosed": {
+    "message": "Login window was closed.",
+    "description": "Popup window closed error"
+  },
+  "popupBlocked": {
+    "message": "Popup was blocked. Please disable popup blocker.",
+    "description": "Popup blocked error"
+  },
+  "loginCancelled": {
+    "message": "Login was cancelled.",
+    "description": "Login cancelled error"
+  },
+  "networkError": {
+    "message": "Please check your network connection.",
+    "description": "Network error"
+  },
+  "tooManyRequests": {
+    "message": "Too many requests. Please try again later.",
+    "description": "Too many requests error"
+  },
+  "timeoutError": {
+    "message": "Authentication request timed out.",
+    "description": "Timeout error"
+  },
+  "invalidData": {
+    "message": "Invalid authentication data.",
+    "description": "Invalid data error"
+  },
+  "parsingError": {
+    "message": "Message parsing error",
+    "description": "Parsing error"
+  },
+  "iframeError": {
+    "message": "Iframe communication error",
+    "description": "Iframe communication error"
+  },
+  "tooManyMessages": {
+    "message": "Too many messages received.",
+    "description": "Too many messages error"
+  }
+}
