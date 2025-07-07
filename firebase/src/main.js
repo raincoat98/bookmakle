@@ -6,6 +6,17 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Firebase 설정
 const firebaseConfig = {
@@ -23,6 +34,7 @@ console.log("Initializing Firebase with config:", firebaseConfig);
 // Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const PROVIDER = new GoogleAuthProvider();
 
 // Google 로그인 설정
@@ -37,9 +49,10 @@ const statusEl = document.getElementById("status");
 const signinBtn = document.getElementById("signin-btn");
 const signoutBtn = document.getElementById("signout-btn");
 const userInfoEl = document.getElementById("user-info");
+const bookmarksList = document.getElementById("bookmarksList");
 
 // 인증 상태 변경 감지
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   console.log("Auth state changed:", user);
 
   if (user) {
@@ -58,6 +71,26 @@ onAuthStateChanged(auth, (user) => {
       <strong>${user.displayName}</strong><br>
       <small>${user.email}</small>
     `;
+
+    // 사용자 정보를 부모 창에 전송
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          user: {
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            emailVerified: user.emailVerified,
+          },
+        },
+        "*"
+      );
+    }
+
+    // 북마크 로드
+    const bookmarks = await loadBookmarks(user.uid);
+    displayBookmarks(bookmarks);
   } else {
     // 로그아웃된 상태
     statusEl.textContent = "로그아웃됨";
@@ -65,6 +98,18 @@ onAuthStateChanged(auth, (user) => {
     signinBtn.style.display = "inline-block";
     signoutBtn.style.display = "none";
     userInfoEl.style.display = "none";
+
+    // 로그아웃 상태를 부모 창에 전송
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          user: null,
+        },
+        "*"
+      );
+    }
+
+    bookmarksList.innerHTML = "<p>로그인 후 북마크를 확인하세요.</p>";
   }
 });
 
@@ -105,6 +150,7 @@ signoutBtn.addEventListener("click", async () => {
 // Chrome Extension 통신
 let PARENT_FRAME = null;
 let isProcessingAuth = false; // 중복 요청 방지
+let isProcessingBookmark = false; // 북마크 저장 중복 요청 방지
 
 // 부모 프레임 origin을 찾는 함수
 function findParentFrame() {
@@ -219,8 +265,89 @@ function sendReadyMessage() {
   }
 }
 
+// 북마크 저장 함수
+async function saveBookmark(bookmarkData) {
+  try {
+    console.log("=== SAVING BOOKMARK TO FIRESTORE ===", bookmarkData);
+
+    // Firestore에 북마크 저장
+    const docRef = await addDoc(collection(db, "bookmarks"), {
+      title: bookmarkData.title,
+      url: bookmarkData.url,
+      description: bookmarkData.description || "",
+      pageTitle: bookmarkData.pageTitle || bookmarkData.title,
+      userId: bookmarkData.userId,
+      createdAt: new Date(bookmarkData.createdAt),
+      updatedAt: new Date(),
+    });
+
+    console.log("=== BOOKMARK SAVED SUCCESSFULLY ===", docRef.id);
+
+    return {
+      success: true,
+      bookmarkId: docRef.id,
+      message: "북마크가 성공적으로 저장되었습니다.",
+    };
+  } catch (error) {
+    console.error("=== BOOKMARK SAVE ERROR ===", error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+// 북마크 목록 가져오기
+async function loadBookmarks(userId) {
+  try {
+    const q = query(
+      collection(db, "bookmarks"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
+      limit(10)
+    );
+
+    const querySnapshot = await getDocs(q);
+    const bookmarks = [];
+
+    querySnapshot.forEach((doc) => {
+      bookmarks.push({
+        id: doc.id,
+        ...doc.data(),
+      });
+    });
+
+    return bookmarks;
+  } catch (error) {
+    console.error("북마크 로드 오류:", error);
+    return [];
+  }
+}
+
+// 북마크 목록 표시
+function displayBookmarks(bookmarks) {
+  bookmarksList.innerHTML = "";
+
+  if (bookmarks.length === 0) {
+    bookmarksList.innerHTML = "<p>저장된 북마크가 없습니다.</p>";
+    return;
+  }
+
+  bookmarks.forEach((bookmark) => {
+    const bookmarkElement = document.createElement("div");
+    bookmarkElement.className = "bookmark-item";
+    bookmarkElement.innerHTML = `
+      <h3>${bookmark.title}</h3>
+      <p><a href="${bookmark.url}" target="_blank">${bookmark.url}</a></p>
+      ${bookmark.description ? `<p>${bookmark.description}</p>` : ""}
+      <small>저장일: ${bookmark.createdAt.toDate().toLocaleString()}</small>
+    `;
+    bookmarksList.appendChild(bookmarkElement);
+  });
+}
+
 window.addEventListener("message", async function ({ data, origin }) {
-  console.log("Received message:", {
+  console.log("=== FIREBASE RECEIVED MESSAGE ===", {
     data: data,
     origin: origin,
     parentFrame: PARENT_FRAME,
@@ -309,6 +436,18 @@ window.addEventListener("message", async function ({ data, origin }) {
     } finally {
       isProcessingAuth = false;
     }
+  } else if (data.saveBookmark) {
+    console.log("Received saveBookmark request", data);
+    let result;
+    try {
+      result = await saveBookmark(data.bookmark);
+      result.msgId = data.msgId; // 응답 식별자 포함
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
   }
 });
 

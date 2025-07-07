@@ -168,10 +168,13 @@
         position: relative;
         z-index: 1;
         margin-top: 6px;
+        gap: 10px;
+        flex-wrap: wrap;
       }
 
       #scrapeButton,
-      #signInButton {
+      #signInButton,
+      #saveBookmarkButton {
         padding: 16px 40px;
         border: none;
         border-radius: 16px;
@@ -187,6 +190,67 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+      }
+
+      .bookmark-section {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: rgba(248, 250, 252, 0.8);
+        border-radius: 20px;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02),
+          0 1px 2px rgba(0, 0, 0, 0.01);
+        border: 1px solid rgba(0, 0, 0, 0.03);
+        position: relative;
+        z-index: 1;
+      }
+
+      .bookmark-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+      }
+
+      .bookmark-input:focus {
+        outline: none;
+        border-color: #7873f5;
+        box-shadow: 0 0 0 3px rgba(120, 115, 245, 0.1);
+      }
+
+      .bookmark-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        font-size: 0.95rem;
+        margin-bottom: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .bookmark-textarea:focus {
+        outline: none;
+        border-color: #7873f5;
+        box-shadow: 0 0 0 3px rgba(120, 115, 245, 0.1);
+      }
+
+      .bookmark-info {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-bottom: 15px;
+        text-align: left;
+      }
+
+      .bookmark-url {
+        word-break: break-all;
+        color: #7873f5;
+        font-weight: 500;
       }
 
       #signOutButton {
@@ -258,12 +322,38 @@
         />
         <div class="button-group">
           <button id="signInButton"></button>
-        </div>
-        <div class="button-group">
           <button id="signOutButton"></button>
+          <button id="saveBookmarkButton" style="display: none">
+            북마크 저장
+          </button>
         </div>
       </div>
       <div id="userInfo"></div>
+
+      <!-- 북마크 저장 섹션 -->
+      <div id="bookmarkSection" class="bookmark-section" style="display: none">
+        <div class="bookmark-info">
+          <strong id="currentPageLabel">현재 페이지:</strong><br />
+          <span id="currentPageTitle" class="bookmark-url"></span><br />
+          <span id="currentPageUrl" class="bookmark-url"></span>
+        </div>
+
+        <input
+          type="text"
+          id="bookmarkTitle"
+          class="bookmark-input"
+          placeholder="북마크 제목을 입력하세요"
+        />
+        <textarea
+          id="bookmarkDescription"
+          class="bookmark-textarea"
+          placeholder="북마크 설명을 입력하세요 (선택사항)"
+        ></textarea>
+
+        <div class="button-group">
+          <button id="saveBookmarkConfirmButton">저장하기</button>
+        </div>
+      </div>
       <script src="popup.js"></script>
     </div>
   </body>

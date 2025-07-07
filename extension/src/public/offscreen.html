@@ -29,38 +29,6 @@
   <body>
     <div id="status">Offscreen Document Loading...</div>
 
-    <script>
-      console.log("=== OFFScreen HTML STARTING ===");
-      document.getElementById("status").textContent = "Offscreen HTML Loaded";
-
-      // 스크립트 로딩 상태 추적
-      window.offscreenLoaded = false;
-
-      // 오류 처리
-      window.addEventListener("error", function (e) {
-        console.error("=== OFFScreen HTML ERROR ===", e);
-        document.getElementById("status").textContent = "Error: " + e.message;
-      });
-    </script>
-
-    <script
-      src="offscreen.js"
-      onload="console.log('=== OFFScreen.js LOADED ===')"
-      onerror="console.error('=== OFFScreen.js LOAD ERROR ===')"
-    ></script>
-
-    <script>
-      console.log("=== OFFScreen HTML SCRIPTS COMPLETE ===");
-      document.getElementById("status").textContent = "Offscreen Ready";
-
-      // 5초 후에도 offscreen.js가 로드되지 않았다면 경고
-      setTimeout(() => {
-        if (!window.offscreenLoaded) {
-          console.warn("=== OFFScreen.js NOT LOADED AFTER 5 SECONDS ===");
-          document.getElementById("status").textContent =
-            "Warning: offscreen.js not loaded";
-        }
-      }, 5000);
-    </script>
+    <script src="offscreen.js"></script>
   </body>
 </html>

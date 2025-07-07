@@ -86,5 +86,41 @@
   "tooManyMessages": {
     "message": "너무 많은 메시지가 수신되었습니다.",
     "description": "메시지 과다 오류"
+  },
+  "saveBookmark": {
+    "message": "북마크 저장",
+    "description": "북마크 저장 버튼 텍스트"
+  },
+  "saveBookmarkTitle": {
+    "message": "북마크 제목을 입력하세요",
+    "description": "북마크 제목 입력 플레이스홀더"
+  },
+  "saveBookmarkDescription": {
+    "message": "북마크 설명을 입력하세요 (선택사항)",
+    "description": "북마크 설명 입력 플레이스홀더"
+  },
+  "saveBookmarkConfirm": {
+    "message": "저장하기",
+    "description": "북마크 저장 확인 버튼 텍스트"
+  },
+  "savingBookmark": {
+    "message": "저장 중...",
+    "description": "북마크 저장 진행 중 텍스트"
+  },
+  "bookmarkSaveSuccess": {
+    "message": "북마크가 성공적으로 저장되었습니다!",
+    "description": "북마크 저장 성공 메시지"
+  },
+  "bookmarkSaveError": {
+    "message": "북마크 저장 중 오류가 발생했습니다.",
+    "description": "북마크 저장 오류 메시지"
+  },
+  "bookmarkTitleRequired": {
+    "message": "북마크 제목을 입력해주세요.",
+    "description": "북마크 제목 필수 입력 메시지"
+  },
+  "currentPageInfo": {
+    "message": "현재 페이지:",
+    "description": "현재 페이지 정보 라벨"
   }
 }

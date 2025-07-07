@@ -109,6 +109,64 @@ async function getAuthFromOffscreen() {
   });
 }
 
+async function saveBookmarkToFirebase(bookmarkData) {
+  console.log("Saving bookmark to Firebase:", bookmarkData);
+
+  try {
+    await setupOffscreenDocument();
+  } catch (error) {
+    console.error(
+      "Failed to setup offscreen document for bookmark save:",
+      error
+    );
+    throw new Error("Offscreen 문서 설정에 실패했습니다: " + error.message);
+  }
+
+  return new Promise((resolve, reject) => {
+    console.log("Sending saveBookmark request to offscreen");
+
+    // 타임아웃 설정
+    const timeoutId = setTimeout(() => {
+      console.error("Timeout waiting for offscreen response");
+      reject(new Error("Offscreen 응답 대기 시간 초과"));
+    }, 60000);
+
+    chrome.runtime.sendMessage(
+      { action: "saveBookmark", target: "offscreen", bookmark: bookmarkData },
+      (response) => {
+        clearTimeout(timeoutId);
+        console.log(
+          "Background received bookmark save response from offscreen:",
+          response
+        );
+
+        if (chrome.runtime.lastError) {
+          console.error("Runtime error:", chrome.runtime.lastError);
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+
+        if (!response) {
+          console.error("No response received from offscreen");
+          reject(new Error("offscreen에서 응답을 받지 못했습니다."));
+          return;
+        }
+
+        if (response.error) {
+          console.error("Bookmark save error from offscreen:", response.error);
+          reject(new Error(response.error));
+        } else if (response.success) {
+          console.log("Bookmark saved successfully from offscreen:", response);
+          resolve(response.bookmark);
+        } else {
+          console.error("Invalid response format from offscreen:", response);
+          reject(new Error("북마크 저장 응답이 올바르지 않습니다."));
+        }
+      }
+    );
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Background received message:", message);
 
@@ -160,6 +218,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ success: true });
       }
     });
+
+    return true; // Indicates we will send a response asynchronously
+  } else if (message.action === "saveBookmark") {
+    console.log("Background received saveBookmark request");
+
+    // offscreen 문서를 통해 북마크 저장
+    saveBookmarkToFirebase(message.bookmark)
+      .then((result) => {
+        console.log("Bookmark saved successfully:", result);
+        sendResponse({ success: true, bookmark: result });
+      })
+      .catch((error) => {
+        console.error("Error saving bookmark:", error);
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === "string"
+            ? error
+            : error?.message || "북마크 저장 중 오류가 발생했습니다.";
+
+        sendResponse({ error: errorMessage });
+      });
 
     return true; // Indicates we will send a response asynchronously
   }

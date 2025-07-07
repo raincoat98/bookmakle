@@ -68,3 +68,5 @@ config.env
 
 # dataconnect generated files
 .dataconnect
+
+/dist
