@@ -17,20 +17,36 @@
 
 ## 설정
 
-1. **프로젝트 ID 설정**
+1. **환경변수 설정**
+
+   ```bash
+   # config.env 파일을 생성하고 Firebase 설정값을 입력
+   cp env.example config.env
+
+   # config.env 파일을 편집하여 실제 Firebase 설정값 입력
+   VITE_FIREBASE_API_KEY=your_api_key_here
+   VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+   VITE_FIREBASE_APP_ID=your_app_id
+   VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+   ```
+
+2. **프로젝트 ID 설정**
 
    ```bash
    # .firebaserc 파일에서 프로젝트 ID 변경
    # "your-firebase-project-id"를 실제 프로젝트 ID로 변경
    ```
 
-2. **Firebase CLI 로그인**
+3. **Firebase CLI 로그인**
 
    ```bash
    npx firebase login
    ```
 
-3. **프로젝트 초기화**
+4. **프로젝트 초기화**
    ```bash
    npx firebase use --add
    ```
@@ -62,7 +78,10 @@ firebase/
 │   └── signInWithPopup.js
 ├── firebase.json     # Firebase 설정
 ├── .firebaserc       # 프로젝트 설정
-└── package.json      # 스크립트 및 의존성
+├── package.json      # 스크립트 및 의존성
+├── config.env        # 환경변수 (Git에 포함되지 않음)
+├── env.example       # 환경변수 예시
+└── vite.config.js    # Vite 설정
 ```
 
 ## 주의사항
@@ -70,3 +89,5 @@ firebase/
 - Node.js 20.0.0 이상이 필요합니다
 - Firebase 프로젝트가 생성되어 있어야 합니다
 - .firebaserc 파일의 프로젝트 ID를 실제 ID로 변경해야 합니다
+- config.env 파일에 실제 Firebase 설정값을 입력해야 합니다
+- config.env 파일은 Git에 포함되지 않으므로 각 개발자가 개별적으로 설정해야 합니다

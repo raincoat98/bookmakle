@@ -14,7 +14,8 @@
   ],
   "host_permissions": [
     "https://*.firebaseapp.com/*",
-    "https://bookmarkhub-5ea6c.web.app/*"
+    "https://bookmarkhub-5ea6c.web.app/*",
+    "https://*.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js",
@@ -25,12 +26,8 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["offscreen.html"],
+      "resources": ["offscreen.html", "offscreen.js"],
       "matches": ["<all_urls>"]
     }
-  ],
-  "oauth2": {
-    "client_id": "your_client_id",
-    "scopes": ["openid", "email", "profile"]
-  }
+  ]
 }

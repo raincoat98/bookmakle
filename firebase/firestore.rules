@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 북마크 컬렉션 규칙
+    match /bookmarks/{bookmarkId} {
+      // 인증된 사용자만 읽기/쓰기 가능
+      allow read, write: if request.auth != null;
+      
+      // 사용자는 자신의 북마크만 읽기/쓰기 가능
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // 기본적으로 모든 접근 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

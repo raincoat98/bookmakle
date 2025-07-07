@@ -1,50 +1,107 @@
-const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
+const OFFSCREEN_DOCUMENT_PATH = chrome.runtime.getURL("offscreen.html");
 const FIREBASE_HOSTING_URL = "https://bookmarkhub-5ea6c.web.app";
+
+console.log("Offscreen document path:", OFFSCREEN_DOCUMENT_PATH);
 
 let creatingOffscreenDocument;
 
 async function hasOffscreenDocument() {
-  const matchedClients = await clients.matchAll();
-  return matchedClients.some((client) =>
-    client.url.endsWith(OFFSCREEN_DOCUMENT_PATH)
-  );
+  try {
+    const matchedClients = await clients.matchAll();
+    const hasOffscreen = matchedClients.some((client) =>
+      client.url.includes("offscreen.html")
+    );
+    console.log("Checking for offscreen document:", hasOffscreen);
+    console.log(
+      "Matched clients:",
+      matchedClients.map((c) => c.url)
+    );
+    return hasOffscreen;
+  } catch (error) {
+    console.error("Error checking for offscreen document:", error);
+    return false;
+  }
 }
 
 async function setupOffscreenDocument() {
-  if (await hasOffscreenDocument()) return;
+  console.log("Setting up offscreen document...");
 
-  if (creatingOffscreenDocument) {
-    await creatingOffscreenDocument;
-  } else {
-    creatingOffscreenDocument = chrome.offscreen.createDocument({
-      url: OFFSCREEN_DOCUMENT_PATH,
-      reasons: [chrome.offscreen.Reason.DOM_SCRAPING],
-      justification: "Firebase Authentication",
-    });
-    await creatingOffscreenDocument;
-    creatingOffscreenDocument = null;
+  try {
+    if (await hasOffscreenDocument()) {
+      console.log("Offscreen document already exists");
+      return;
+    }
+
+    if (creatingOffscreenDocument) {
+      console.log(
+        "Offscreen document creation already in progress, waiting..."
+      );
+      await creatingOffscreenDocument;
+    } else {
+      console.log("Creating new offscreen document...");
+      console.log("Document URL:", OFFSCREEN_DOCUMENT_PATH);
+
+      creatingOffscreenDocument = chrome.offscreen.createDocument({
+        url: OFFSCREEN_DOCUMENT_PATH,
+        reasons: [chrome.offscreen.Reason.DOM_SCRAPING],
+        justification: "Firebase Authentication",
+      });
+
+      await creatingOffscreenDocument;
+      creatingOffscreenDocument = null;
+      console.log("Offscreen document created successfully");
+    }
+  } catch (error) {
+    console.error("Error setting up offscreen document:", error);
+    throw error;
   }
 }
 
 async function getAuthFromOffscreen() {
-  await setupOffscreenDocument();
+  console.log("Getting auth from offscreen...");
+
+  try {
+    await setupOffscreenDocument();
+  } catch (error) {
+    console.error("Failed to setup offscreen document:", error);
+    throw new Error("Offscreen 문서 설정에 실패했습니다: " + error.message);
+  }
+
   return new Promise((resolve, reject) => {
+    console.log("Sending getAuth request to offscreen");
+
+    // 타임아웃 설정
+    const timeoutId = setTimeout(() => {
+      console.error("Timeout waiting for offscreen response");
+      reject(new Error("Offscreen 응답 대기 시간 초과"));
+    }, 30000);
+
     chrome.runtime.sendMessage(
       { action: "getAuth", target: "offscreen" },
       (response) => {
-        console.log("Background received response:", response);
+        clearTimeout(timeoutId);
+        console.log("Background received response from offscreen:", response);
 
         if (chrome.runtime.lastError) {
           console.error("Runtime error:", chrome.runtime.lastError);
           reject(new Error(chrome.runtime.lastError.message));
-        } else if (response && response.error) {
-          console.error("Auth error:", response.error);
+          return;
+        }
+
+        if (!response) {
+          console.error("No response received from offscreen");
+          reject(new Error("offscreen에서 응답을 받지 못했습니다."));
+          return;
+        }
+
+        if (response.error) {
+          console.error("Auth error from offscreen:", response.error);
           reject(new Error(response.error));
-        } else if (response && response.user) {
-          console.log("Auth success:", response.user);
+        } else if (response.user) {
+          console.log("Auth success from offscreen:", response.user);
           resolve(response.user);
         } else {
-          console.error("Invalid response:", response);
+          console.error("Invalid response format from offscreen:", response);
           reject(new Error("인증 응답이 올바르지 않습니다."));
         }
       }
@@ -53,17 +110,31 @@ async function getAuthFromOffscreen() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("Background received message:", message);
+
   if (message.action === "signIn") {
     console.log("Background received signIn request");
+
     getAuthFromOffscreen()
       .then((user) => {
-        console.log("Storing user data:", user);
+        console.log("Authentication successful, storing user data:", user);
+
+        // 사용자 데이터를 storage에 저장
         chrome.storage.local.set({ user: user }, () => {
-          sendResponse({ user: user });
+          if (chrome.runtime.lastError) {
+            console.error("Error storing user data:", chrome.runtime.lastError);
+            sendResponse({
+              error: "사용자 데이터 저장 중 오류가 발생했습니다.",
+            });
+          } else {
+            console.log("User data stored successfully");
+            sendResponse({ user: user });
+          }
         });
       })
       .catch((error) => {
         console.error("Authentication error:", error);
+
         // 오류 객체를 올바르게 처리
         const errorMessage =
           error instanceof Error
@@ -71,14 +142,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             : typeof error === "string"
             ? error
             : error?.message || "알 수 없는 인증 오류가 발생했습니다.";
+
+        console.log("Sending error response:", errorMessage);
         sendResponse({ error: errorMessage });
       });
+
     return true; // Indicates we will send a response asynchronously
   } else if (message.action === "signOut") {
     console.log("Background received signOut request");
+
     chrome.storage.local.remove("user", () => {
-      sendResponse();
+      if (chrome.runtime.lastError) {
+        console.error("Error removing user data:", chrome.runtime.lastError);
+        sendResponse({ error: "로그아웃 중 오류가 발생했습니다." });
+      } else {
+        console.log("User data removed successfully");
+        sendResponse({ success: true });
+      }
     });
-    return true;
+
+    return true; // Indicates we will send a response asynchronously
   }
 });
+
+console.log("Background script loaded");

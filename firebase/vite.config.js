@@ -1,31 +1,37 @@
-import { defineConfig } from "vite";
-import { resolve } from "path";
+import { defineConfig, loadEnv } from "vite";
 
-export default defineConfig({
-  build: {
-    outDir: "public",
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, "public/index.html"),
-        config: resolve(__dirname, "public/config.html"),
-      },
+export default defineConfig(({ mode }) => {
+  // 환경변수 로드
+  const env = loadEnv(mode, process.cwd(), "");
+
+  return {
+    server: {
+      port: 3000,
+      open: true,
     },
-  },
-  server: {
-    port: 3000,
-    open: true,
-  },
-  plugins: [
-    {
-      name: "copy-env-files",
-      generateBundle() {
-        // env.js 파일을 public으로 복사
-        this.emitFile({
-          type: "asset",
-          fileName: "env.js",
-          source: require("fs").readFileSync(resolve(__dirname, "env.js")),
-        });
-      },
+    define: {
+      // 환경변수를 클라이언트에서 사용할 수 있도록 설정
+      "import.meta.env.VITE_FIREBASE_API_KEY": JSON.stringify(
+        env.VITE_FIREBASE_API_KEY
+      ),
+      "import.meta.env.VITE_FIREBASE_AUTH_DOMAIN": JSON.stringify(
+        env.VITE_FIREBASE_AUTH_DOMAIN
+      ),
+      "import.meta.env.VITE_FIREBASE_PROJECT_ID": JSON.stringify(
+        env.VITE_FIREBASE_PROJECT_ID
+      ),
+      "import.meta.env.VITE_FIREBASE_STORAGE_BUCKET": JSON.stringify(
+        env.VITE_FIREBASE_STORAGE_BUCKET
+      ),
+      "import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID": JSON.stringify(
+        env.VITE_FIREBASE_MESSAGING_SENDER_ID
+      ),
+      "import.meta.env.VITE_FIREBASE_APP_ID": JSON.stringify(
+        env.VITE_FIREBASE_APP_ID
+      ),
+      "import.meta.env.VITE_FIREBASE_MEASUREMENT_ID": JSON.stringify(
+        env.VITE_FIREBASE_MEASUREMENT_ID
+      ),
     },
-  ],
+  };
 });
