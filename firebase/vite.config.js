@@ -1,10 +1,19 @@
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
-  // 환경변수 로드
   const env = loadEnv(mode, process.cwd(), "");
 
   return {
+    root: ".",
+    publicDir: "public",
+    build: {
+      outDir: "dist",
+      rollupOptions: {
+        input: {
+          main: "index.html",
+        },
+      },
+    },
     server: {
       port: 3000,
       open: true,
