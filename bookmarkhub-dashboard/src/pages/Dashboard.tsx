@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "../components/Header";
 import { CollectionList } from "../components/CollectionList";
 import { BookmarkList } from "../components/BookmarkList";
@@ -26,6 +26,27 @@ export const Dashboard = () => {
   } = useCollections(user?.uid || "");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 모바일 화면 크기 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // 모바일에서 컬렉션 선택 시 사이드바 닫기
+  const handleCollectionChange = (collectionId: string) => {
+    setSelectedCollection(collectionId);
+    if (isMobile) {
+      setIsSidebarOpen(false);
+    }
+  };
 
   const handleAddBookmark = async (bookmarkData: BookmarkFormData) => {
     await addBookmark(bookmarkData);
@@ -44,29 +65,60 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
+      <Header
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        showMenuButton={isMobile}
+      />
 
-      <div className="flex h-[calc(100vh-4rem)]">
-        <CollectionList
-          collections={collections}
-          loading={collectionsLoading}
-          selectedCollection={selectedCollection}
-          onCollectionChange={setSelectedCollection}
-          onAddCollection={handleAddCollection}
-        />
+      <div className="flex h-[calc(100vh-4rem)] relative">
+        {/* 사이드바 오버레이 (모바일) */}
+        {isMobile && isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
 
-        <div className="flex-1 flex flex-col">
-          <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        {/* 사이드바 */}
+        <div
+          className={`
+          ${
+            isMobile
+              ? `fixed top-16 left-0 h-full z-50 transform transition-transform duration-300 ease-in-out ${
+                  isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                }`
+              : "relative"
+          }
+          ${!isMobile ? "w-64" : "w-80"}
+        `}
+        >
+          <CollectionList
+            collections={collections}
+            loading={collectionsLoading}
+            selectedCollection={selectedCollection}
+            onCollectionChange={handleCollectionChange}
+            onAddCollection={handleAddCollection}
+          />
+        </div>
+
+        {/* 메인 콘텐츠 */}
+        <div
+          className={`
+          flex-1 flex flex-col
+          ${isMobile && isSidebarOpen ? "hidden" : ""}
+        `}
+        >
+          <div className="flex justify-between items-center p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
               {getSelectedCollectionName()}
             </h2>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="btn-primary flex items-center space-x-2"
+              className="btn-primary flex items-center space-x-2 text-sm lg:text-base"
               disabled={collections.length === 0}
             >
               <svg
-                className="w-5 h-5"
+                className="w-4 h-4 lg:w-5 lg:h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -78,7 +130,7 @@ export const Dashboard = () => {
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              <span>북마크 추가</span>
+              <span className="hidden sm:inline">북마크 추가</span>
             </button>
           </div>
 

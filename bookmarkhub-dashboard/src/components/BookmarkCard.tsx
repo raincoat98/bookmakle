@@ -24,23 +24,23 @@ export const BookmarkCard = ({
   };
 
   return (
-    <div className="card p-4 hover:shadow-lg transition-shadow duration-200">
+    <div className="card p-4 lg:p-5 hover:shadow-lg transition-shadow duration-200">
       <div className="flex justify-between items-start mb-3">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+          <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white truncate">
             {bookmark.title}
           </h3>
-          <p className="text-sm text-blue-600 dark:text-blue-400 truncate">
+          <p className="text-xs lg:text-sm text-blue-600 dark:text-blue-400 truncate mt-1">
             {bookmark.url}
           </p>
         </div>
         <button
           onClick={handleDelete}
-          className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors duration-200"
+          className="ml-2 p-2 lg:p-1 text-gray-400 hover:text-red-500 transition-colors duration-200 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
           title="삭제"
         >
           <svg
-            className="w-5 h-5"
+            className="w-4 h-4 lg:w-5 lg:h-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -56,29 +56,50 @@ export const BookmarkCard = ({
       </div>
 
       {bookmark.description && (
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+        <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
           {bookmark.description}
         </p>
       )}
 
-      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
         {bookmark.collection && (
-          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs">
             {getCollectionName(bookmark.collection)}
           </span>
         )}
-        <span>{bookmark.createdAt.toLocaleDateString()}</span>
+        <span className="text-xs">
+          {bookmark.createdAt.toLocaleDateString()}
+        </span>
       </div>
 
-      <div className="mt-3">
+      <div className="flex space-x-2">
         <a
           href={bookmark.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-secondary text-sm w-full text-center"
+          className="flex-1 btn-primary text-xs lg:text-sm py-2 lg:py-2.5 text-center font-medium"
         >
           방문하기
         </a>
+        <button
+          onClick={() => window.open(bookmark.url, "_blank")}
+          className="p-2 lg:p-2.5 btn-secondary text-xs lg:text-sm rounded-lg"
+          title="새 탭에서 열기"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );

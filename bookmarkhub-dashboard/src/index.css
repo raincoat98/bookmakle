@@ -5,6 +5,20 @@
 @layer base {
   html {
     font-family: system-ui, sans-serif;
+    /* 모바일에서 스크롤 부드럽게 */
+    scroll-behavior: smooth;
+  }
+
+  /* 모바일에서 터치 하이라이트 제거 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 모바일에서 텍스트 선택 최적화 */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -19,5 +33,27 @@
 
   .card {
     @apply bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700;
+  }
+
+  /* 모바일 터치 버튼 최적화 */
+  .btn-touch {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  /* 모바일 스크롤바 숨기기 */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 모바일에서 안전 영역 고려 */
+  .safe-area {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
