@@ -70,3 +70,4 @@ config.env
 .dataconnect
 
 /dist
+/dashboard-dist
