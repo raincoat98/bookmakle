@@ -4,25 +4,21 @@ import type { BookmarkFormData, Collection } from "../types";
 interface AddBookmarkModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (bookmark: BookmarkFormData) => Promise<void>;
+  onAdd: (bookmarkData: BookmarkFormData) => Promise<void>;
+  collections: Collection[];
 }
-
-const collections: { id: Collection; name: string }[] = [
-  { id: "default", name: "기본" },
-  { id: "work", name: "Work" },
-  { id: "personal", name: "Personal" },
-];
 
 export const AddBookmarkModal = ({
   isOpen,
   onClose,
   onAdd,
+  collections,
 }: AddBookmarkModalProps) => {
   const [formData, setFormData] = useState<BookmarkFormData>({
     title: "",
     url: "",
     description: "",
-    collection: "default",
+    collection: collections.length > 0 ? collections[0].id : "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +33,7 @@ export const AddBookmarkModal = ({
         title: "",
         url: "",
         description: "",
-        collection: "default",
+        collection: collections.length > 0 ? collections[0].id : "",
       });
       onClose();
     } catch (error) {
@@ -48,39 +44,27 @@ export const AddBookmarkModal = ({
     }
   };
 
+  // 컬렉션이 변경될 때 formData 업데이트
+  const updateFormDataCollection = (collectionId: string) => {
+    setFormData({
+      ...formData,
+      collection: collectionId,
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            북마크 추가
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          새 북마크 추가
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              제목 *
+              제목
             </label>
             <input
               type="text"
@@ -89,13 +73,14 @@ export const AddBookmarkModal = ({
                 setFormData({ ...formData, title: e.target.value })
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="북마크 제목"
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              URL *
+              URL
             </label>
             <input
               type="url"
@@ -104,6 +89,7 @@ export const AddBookmarkModal = ({
                 setFormData({ ...formData, url: e.target.value })
               }
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://example.com"
               required
             />
           </div>
@@ -119,6 +105,7 @@ export const AddBookmarkModal = ({
               }
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="북마크에 대한 설명 (선택사항)"
             />
           </div>
 
@@ -128,17 +115,12 @@ export const AddBookmarkModal = ({
             </label>
             <select
               value={formData.collection}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  collection: e.target.value as Collection,
-                })
-              }
+              onChange={(e) => updateFormDataCollection(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               {collections.map((collection) => (
                 <option key={collection.id} value={collection.id}>
-                  {collection.name}
+                  {collection.icon} {collection.name}
                 </option>
               ))}
             </select>

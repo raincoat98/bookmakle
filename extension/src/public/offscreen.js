@@ -351,6 +351,225 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     waitForIframeReady();
     return true;
+  } else if (
+    message.action === "getCollections" &&
+    message.target === "offscreen"
+  ) {
+    console.log("=== PROCESSING GETCOLLECTIONS REQUEST ===", message.userId);
+    console.log("=== IFRAME STATUS ===", { iframeLoaded, iframeReady });
+
+    // iframe이 준비될 때까지 대기
+    const waitForIframeReady = () => {
+      console.log("=== CHECKING IFRAME READY STATUS ===", {
+        iframeLoaded,
+        iframeReady,
+      });
+      if (iframeLoaded && iframeReady) {
+        console.log("=== IFRAME IS READY, SENDING COLLECTIONS REQUEST ===");
+        sendCollectionsRequestToIframe();
+      } else {
+        console.log("=== IFRAME NOT READY, WAITING... ===");
+        setTimeout(waitForIframeReady, 1000);
+      }
+    };
+
+    function sendCollectionsRequestToIframe() {
+      const msgId =
+        "collections-" +
+        Date.now() +
+        "-" +
+        Math.random().toString(36).substr(2, 9);
+      const collectionsMsg = {
+        getCollections: true,
+        userId: message.userId,
+        msgId: msgId,
+      };
+
+      console.log("=== PREPARING COLLECTIONS REQUEST ===", collectionsMsg);
+
+      // 응답 핸들러
+      function handleIframeResponse(event) {
+        console.log("=== RECEIVED MESSAGE IN COLLECTIONS HANDLER ===", event);
+
+        if (!event.origin.startsWith(FIREBASE_HOSTING_URL)) {
+          console.log(
+            "=== IGNORING MESSAGE FROM WRONG ORIGIN ===",
+            event.origin
+          );
+          return;
+        }
+
+        try {
+          const data =
+            typeof event.data === "string"
+              ? JSON.parse(event.data)
+              : event.data;
+          console.log("=== PARSED COLLECTIONS RESPONSE ===", data);
+
+          if (data && data.msgId === msgId) {
+            console.log("=== MATCHING MSGID FOUND, SENDING RESPONSE ===", data);
+            window.removeEventListener("message", handleIframeResponse);
+            clearTimeout(timeoutId);
+            sendResponse(data);
+          } else {
+            console.log("=== MSGID MISMATCH OR NO MSGID ===", {
+              receivedMsgId: data?.msgId,
+              expectedMsgId: msgId,
+            });
+          }
+        } catch (e) {
+          console.error("=== ERROR PARSING COLLECTIONS RESPONSE ===", e);
+        }
+      }
+
+      window.addEventListener("message", handleIframeResponse);
+
+      // 실제 요청 전송
+      try {
+        console.log("=== SENDING COLLECTIONS REQUEST TO IFRAME ===");
+        iframe.contentWindow.postMessage(collectionsMsg, FIREBASE_HOSTING_URL);
+        console.log("=== COLLECTIONS REQUEST SENT SUCCESSFULLY ===");
+      } catch (e) {
+        console.error("=== ERROR SENDING COLLECTIONS REQUEST ===", e);
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({ error: "iframe 통신 오류: " + e.message });
+        return;
+      }
+
+      // 타임아웃 처리
+      const timeoutId = setTimeout(() => {
+        console.log("=== COLLECTIONS REQUEST TIMEOUT ===");
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({ error: "컬렉션 요청 응답 시간이 초과되었습니다." });
+      }, 30000);
+    }
+
+    waitForIframeReady();
+    return true;
+  } else if (
+    message.action === "createDefaultCollections" &&
+    message.target === "offscreen"
+  ) {
+    console.log(
+      "=== PROCESSING CREATEDEFAULTCOLLECTIONS REQUEST ===",
+      message.userId
+    );
+    console.log("=== IFRAME STATUS ===", { iframeLoaded, iframeReady });
+
+    // iframe이 준비될 때까지 대기
+    const waitForIframeReady = () => {
+      console.log("=== CHECKING IFRAME READY STATUS ===", {
+        iframeLoaded,
+        iframeReady,
+      });
+      if (iframeLoaded && iframeReady) {
+        console.log(
+          "=== IFRAME IS READY, SENDING CREATE DEFAULT COLLECTIONS REQUEST ==="
+        );
+        sendCreateDefaultCollectionsRequestToIframe();
+      } else {
+        console.log("=== IFRAME NOT READY, WAITING... ===");
+        setTimeout(waitForIframeReady, 1000);
+      }
+    };
+
+    function sendCreateDefaultCollectionsRequestToIframe() {
+      const msgId =
+        "createDefaultCollections-" +
+        Date.now() +
+        "-" +
+        Math.random().toString(36).substr(2, 9);
+      const createDefaultCollectionsMsg = {
+        createDefaultCollections: true,
+        userId: message.userId,
+        msgId: msgId,
+      };
+
+      console.log(
+        "=== PREPARING CREATE DEFAULT COLLECTIONS REQUEST ===",
+        createDefaultCollectionsMsg
+      );
+
+      // 응답 핸들러
+      function handleIframeResponse(event) {
+        console.log(
+          "=== RECEIVED MESSAGE IN CREATE DEFAULT COLLECTIONS HANDLER ===",
+          event
+        );
+
+        if (!event.origin.startsWith(FIREBASE_HOSTING_URL)) {
+          console.log(
+            "=== IGNORING MESSAGE FROM WRONG ORIGIN ===",
+            event.origin
+          );
+          return;
+        }
+
+        try {
+          const data =
+            typeof event.data === "string"
+              ? JSON.parse(event.data)
+              : event.data;
+          console.log(
+            "=== PARSED CREATE DEFAULT COLLECTIONS RESPONSE ===",
+            data
+          );
+
+          if (data && data.msgId === msgId) {
+            console.log("=== MATCHING MSGID FOUND, SENDING RESPONSE ===", data);
+            window.removeEventListener("message", handleIframeResponse);
+            clearTimeout(timeoutId);
+            sendResponse(data);
+          } else {
+            console.log("=== MSGID MISMATCH OR NO MSGID ===", {
+              receivedMsgId: data?.msgId,
+              expectedMsgId: msgId,
+            });
+          }
+        } catch (e) {
+          console.error(
+            "=== ERROR PARSING CREATE DEFAULT COLLECTIONS RESPONSE ===",
+            e
+          );
+        }
+      }
+
+      window.addEventListener("message", handleIframeResponse);
+
+      // 실제 요청 전송
+      try {
+        console.log(
+          "=== SENDING CREATE DEFAULT COLLECTIONS REQUEST TO IFRAME ==="
+        );
+        iframe.contentWindow.postMessage(
+          createDefaultCollectionsMsg,
+          FIREBASE_HOSTING_URL
+        );
+        console.log(
+          "=== CREATE DEFAULT COLLECTIONS REQUEST SENT SUCCESSFULLY ==="
+        );
+      } catch (e) {
+        console.error(
+          "=== ERROR SENDING CREATE DEFAULT COLLECTIONS REQUEST ===",
+          e
+        );
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({ error: "iframe 통신 오류: " + e.message });
+        return;
+      }
+
+      // 타임아웃 처리
+      const timeoutId = setTimeout(() => {
+        console.log("=== CREATE DEFAULT COLLECTIONS REQUEST TIMEOUT ===");
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({
+          error: "기본 컬렉션 생성 요청 응답 시간이 초과되었습니다.",
+        });
+      }, 30000);
+    }
+
+    waitForIframeReady();
+    return true;
   }
 });
 

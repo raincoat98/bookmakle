@@ -1,15 +1,26 @@
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
+  collections: Collection[];
   onDelete: (id: string) => void;
 }
 
-export const BookmarkCard = ({ bookmark, onDelete }: BookmarkCardProps) => {
+export const BookmarkCard = ({
+  bookmark,
+  collections,
+  onDelete,
+}: BookmarkCardProps) => {
   const handleDelete = () => {
     if (confirm("이 북마크를 삭제하시겠습니까?")) {
       onDelete(bookmark.id);
     }
+  };
+
+  // 컬렉션 ID로 컬렉션 이름 찾기
+  const getCollectionName = (collectionId: string) => {
+    const collection = collections.find((c) => c.id === collectionId);
+    return collection ? collection.name : collectionId;
   };
 
   return (
@@ -51,9 +62,11 @@ export const BookmarkCard = ({ bookmark, onDelete }: BookmarkCardProps) => {
       )}
 
       <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-        <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
-          {bookmark.collection}
-        </span>
+        {bookmark.collection && (
+          <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+            {getCollectionName(bookmark.collection)}
+          </span>
+        )}
         <span>{bookmark.createdAt.toLocaleDateString()}</span>
       </div>
 

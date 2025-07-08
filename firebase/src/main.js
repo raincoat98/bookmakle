@@ -277,6 +277,8 @@ async function saveBookmark(bookmarkData) {
       description: bookmarkData.description || "",
       pageTitle: bookmarkData.pageTitle || bookmarkData.title,
       userId: bookmarkData.userId,
+      collection: bookmarkData.collection || null,
+      tags: bookmarkData.tags || [],
       createdAt: new Date(bookmarkData.createdAt),
       updatedAt: new Date(),
     });
@@ -297,6 +299,123 @@ async function saveBookmark(bookmarkData) {
   }
 }
 
+// 기본 컬렉션 데이터
+const defaultCollections = [
+  {
+    name: "업무",
+    icon: "💼",
+    description: "업무 관련 북마크",
+  },
+  {
+    name: "개인",
+    icon: "🏠",
+    description: "개인 관련 북마크",
+  },
+  {
+    name: "학습",
+    icon: "📚",
+    description: "학습 관련 북마크",
+  },
+  {
+    name: "즐겨찾기",
+    icon: "⭐",
+    description: "자주 사용하는 북마크",
+  },
+  {
+    name: "개발",
+    icon: "💻",
+    description: "개발 관련 북마크",
+  },
+  {
+    name: "디자인",
+    icon: "🎨",
+    description: "디자인 관련 북마크",
+  },
+];
+
+// 기본 컬렉션 생성 함수
+async function createDefaultCollections(userId) {
+  try {
+    console.log("=== CREATING DEFAULT COLLECTIONS FOR USER ===", userId);
+
+    for (const collectionData of defaultCollections) {
+      const docRef = await addDoc(collection(db, "collections"), {
+        name: collectionData.name,
+        icon: collectionData.icon,
+        description: collectionData.description,
+        userId: userId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      console.log(
+        `=== COLLECTION CREATED: ${collectionData.name} (ID: ${docRef.id}) ===`
+      );
+    }
+
+    console.log("=== ALL DEFAULT COLLECTIONS CREATED SUCCESSFULLY ===");
+    return true;
+  } catch (error) {
+    console.error("=== ERROR CREATING DEFAULT COLLECTIONS ===", error);
+    return false;
+  }
+}
+
+// 컬렉션 목록 가져오기
+async function loadCollections(userId) {
+  try {
+    console.log("=== LOADING COLLECTIONS FOR USER ===", userId);
+
+    const q = query(
+      collection(db, "collections"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    const collections = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      collections.push({
+        id: doc.id,
+        name: data.name || "",
+        icon: data.icon || "",
+        userId: data.userId,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      });
+    });
+
+    console.log("=== COLLECTIONS LOADED SUCCESSFULLY ===", collections);
+
+    // 컬렉션이 없으면 기본 컬렉션 생성
+    if (collections.length === 0) {
+      console.log("=== NO COLLECTIONS FOUND, CREATING DEFAULT ONES ===");
+      await createDefaultCollections(userId);
+
+      // 다시 컬렉션 로드
+      const newQuerySnapshot = await getDocs(q);
+      newQuerySnapshot.forEach((doc) => {
+        const data = doc.data();
+        collections.push({
+          id: doc.id,
+          name: data.name || "",
+          icon: data.icon || "",
+          userId: data.userId,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+        });
+      });
+    }
+
+    return collections;
+  } catch (error) {
+    console.error("=== COLLECTIONS LOAD ERROR ===", error);
+    return [];
+  }
+}
+
 // 북마크 목록 가져오기
 async function loadBookmarks(userId) {
   try {
@@ -311,9 +430,18 @@ async function loadBookmarks(userId) {
     const bookmarks = [];
 
     querySnapshot.forEach((doc) => {
+      const data = doc.data();
       bookmarks.push({
         id: doc.id,
-        ...doc.data(),
+        title: data.title,
+        url: data.url,
+        description: data.description || "",
+        pageTitle: data.pageTitle || data.title,
+        userId: data.userId,
+        collection: data.collection || null,
+        tags: data.tags || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
       });
     });
 
@@ -340,6 +468,16 @@ function displayBookmarks(bookmarks) {
       <h3>${bookmark.title}</h3>
       <p><a href="${bookmark.url}" target="_blank">${bookmark.url}</a></p>
       ${bookmark.description ? `<p>${bookmark.description}</p>` : ""}
+      ${
+        bookmark.collection
+          ? `<p><strong>컬렉션:</strong> ${bookmark.collection}</p>`
+          : ""
+      }
+      ${
+        bookmark.tags && bookmark.tags.length > 0
+          ? `<p><strong>태그:</strong> ${bookmark.tags.join(", ")}</p>`
+          : ""
+      }
       <small>저장일: ${bookmark.createdAt.toDate().toLocaleString()}</small>
     `;
     bookmarksList.appendChild(bookmarkElement);
@@ -442,6 +580,37 @@ window.addEventListener("message", async function ({ data, origin }) {
     try {
       result = await saveBookmark(data.bookmark);
       result.msgId = data.msgId; // 응답 식별자 포함
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
+  } else if (data.getCollections) {
+    console.log("Received getCollections request", data);
+    let result;
+    try {
+      const collections = await loadCollections(data.userId);
+      result = {
+        success: true,
+        collections: collections,
+        msgId: data.msgId,
+      };
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
+  } else if (data.createDefaultCollections) {
+    console.log("Received createDefaultCollections request", data);
+    let result;
+    try {
+      const success = await createDefaultCollections(data.userId);
+      result = {
+        success: success,
+        msgId: data.msgId,
+      };
     } catch (error) {
       result = { error: error.message, msgId: data.msgId };
     }

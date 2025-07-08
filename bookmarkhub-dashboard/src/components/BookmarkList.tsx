@@ -1,14 +1,16 @@
 import { BookmarkCard } from "./BookmarkCard";
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
+  collections: Collection[];
   loading: boolean;
   onDelete: (id: string) => void;
 }
 
 export const BookmarkList = ({
   bookmarks,
+  collections,
   loading,
   onDelete,
 }: BookmarkListProps) => {
@@ -51,6 +53,7 @@ export const BookmarkList = ({
           <BookmarkCard
             key={bookmark.id}
             bookmark={bookmark}
+            collections={collections}
             onDelete={onDelete}
           />
         ))}

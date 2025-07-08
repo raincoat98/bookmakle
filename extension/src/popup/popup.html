@@ -13,6 +13,15 @@
         width: 400px;
         min-height: 480px;
       }
+
+      #toast {
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      }
+
+      #toast.show {
+        transform: translateX(0);
+      }
     </style>
   </head>
   <body
@@ -93,11 +102,15 @@
           ></textarea>
         </div>
         <div class="mb-3">
+          <label class="block text-xs text-gray-500 mb-1"
+            >컬렉션 (선택사항)</label
+          >
           <select
             id="collectionSelect"
             class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
           >
-            <option>기본 컬렉션</option>
+            <option value="">📄 컬렉션 없음</option>
+            <!-- 컬렉션 옵션들이 동적으로 로드됩니다 -->
           </select>
         </div>
         <div class="mb-3">
@@ -140,7 +153,7 @@
     </div>
     <div
       id="toast"
-      class="fixed top-5 right-5 z-50 hidden min-w-[180px] bg-indigo-600 text-white text-sm rounded-lg px-4 py-2 shadow-lg transition-opacity duration-300"
+      class="fixed top-4 right-4 z-50 hidden min-w-[200px] max-w-[300px] bg-gray-800 text-white text-sm rounded-lg px-4 py-3 shadow-xl border-l-4 border-green-400"
     ></div>
     <script src="popup.js"></script>
   </body>

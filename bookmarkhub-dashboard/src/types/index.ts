@@ -11,7 +11,7 @@ export interface Bookmark {
   title: string;
   url: string;
   description?: string;
-  collection: string;
+  collection: string | null;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -24,4 +24,19 @@ export interface BookmarkFormData {
   collection: string;
 }
 
-export type Collection = "all" | "default" | "work" | "personal";
+export interface Collection {
+  id: string;
+  name: string;
+  icon: string;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CollectionFormData {
+  name: string;
+  icon: string;
+}
+
+// 기존 하드코딩된 컬렉션 타입은 호환성을 위해 유지
+export type LegacyCollection = "all" | "default" | "work" | "personal";

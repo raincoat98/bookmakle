@@ -12,6 +12,37 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   let user = null;
   let currentTab = null;
+  let collections = [];
+
+  // toast 메시지 함수
+  function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    if (toast) {
+      toast.textContent = message;
+
+      // 메시지 타입에 따라 스타일 변경
+      if (type === "error") {
+        toast.className =
+          "fixed top-4 right-4 z-50 hidden min-w-[200px] max-w-[300px] bg-gray-800 text-white text-sm rounded-lg px-4 py-3 shadow-xl border-l-4 border-red-400";
+      } else {
+        toast.className =
+          "fixed top-4 right-4 z-50 hidden min-w-[200px] max-w-[300px] bg-gray-800 text-white text-sm rounded-lg px-4 py-3 shadow-xl border-l-4 border-green-400";
+      }
+
+      toast.classList.remove("hidden");
+      toast.classList.add("show");
+
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 300);
+      }, 3000);
+    } else {
+      // toast 요소가 없으면 alert로 폴백
+      alert(message);
+    }
+  }
 
   // 현재 탭 정보 가져오기
   async function getCurrentTab() {
@@ -22,6 +53,100 @@ document.addEventListener("DOMContentLoaded", async function () {
     return tab;
   }
 
+  // 컬렉션 목록 가져오기
+  async function loadCollections() {
+    if (!user) return;
+
+    try {
+      // 로딩 상태 표시
+      collectionSelect.innerHTML =
+        '<option value="">🔄 컬렉션 로딩 중...</option>';
+
+      // 백그라운드 스크립트를 통해 컬렉션 가져오기
+      chrome.runtime.sendMessage(
+        { action: "getCollections", userId: user.uid },
+        function (response) {
+          if (response && response.success) {
+            collections = response.collections;
+            console.log("Loaded collections from Firebase:", collections);
+
+            // 컬렉션이 없으면 기본 컬렉션 생성 요청
+            if (collections.length === 0) {
+              console.log(
+                "No collections found, creating default collections..."
+              );
+              collectionSelect.innerHTML =
+                '<option value="">🔄 기본 컬렉션 생성 중...</option>';
+
+              chrome.runtime.sendMessage(
+                { action: "createDefaultCollections", userId: user.uid },
+                function (createResponse) {
+                  if (createResponse && createResponse.success) {
+                    console.log("Default collections created successfully");
+                    // 기본 컬렉션 생성 후 다시 로드
+                    loadCollections();
+                  } else {
+                    console.error(
+                      "Failed to create default collections:",
+                      createResponse?.error
+                    );
+                    updateCollectionSelect();
+                  }
+                }
+              );
+            } else {
+              updateCollectionSelect();
+            }
+          } else {
+            console.error("Failed to load collections:", response?.error);
+            // 기본 컬렉션으로 폴백
+            collections = [];
+            updateCollectionSelect();
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Error loading collections:", error);
+      // 기본 컬렉션으로 폴백
+      collections = [];
+      updateCollectionSelect();
+    }
+  }
+
+  // 컬렉션 선택 옵션 업데이트
+  function updateCollectionSelect() {
+    // 기존 옵션들을 모두 제거하고 새로 생성
+    collectionSelect.innerHTML = "";
+
+    // "컬렉션 없음" 옵션 추가
+    const noCollectionOption = document.createElement("option");
+    noCollectionOption.value = "";
+    noCollectionOption.textContent = "📄 컬렉션 없음";
+    collectionSelect.appendChild(noCollectionOption);
+
+    collections.forEach((collection) => {
+      const option = document.createElement("option");
+      option.value = collection.id;
+      option.textContent = `${collection.icon} ${collection.name}`;
+      collectionSelect.appendChild(option);
+    });
+
+    // 컬렉션 선택 이벤트 리스너 추가
+    collectionSelect.addEventListener("change", function () {
+      const selectedCollectionId = this.value;
+      if (selectedCollectionId) {
+        const selectedCollection = collections.find(
+          (c) => c.id === selectedCollectionId
+        );
+        if (selectedCollection) {
+          console.log("Selected collection:", selectedCollection);
+        }
+      } else {
+        console.log("No collection selected");
+      }
+    });
+  }
+
   // 로그인 상태 UI 토글
   function updateUI(currentUser) {
     if (currentUser) {
@@ -30,12 +155,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       loginNotice.style.display = "none";
       saveBookmarkButton.disabled = false;
       signOutButton.style.display = "flex";
+      loadCollections(); // 컬렉션 로드
     } else {
       userInfo.textContent = "";
       signInButton.style.display = "flex";
       loginNotice.style.display = "flex";
       saveBookmarkButton.disabled = true;
       signOutButton.style.display = "none";
+      collections = [];
+      updateCollectionSelect();
     }
   }
 
@@ -56,34 +184,39 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
-  // 태그 추천 버튼 클릭 시 태그 입력란에 추가
+  // 저장된 사용자 정보 불러오기
+  chrome.storage.local.get(["user"], function (result) {
+    if (result.user) {
+      user = result.user;
+      updateUI(user);
+    }
+  });
+
+  // 현재 탭 정보 가져오기
+  getCurrentTab().then((tab) => {
+    currentTab = tab;
+    if (currentPageUrl) {
+      currentPageUrl.textContent = tab.url;
+    }
+  });
+
+  // 태그 버튼 클릭 이벤트
   tagBtns.forEach((btn) => {
     btn.addEventListener("click", function () {
-      const tag = btn.getAttribute("data-tag");
-      let tags = tagInput.value
+      const tag = this.getAttribute("data-tag");
+      const currentTags = tagInput.value
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
-      if (!tags.includes(tag)) {
-        tags.push(tag);
-        tagInput.value = tags.join(", ");
+
+      if (!currentTags.includes(tag)) {
+        const newTags = [...currentTags, tag];
+        tagInput.value = newTags.join(", ");
       }
     });
   });
 
-  // toast 메시지 함수
-  function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    toast.classList.add("opacity-100");
-    setTimeout(() => {
-      toast.classList.add("hidden");
-      toast.classList.remove("opacity-100");
-    }, 2000);
-  }
-
-  // 북마크 저장 버튼 클릭
+  // 북마크 저장 버튼 클릭 이벤트
   saveBookmarkButton.addEventListener("click", async function () {
     if (!user) return;
     console.log("user", user);
@@ -108,65 +241,46 @@ document.addEventListener("DOMContentLoaded", async function () {
         url: url,
         pageTitle: title,
         userId: user.uid,
-        collection: collection,
+        collection: collection || "",
         tags: tags,
         createdAt: new Date().toISOString(),
       };
 
-      // background.js에 북마크 저장 요청 전송
+      console.log("=== SAVING BOOKMARK ===", bookmarkData);
+
+      // 백그라운드 스크립트로 북마크 저장 요청
       chrome.runtime.sendMessage(
-        {
-          action: "saveBookmark",
-          bookmark: bookmarkData,
-        },
+        { action: "saveBookmark", bookmark: bookmarkData },
         function (response) {
+          if (response && response.success) {
+            console.log("북마크가 성공적으로 저장되었습니다.");
+            showToast("북마크가 성공적으로 저장되었습니다!");
+
+            // 폼 초기화
+            memoInput.value = "";
+            tagInput.value = "";
+            collectionSelect.selectedIndex = 0;
+          } else {
+            console.error("북마크 저장 실패:", response?.error);
+            showToast(
+              "북마크 저장에 실패했습니다: " +
+                (response?.error || "알 수 없는 오류"),
+              "error"
+            );
+          }
+
           // 버튼 상태 복원
           saveBookmarkButton.disabled = false;
           saveBookmarkButton.textContent = "북마크 저장";
-
-          if (chrome.runtime.lastError) {
-            console.error("Runtime error:", chrome.runtime.lastError);
-            showToast(
-              "오류가 발생했습니다: " +
-                (chrome.runtime.lastError.message || "알 수 없는 오류")
-            );
-            return;
-          }
-
-          if (!response) {
-            console.error("No response received from background");
-            showToast("서버 응답을 받지 못했습니다.");
-            return;
-          }
-
-          if (response.error) {
-            console.error("Bookmark save error:", response.error);
-            showToast("저장 실패: " + response.error);
-          } else {
-            console.log("Bookmark saved successfully:", response);
-            showToast("북마크가 저장되었습니다!");
-
-            // 입력 필드 초기화
-            memoInput.value = "";
-            tagInput.value = "";
-          }
         }
       );
     } catch (error) {
-      console.error("Error saving bookmark:", error);
+      console.error("북마크 저장 중 오류:", error);
+      showToast("북마크 저장 중 오류가 발생했습니다.", "error");
+
+      // 버튼 상태 복원
       saveBookmarkButton.disabled = false;
       saveBookmarkButton.textContent = "북마크 저장";
-      showToast("저장 중 오류가 발생했습니다.");
-    }
-  });
-
-  // 초기화: 로그인 상태, 탭 정보 표시
-  chrome.storage.local.get(["user"], async function (result) {
-    user = result.user;
-    updateUI(user);
-    currentTab = await getCurrentTab();
-    if (currentTab) {
-      currentPageUrl.textContent = currentTab.url;
     }
   });
 });
