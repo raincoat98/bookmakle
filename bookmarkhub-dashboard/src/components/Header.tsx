@@ -1,4 +1,5 @@
 import { useAuth } from "../hooks/useAuth";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -10,6 +11,14 @@ export const Header = ({
   showMenuButton = false,
 }: HeaderProps) => {
   const { user, login, logout } = useAuth();
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
@@ -69,6 +78,21 @@ export const Header = ({
                 <span className="sm:hidden">로그인</span>
               </button>
             )}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title={theme === "dark" ? "라이트 모드" : "다크 모드"}
+            >
+              {theme === "dark" ? (
+                <span role="img" aria-label="라이트 모드">
+                  ☀️
+                </span>
+              ) : (
+                <span role="img" aria-label="다크 모드">
+                  🌙
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
