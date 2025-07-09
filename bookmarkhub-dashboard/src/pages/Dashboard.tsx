@@ -30,6 +30,18 @@ export const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // 검색어에 따라 북마크 필터링
+  const filteredBookmarks = bookmarks.filter((b) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    return (
+      b.title.toLowerCase().includes(term) ||
+      (b.description && b.description.toLowerCase().includes(term)) ||
+      b.url.toLowerCase().includes(term)
+    );
+  });
 
   // 모바일 화면 크기 감지
   useEffect(() => {
@@ -143,8 +155,19 @@ export const Dashboard = () => {
             </button>
           </div>
 
+          {/* 검색 입력창 */}
+          <div className="p-4 lg:p-6 border-b border-gray-100 dark:border-gray-800">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="북마크 검색 (제목, 설명, URL)"
+              className="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
           <BookmarkList
-            bookmarks={bookmarks}
+            bookmarks={filteredBookmarks}
             collections={collections}
             loading={bookmarksLoading}
             onDelete={deleteBookmark}
