@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   const tagInput = document.getElementById("tagInput");
   const tagBtns = document.querySelectorAll(".tag-btn");
   const saveBookmarkButton = document.getElementById("saveBookmarkButton");
+  const mainContent = document.getElementById("mainContent");
 
   let user = null;
   let currentTab = null;
@@ -149,12 +150,14 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // 로그인 상태 UI 토글
   function updateUI(currentUser) {
+    console.log("currentUser", currentUser);
     if (currentUser) {
       userInfo.textContent = `${currentUser.email} 님, 환영합니다!`;
       signInButton.style.display = "none";
       loginNotice.style.display = "none";
       saveBookmarkButton.disabled = false;
       signOutButton.style.display = "flex";
+      if (mainContent) mainContent.style.display = "block";
       loadCollections(); // 컬렉션 로드
     } else {
       userInfo.textContent = "";
@@ -164,6 +167,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       signOutButton.style.display = "none";
       collections = [];
       updateCollectionSelect();
+      if (mainContent) mainContent.style.display = "none";
     }
   }
 
@@ -189,6 +193,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     if (result.user) {
       user = result.user;
       updateUI(user);
+    } else {
+      updateUI(null); // 로그인 안 한 상태도 명확히 처리!
     }
   });
 
@@ -196,6 +202,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   getCurrentTab().then((tab) => {
     currentTab = tab;
     if (currentPageUrl) {
+      console.log("tab.url", tab.url);
       currentPageUrl.textContent = tab.url;
     }
   });
@@ -284,3 +291,5 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 });
+
+console.log("load popup.js");

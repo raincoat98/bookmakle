@@ -38,6 +38,12 @@ export default defineConfig({
           fileName: "popup.html",
           source: readFileSync(resolve(__dirname, "src/popup/popup.html")),
         });
+        // 아이콘 파일 복사 추가
+        this.emitFile({
+          type: "asset",
+          fileName: "bookmark.png",
+          source: readFileSync(resolve(__dirname, "src/public/bookmark.png")),
+        });
 
         // _locales 폴더 복사
         const localesPath = resolve(__dirname, "src/public/_locales");

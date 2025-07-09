@@ -75,80 +75,82 @@
             Google로 로그인
           </button>
         </div>
-        <button
-          id="signOutButton"
-          class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow mb-2 flex items-center justify-center"
-          style="display: none"
-        >
-          로그아웃
-        </button>
-        <div class="mb-4">
-          <label class="block text-xs text-gray-500 mb-1">현재 페이지</label>
-          <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
-            <span
-              class="truncate text-sm font-semibold text-indigo-600"
-              id="currentPageUrl"
-            >
-              URL
-            </span>
+        <div id="mainContent">
+          <button
+            id="signOutButton"
+            class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow mb-2 flex items-center justify-center"
+            style="display: none"
+          >
+            로그아웃
+          </button>
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 mb-1">현재 페이지</label>
+            <div class="flex items-center bg-gray-100 rounded-lg px-3 py-2">
+              <span
+                class="truncate text-sm font-semibold text-indigo-600"
+                id="currentPageUrl"
+              >
+                URL
+              </span>
+            </div>
           </div>
-        </div>
-        <div class="mb-3">
-          <textarea
-            id="memoInput"
-            rows="2"
-            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            placeholder="이 페이지에 대한 메모를 작성하세요..."
-          ></textarea>
-        </div>
-        <div class="mb-3">
-          <label class="block text-xs text-gray-500 mb-1"
-            >컬렉션 (선택사항)</label
-          >
-          <select
-            id="collectionSelect"
-            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-          >
-            <option value="">📄 컬렉션 없음</option>
-            <!-- 컬렉션 옵션들이 동적으로 로드됩니다 -->
-          </select>
-        </div>
-        <div class="mb-3">
-          <input
-            id="tagInput"
-            class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-            placeholder="태그를 쉼표로 구분하여 입력하세요"
-          />
-        </div>
-        <div class="flex flex-wrap gap-2 mb-5">
+          <div class="mb-3">
+            <textarea
+              id="memoInput"
+              rows="2"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              placeholder="이 페이지에 대한 메모를 작성하세요..."
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="block text-xs text-gray-500 mb-1"
+              >컬렉션 (선택사항)</label
+            >
+            <select
+              id="collectionSelect"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            >
+              <option value="">📄 컬렉션 없음</option>
+              <!-- 컬렉션 옵션들이 동적으로 로드됩니다 -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <input
+              id="tagInput"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              placeholder="태그를 쉼표로 구분하여 입력하세요"
+            />
+          </div>
+          <div class="flex flex-wrap gap-2 mb-5">
+            <button
+              type="button"
+              class="tag-btn bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs"
+              data-tag="하이라이트"
+            >
+              ★ 하이라이트
+            </button>
+            <button
+              type="button"
+              class="tag-btn bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs"
+              data-tag="탭으로 열기"
+            >
+              탭으로 열기
+            </button>
+            <button
+              type="button"
+              class="tag-btn bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs"
+              data-tag="즐겨찾기"
+            >
+              ❤️ 즐겨찾기
+            </button>
+          </div>
           <button
-            type="button"
-            class="tag-btn bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs"
-            data-tag="하이라이트"
+            id="saveBookmarkButton"
+            class="w-full bg-gradient-to-r from-indigo-500 to-purple-400 hover:from-indigo-600 hover:to-purple-500 text-white font-bold py-3 rounded-xl shadow-lg text-base"
           >
-            ★ 하이라이트
-          </button>
-          <button
-            type="button"
-            class="tag-btn bg-blue-100 text-blue-600 px-2 py-1 rounded-full text-xs"
-            data-tag="탭으로 열기"
-          >
-            탭으로 열기
-          </button>
-          <button
-            type="button"
-            class="tag-btn bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs"
-            data-tag="즐겨찾기"
-          >
-            ❤️ 즐겨찾기
+            북마크 저장
           </button>
         </div>
-        <button
-          id="saveBookmarkButton"
-          class="w-full bg-gradient-to-r from-indigo-500 to-purple-400 hover:from-indigo-600 hover:to-purple-500 text-white font-bold py-3 rounded-xl shadow-lg text-base"
-        >
-          북마크 저장
-        </button>
       </div>
     </div>
     <div
