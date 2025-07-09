@@ -24,10 +24,11 @@ export const CollectionList = ({
   const [deletingCollectionId, setDeletingCollectionId] = useState<
     string | null
   >(null);
+  const [isCollectionSubmitting, setIsCollectionSubmitting] = useState(false);
 
   const handleAddCollection = async () => {
-    if (!newCollectionName.trim()) return;
-
+    if (!newCollectionName.trim() || isCollectionSubmitting) return;
+    setIsCollectionSubmitting(true);
     try {
       await onAddCollection(newCollectionName.trim(), newCollectionIcon);
       setNewCollectionName("");
@@ -36,6 +37,8 @@ export const CollectionList = ({
     } catch (error) {
       console.error("Error adding collection:", error);
       alert("컬렉션 추가 중 오류가 발생했습니다.");
+    } finally {
+      setIsCollectionSubmitting(false);
     }
   };
 
@@ -254,9 +257,34 @@ export const CollectionList = ({
               <button
                 onClick={handleAddCollection}
                 className="flex-1 btn-primary py-3 text-sm font-medium"
-                disabled={!newCollectionName.trim()}
+                disabled={isCollectionSubmitting || !newCollectionName.trim()}
               >
-                추가
+                {isCollectionSubmitting ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin h-4 w-4 mr-2"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                      />
+                    </svg>
+                    추가 중...
+                  </span>
+                ) : (
+                  "추가"
+                )}
               </button>
               <button
                 onClick={() => {
@@ -265,6 +293,7 @@ export const CollectionList = ({
                   setNewCollectionIcon("📁");
                 }}
                 className="flex-1 btn-secondary py-3 text-sm font-medium"
+                disabled={isCollectionSubmitting}
               >
                 취소
               </button>
