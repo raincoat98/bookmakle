@@ -38,8 +38,9 @@ export const Header = ({
                 </svg>
               </button>
             )}
+            <img src="/favicon.svg" alt="북마클" className="w-6 h-6" />
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              BookmarkHub
+              북마클
             </h1>
           </div>
 
