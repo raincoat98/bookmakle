@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Collection } from "../types";
+import toast from "react-hot-toast";
 
 interface CollectionListProps {
   collections: Collection[];
@@ -34,8 +35,10 @@ export const CollectionList = ({
       setNewCollectionName("");
       setNewCollectionIcon("📁");
       setIsAddingCollection(false);
+      toast.success("컬렉션이 추가되었습니다!");
     } catch (error) {
       console.error("Error adding collection:", error);
+      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
       alert("컬렉션 추가 중 오류가 발생했습니다.");
     } finally {
       setIsCollectionSubmitting(false);
@@ -76,8 +79,10 @@ export const CollectionList = ({
       if (selectedCollection === collectionId) {
         onCollectionChange("all");
       }
+      toast.success("컬렉션이 삭제되었습니다!");
     } catch (error) {
       console.error("Error deleting collection:", error);
+      toast.error("컬렉션 삭제 중 오류가 발생했습니다.");
       alert("컬렉션 삭제 중 오류가 발생했습니다.");
     } finally {
       setDeletingCollectionId(null);

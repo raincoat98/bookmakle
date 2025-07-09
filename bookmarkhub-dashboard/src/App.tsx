@@ -1,6 +1,7 @@
 import { useAuth } from "./hooks/useAuth";
 import { LoginScreen } from "./components/LoginScreen";
 import { Dashboard } from "./pages/Dashboard";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { user, loading } = useAuth();
@@ -16,7 +17,12 @@ function App() {
     );
   }
 
-  return user ? <Dashboard /> : <LoginScreen />;
+  return (
+    <>
+      <Toaster position="top-center" />
+      {user ? <Dashboard /> : <LoginScreen />}
+    </>
+  );
 }
 
 export default App;
