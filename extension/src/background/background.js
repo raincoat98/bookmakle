@@ -4,6 +4,7 @@ const FIREBASE_HOSTING_URL = "https://bookmarkhub-5ea6c.web.app";
 console.log("Offscreen document path:", OFFSCREEN_DOCUMENT_PATH);
 
 let creatingOffscreenDocument;
+let offscreenDocumentReady = false;
 
 async function hasOffscreenDocument() {
   try {
@@ -29,6 +30,11 @@ async function setupOffscreenDocument() {
   try {
     if (await hasOffscreenDocument()) {
       console.log("Offscreen document already exists");
+      // 기존 offscreen document가 있으면 준비 상태 확인
+      if (!offscreenDocumentReady) {
+        console.log("Waiting for existing offscreen document to be ready...");
+        await waitForOffscreenReady();
+      }
       return;
     }
 
@@ -37,6 +43,13 @@ async function setupOffscreenDocument() {
         "Offscreen document creation already in progress, waiting..."
       );
       await creatingOffscreenDocument;
+      // 생성 완료 후 준비 상태 확인
+      if (!offscreenDocumentReady) {
+        console.log(
+          "Waiting for newly created offscreen document to be ready..."
+        );
+        await waitForOffscreenReady();
+      }
     } else {
       console.log("Creating new offscreen document...");
       console.log("Document URL:", OFFSCREEN_DOCUMENT_PATH);
@@ -50,11 +63,49 @@ async function setupOffscreenDocument() {
       await creatingOffscreenDocument;
       creatingOffscreenDocument = null;
       console.log("Offscreen document created successfully");
+
+      // 새로 생성된 offscreen document가 준비될 때까지 대기
+      console.log(
+        "Waiting for newly created offscreen document to be ready..."
+      );
+      await waitForOffscreenReady();
     }
   } catch (error) {
     console.error("Error setting up offscreen document:", error);
     throw error;
   }
+}
+
+// offscreen document가 준비될 때까지 대기하는 함수
+async function waitForOffscreenReady() {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      console.error("Timeout waiting for offscreen document to be ready");
+      reject(new Error("Offscreen document 준비 시간 초과"));
+    }, 10000);
+
+    const checkReady = () => {
+      chrome.runtime.sendMessage(
+        { action: "ping", target: "offscreen" },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.log("Offscreen not ready yet, retrying...");
+            setTimeout(checkReady, 500);
+          } else if (response && response.ready) {
+            console.log("Offscreen document is ready");
+            offscreenDocumentReady = true;
+            clearTimeout(timeoutId);
+            resolve();
+          } else {
+            console.log("Offscreen not ready yet, retrying...");
+            setTimeout(checkReady, 500);
+          }
+        }
+      );
+    };
+
+    checkReady();
+  });
 }
 
 async function getAuthFromOffscreen() {

@@ -173,11 +173,40 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   // Google 로그인
   signInButton.addEventListener("click", function () {
+    // 버튼 비활성화 및 로딩 상태 표시
+    signInButton.disabled = true;
+    signInButton.textContent = "로그인 중...";
+
     chrome.runtime.sendMessage({ action: "signIn" }, function (response) {
+      // 버튼 상태 복원
+      signInButton.disabled = false;
+      signInButton.textContent = "Google 로그인";
+
       if (response && response.user) {
         chrome.storage.local.set({ user: response.user }, () => {
           updateUI(response.user);
         });
+      } else if (response && response.error) {
+        console.error("로그인 실패:", response.error);
+
+        // 첫 번째 시도 실패 시 자동 재시도
+        if (
+          response.error.includes("잘못된 데이터 형식") ||
+          response.error.includes("Offscreen") ||
+          response.error.includes("iframe")
+        ) {
+          console.log("첫 번째 로그인 시도 실패, 재시도 중...");
+
+          setTimeout(() => {
+            signInButton.click();
+          }, 1000);
+        } else {
+          // 다른 에러는 사용자에게 표시
+          showToast("로그인에 실패했습니다: " + response.error, "error");
+        }
+      } else {
+        console.error("로그인 응답이 올바르지 않습니다:", response);
+        showToast("로그인에 실패했습니다.", "error");
       }
     });
   });
