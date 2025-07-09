@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:extension": "vite build && rm -rf ~/Documents/chromeExtension && cp -r dist ~/Documents/chromeExtension",
     "preview": "vite preview",
     "release": "vite build && zip -r dist.zip dist/*"
   },
