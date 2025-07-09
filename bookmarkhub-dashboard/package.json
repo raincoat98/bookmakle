@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build:firebase": "tsc -b && vite build && cp -r dist ../firebase/dashboard-dist"
+    "build:firebase": "tsc -b && vite build && rm -rf ../firebase/dashboard-dist && cp -r dist ../firebase/dashboard-dist"
   },
   "dependencies": {
     "firebase": "^11.10.0",
