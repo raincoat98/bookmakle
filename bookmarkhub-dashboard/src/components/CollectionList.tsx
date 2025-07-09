@@ -219,16 +219,22 @@ export const CollectionList = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 아이콘 선택
               </label>
-              <div className="grid grid-cols-8 gap-2">
+              <div className="grid grid-cols-4  gap-2 w-full max-w-xs mx-auto">
                 {iconOptions.map((icon) => (
                   <button
                     key={icon}
                     onClick={() => setNewCollectionIcon(icon)}
-                    className={`p-3 rounded-lg text-lg transition-colors ${
-                      newCollectionIcon === icon
-                        ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
+                    className={`
+                      flex items-center justify-center
+                      w-10 h-10
+                      rounded-lg text-lg transition-colors
+                      ${
+                        newCollectionIcon === icon
+                          ? "outline outline-2 outline-blue-400 outline-offset-0 bg-blue-100 dark:bg-blue-900"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      }
+                    `}
+                    style={{ padding: 0, overflow: "hidden" }}
                   >
                     {icon}
                   </button>
