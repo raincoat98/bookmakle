@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "Chrome Extension: Google Auth with Firebase",
+    "message": "bookmarkHub",
     "description": "Extension name"
   },
   "appDescription": {
-    "message": "Chrome extension with Google authentication using Firebase",
+    "message": "bookmarkHub extension",
     "description": "Extension description"
   },
   "login": {

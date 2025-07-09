@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "__MSG_appName__",
+  "name": "bookmarkHub",
   "version": "1.0",
   "description": "__MSG_appDescription__",
   "default_locale": "ko",
