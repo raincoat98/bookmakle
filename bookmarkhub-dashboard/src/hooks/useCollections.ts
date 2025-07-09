@@ -168,7 +168,41 @@ export const useCollections = (userId: string) => {
   // 컬렉션 삭제
   const deleteCollection = async (collectionId: string) => {
     try {
-      await deleteDoc(doc(db, "collections", collectionId));
+      // 인증 상태 확인
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+
+      // 1. 해당 컬렉션에 연결된 북마크들을 찾기
+      const bookmarksQuery = query(
+        collection(db, "bookmarks"),
+        where("userId", "==", userId),
+        where("collection", "==", collectionId)
+      );
+      const bookmarksSnapshot = await getDocs(bookmarksQuery);
+      console.log("Found bookmarks to update:", bookmarksSnapshot.size);
+
+      // 2. 연결된 북마크들의 collection 필드를 null로 업데이트 (개별 작업)
+      if (bookmarksSnapshot.size > 0) {
+        const updatePromises = bookmarksSnapshot.docs.map(
+          async (bookmarkDoc) => {
+            const bookmarkRef = doc(db, "bookmarks", bookmarkDoc.id);
+            await updateDoc(bookmarkRef, {
+              collection: null,
+              updatedAt: serverTimestamp(),
+            });
+          }
+        );
+
+        // 3. 모든 북마크 업데이트 완료 대기
+        await Promise.all(updatePromises);
+      }
+
+      // 4. 컬렉션 삭제
+      const collectionRef = doc(db, "collections", collectionId);
+      await deleteDoc(collectionRef);
+
+      // 5. 로컬 상태 업데이트
       setCollections((prev) =>
         prev.filter((collection) => collection.id !== collectionId)
       );

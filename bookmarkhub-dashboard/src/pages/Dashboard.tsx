@@ -17,12 +17,14 @@ export const Dashboard = () => {
     setSelectedCollection,
     addBookmark,
     deleteBookmark,
+    refetch: refetchBookmarks,
   } = useBookmarks(user?.uid || "");
 
   const {
     collections,
     loading: collectionsLoading,
     addCollection,
+    deleteCollection,
   } = useCollections(user?.uid || "");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,6 +56,12 @@ export const Dashboard = () => {
 
   const handleAddCollection = async (name: string, icon: string) => {
     await addCollection({ name, icon });
+  };
+
+  const handleDeleteCollection = async (collectionId: string) => {
+    await deleteCollection(collectionId);
+    // 컬렉션 삭제 후 북마크 목록 새로고침
+    await refetchBookmarks();
   };
 
   // 선택된 컬렉션의 이름 가져오기
@@ -98,6 +106,7 @@ export const Dashboard = () => {
             selectedCollection={selectedCollection}
             onCollectionChange={handleCollectionChange}
             onAddCollection={handleAddCollection}
+            onDeleteCollection={handleDeleteCollection}
           />
         </div>
 
