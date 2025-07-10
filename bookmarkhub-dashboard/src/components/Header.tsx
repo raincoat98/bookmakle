@@ -32,10 +32,10 @@ export const Header = ({
 
   return (
     <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div className="flex flex-wrap items-center h-16 min-w-0 overflow-x-auto">
           {/* 로고와 햄버거 메뉴 */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
             {showMenuButton && (
               <button
                 onClick={onMenuClick}
@@ -58,26 +58,26 @@ export const Header = ({
               </button>
             )}
             <img src="/favicon.svg" alt="북마클" className="w-6 h-6" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block truncate">
               북마클
             </h1>
           </div>
 
           {/* 중앙 검색 및 컨트롤 */}
-          <div className="flex-1 max-w-2xl mx-4">
-            <div className="flex items-center space-x-4">
+          <div className="flex-1 max-w-2xl mx-2 sm:mx-4 min-w-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
               {/* 검색 입력창 */}
               {onSearchChange && (
-                <div className="flex-1 relative">
+                <div className="flex-1 relative min-w-0">
                   <input
                     type="text"
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    placeholder="북마크 검색..."
-                    className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="검색..."
+                    className="w-full px-3 py-2 pl-9 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0 text-sm"
                   />
                   <svg
-                    className="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                    className="absolute left-2 top-2.5 h-4 w-4 text-gray-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -148,7 +148,7 @@ export const Header = ({
               {onAddBookmark && (
                 <button
                   onClick={onAddBookmark}
-                  className="btn-primary flex items-center space-x-2 text-sm"
+                  className="btn-primary flex items-center space-x-2 text-sm px-2 sm:px-4"
                 >
                   <svg
                     className="w-4 h-4"
@@ -170,10 +170,10 @@ export const Header = ({
           </div>
 
           {/* 사용자 정보 */}
-          <div className="flex items-center space-x-2 lg:space-x-4">
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 min-w-0">
             {user ? (
-              <div className="flex items-center space-x-2 lg:space-x-3">
-                <span className="hidden sm:block text-sm text-gray-700 dark:text-gray-300">
+              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 min-w-0">
+                <span className="hidden sm:block text-sm text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
                   {user.displayName}
                 </span>
                 {user.photoURL && (
@@ -183,13 +183,19 @@ export const Header = ({
                     className="h-8 w-8 rounded-full"
                   />
                 )}
-                <button onClick={logout} className="btn-secondary text-sm">
+                <button
+                  onClick={logout}
+                  className="btn-secondary text-sm px-2 sm:px-4"
+                >
                   <span className="hidden sm:inline">로그아웃</span>
-                  <span className="sm:hidden">로그아웃</span>
+                  <span className="sm:hidden">⎋</span>
                 </button>
               </div>
             ) : (
-              <button onClick={login} className="btn-primary text-sm">
+              <button
+                onClick={login}
+                className="btn-primary text-sm px-2 sm:px-4"
+              >
                 <span className="hidden sm:inline">Google로 로그인</span>
                 <span className="sm:hidden">로그인</span>
               </button>

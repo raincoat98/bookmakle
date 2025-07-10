@@ -21,6 +21,7 @@ export const Dashboard = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortedBookmarks, setSortedBookmarks] = useState<Bookmark[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // 북마크 데이터가 변경될 때마다 정렬 상태 초기화
   useEffect(() => {
@@ -130,6 +131,8 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Header
+        onMenuClick={() => setIsDrawerOpen(true)}
+        showMenuButton={true}
         onAddBookmark={() => setIsAddModalOpen(true)}
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -138,8 +141,8 @@ export const Dashboard = () => {
       />
 
       <div className="flex h-[calc(100vh-64px)]">
-        {/* 사이드바 */}
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+        {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}
+        <div className="hidden sm:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col">
           <CollectionList
             collections={collections}
             loading={loading}
@@ -149,11 +152,33 @@ export const Dashboard = () => {
             onDeleteCollection={handleDeleteCollection}
           />
         </div>
+        {/* 모바일 Drawer */}
+        {isDrawerOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
+              <CollectionList
+                collections={collections}
+                loading={loading}
+                selectedCollection={selectedCollection}
+                onCollectionChange={(id) => {
+                  setSelectedCollection(id);
+                  setIsDrawerOpen(false);
+                }}
+                onAddCollection={handleAddCollection}
+                onDeleteCollection={handleDeleteCollection}
+              />
+            </div>
+            <div
+              className="flex-1 bg-black bg-opacity-30"
+              onClick={() => setIsDrawerOpen(false)}
+            />
+          </div>
+        )}
 
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col w-full min-w-0">
           {/* 북마크 목록 */}
-          <div className="flex-1 p-4 lg:p-6 overflow-y-auto">
+          <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
             <BookmarkList
               bookmarks={filteredBookmarks}
               onEdit={setEditingBookmark}

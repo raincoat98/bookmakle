@@ -52,9 +52,10 @@ export const SortableBookmarkListItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 overflow-hidden ${
-        isDragging ? "opacity-50 shadow-lg" : ""
-      }`}
+      className={
+        `group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 overflow-hidden w-full min-w-0 flex flex-col` +
+        (isDragging ? " opacity-50 shadow-lg" : "")
+      }
     >
       {/* 드래그 핸들러 */}
       <div
@@ -134,56 +135,54 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 리스트 아이템 내용 */}
-      <div className="p-4 pt-10">
-        <div className="flex items-center space-x-4">
-          {/* 파비콘 */}
-          <div className="relative flex-shrink-0">
-            {bookmark.favicon ? (
-              <img
-                src={bookmark.favicon}
-                alt="파비콘"
-                className="w-8 h-8 rounded"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
-              </div>
-            )}
-            {faviconLoading && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-              </div>
-            )}
-          </div>
+      <div className="p-4 pt-10 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full min-w-0">
+        {/* 파비콘 */}
+        <div className="relative flex-shrink-0 mb-2 sm:mb-0">
+          {bookmark.favicon ? (
+            <img
+              src={bookmark.favicon}
+              alt="파비콘"
+              className="w-8 h-8 rounded"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          ) : (
+            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+            </div>
+          )}
+          {faviconLoading && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+        </div>
 
-          {/* 텍스트 내용 */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
-              {bookmark.title}
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
-              {bookmark.url}
+        {/* 텍스트 내용 */}
+        <div className="flex-1 min-w-0 w-full">
+          <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
+            {bookmark.title}
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-all">
+            {bookmark.url}
+          </p>
+          {bookmark.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 break-all">
+              {bookmark.description}
             </p>
-            {bookmark.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
-                {bookmark.description}
-              </p>
-            )}
-          </div>
+          )}
+        </div>
 
-          {/* 날짜 */}
-          <div className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
-            {bookmark.createdAt.toLocaleDateString()}
-          </div>
+        {/* 날짜 */}
+        <div className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400 mt-2 sm:mt-0">
+          {bookmark.createdAt.toLocaleDateString()}
         </div>
       </div>
 
