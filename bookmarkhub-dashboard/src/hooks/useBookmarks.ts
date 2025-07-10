@@ -8,6 +8,7 @@ import {
   where,
   orderBy,
   getDocs,
+  updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -118,6 +119,34 @@ export const useBookmarks = (userId: string) => {
     }
   };
 
+  // 북마크 수정
+  const updateBookmark = async (
+    bookmarkId: string,
+    bookmarkData: BookmarkFormData
+  ) => {
+    try {
+      await updateDoc(doc(db, "bookmarks", bookmarkId), {
+        ...bookmarkData,
+        updatedAt: serverTimestamp(),
+      });
+
+      setBookmarks((prev) =>
+        prev.map((bookmark) =>
+          bookmark.id === bookmarkId
+            ? {
+                ...bookmark,
+                ...bookmarkData,
+                updatedAt: new Date(),
+              }
+            : bookmark
+        )
+      );
+    } catch (error) {
+      console.error("Error updating bookmark:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     if (userId) {
       fetchBookmarks();
@@ -131,6 +160,7 @@ export const useBookmarks = (userId: string) => {
     setSelectedCollection,
     addBookmark,
     deleteBookmark,
+    updateBookmark,
     refetch: fetchBookmarks,
   };
 };

@@ -6,6 +6,7 @@ interface BookmarkListProps {
   collections: Collection[];
   loading: boolean;
   onDelete: (id: string) => void;
+  onEdit: (bookmark: Bookmark) => void;
 }
 
 export const BookmarkList = ({
@@ -13,6 +14,7 @@ export const BookmarkList = ({
   collections,
   loading,
   onDelete,
+  onEdit,
 }: BookmarkListProps) => {
   if (loading) {
     return (
@@ -55,6 +57,7 @@ export const BookmarkList = ({
             bookmark={bookmark}
             collections={collections}
             onDelete={onDelete}
+            onEdit={onEdit}
           />
         ))}
       </div>

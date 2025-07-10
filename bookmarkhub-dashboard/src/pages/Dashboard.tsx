@@ -3,10 +3,11 @@ import { Header } from "../components/Header";
 import { CollectionList } from "../components/CollectionList";
 import { BookmarkList } from "../components/BookmarkList";
 import { AddBookmarkModal } from "../components/AddBookmarkModal";
+import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
-import type { BookmarkFormData } from "../types";
+import type { BookmarkFormData, Bookmark } from "../types";
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ export const Dashboard = () => {
     setSelectedCollection,
     addBookmark,
     deleteBookmark,
+    updateBookmark,
     refetch: refetchBookmarks,
   } = useBookmarks(user?.uid || "");
 
@@ -28,6 +30,8 @@ export const Dashboard = () => {
   } = useCollections(user?.uid || "");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,6 +68,23 @@ export const Dashboard = () => {
 
   const handleAddBookmark = async (bookmarkData: BookmarkFormData) => {
     await addBookmark(bookmarkData);
+  };
+
+  const handleUpdateBookmark = async (
+    bookmarkId: string,
+    bookmarkData: BookmarkFormData
+  ) => {
+    await updateBookmark(bookmarkId, bookmarkData);
+  };
+
+  const handleEditBookmark = (bookmark: Bookmark) => {
+    setEditingBookmark(bookmark);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingBookmark(null);
   };
 
   const handleAddCollection = async (
@@ -175,6 +196,7 @@ export const Dashboard = () => {
             collections={collections}
             loading={bookmarksLoading}
             onDelete={deleteBookmark}
+            onEdit={handleEditBookmark}
           />
         </div>
       </div>
@@ -183,6 +205,14 @@ export const Dashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddBookmark}
+        collections={collections}
+      />
+
+      <EditBookmarkModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onUpdate={handleUpdateBookmark}
+        bookmark={editingBookmark}
         collections={collections}
       />
     </div>
