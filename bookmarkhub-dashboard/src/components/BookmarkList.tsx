@@ -21,7 +21,19 @@ import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 
 interface BookmarkListProps {
-  bookmarks: Bookmark[];
+  bookmarks:
+    | Bookmark[]
+    | {
+        isGrouped: boolean;
+        selectedCollectionBookmarks?: Bookmark[];
+        selectedCollectionName?: string;
+        groupedBookmarks?: {
+          collectionId: string;
+          collectionName: string;
+          bookmarks: Bookmark[];
+        }[];
+        bookmarks?: Bookmark[];
+      };
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
@@ -52,14 +64,26 @@ export const BookmarkList = ({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = bookmarks.findIndex(
+      // 그룹화된 데이터의 경우 드래그 앤 드롭은 비활성화
+      if (
+        typeof bookmarks === "object" &&
+        "isGrouped" in bookmarks &&
+        bookmarks.isGrouped
+      ) {
+        return;
+      }
+
+      const allBookmarks = Array.isArray(bookmarks)
+        ? bookmarks
+        : bookmarks.bookmarks || [];
+      const oldIndex = allBookmarks.findIndex(
         (bookmark) => bookmark.id === active.id
       );
-      const newIndex = bookmarks.findIndex(
+      const newIndex = allBookmarks.findIndex(
         (bookmark) => bookmark.id === over?.id
       );
 
-      const newBookmarks = arrayMove(bookmarks, oldIndex, newIndex);
+      const newBookmarks = arrayMove(allBookmarks, oldIndex, newIndex);
       onReorder(newBookmarks);
     }
   };
@@ -77,7 +101,157 @@ export const BookmarkList = ({
     }
   };
 
-  if (bookmarks.length === 0) {
+  // 그룹화된 데이터인지 확인
+  const isGrouped =
+    typeof bookmarks === "object" &&
+    "isGrouped" in bookmarks &&
+    bookmarks.isGrouped;
+
+  if (isGrouped) {
+    const groupedData = bookmarks as {
+      isGrouped: true;
+      selectedCollectionBookmarks: Bookmark[];
+      selectedCollectionName: string;
+      groupedBookmarks: {
+        collectionId: string;
+        collectionName: string;
+        bookmarks: Bookmark[];
+      }[];
+    };
+
+    const allBookmarks = [
+      ...groupedData.selectedCollectionBookmarks,
+      ...groupedData.groupedBookmarks.flatMap((group) => group.bookmarks),
+    ];
+
+    if (allBookmarks.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">북마크가 없습니다.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* 선택된 컬렉션의 북마크들 */}
+        {groupedData.selectedCollectionBookmarks.length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              {groupedData.selectedCollectionName}
+            </h3>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              {viewMode === "grid" ? (
+                <SortableContext
+                  items={groupedData.selectedCollectionBookmarks.map(
+                    (b) => b.id
+                  )}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {groupedData.selectedCollectionBookmarks.map((bookmark) => (
+                      <SortableBookmarkCard
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={handleRefreshFavicon}
+                        faviconLoading={faviconLoadingStates[bookmark.id]}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              ) : (
+                <SortableContext
+                  items={groupedData.selectedCollectionBookmarks.map(
+                    (b) => b.id
+                  )}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2 w-full min-w-0 overflow-hidden">
+                    {groupedData.selectedCollectionBookmarks.map((bookmark) => (
+                      <SortableBookmarkListItem
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={handleRefreshFavicon}
+                        faviconLoading={faviconLoadingStates[bookmark.id]}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              )}
+            </DndContext>
+          </div>
+        )}
+
+        {/* 하위 컬렉션들의 북마크들 */}
+        {groupedData.groupedBookmarks.map((group) => (
+          <div key={group.collectionId}>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <span className="text-gray-500 dark:text-gray-400 mr-2">└</span>
+              {group.collectionName}
+            </h3>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              {viewMode === "grid" ? (
+                <SortableContext
+                  items={group.bookmarks.map((b) => b.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {group.bookmarks.map((bookmark) => (
+                      <SortableBookmarkCard
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={handleRefreshFavicon}
+                        faviconLoading={faviconLoadingStates[bookmark.id]}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              ) : (
+                <SortableContext
+                  items={group.bookmarks.map((b) => b.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2 w-full min-w-0 overflow-hidden">
+                    {group.bookmarks.map((bookmark) => (
+                      <SortableBookmarkListItem
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={handleRefreshFavicon}
+                        faviconLoading={faviconLoadingStates[bookmark.id]}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              )}
+            </DndContext>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 일반 북마크 배열 처리
+  const bookmarksArray = Array.isArray(bookmarks)
+    ? bookmarks
+    : bookmarks.bookmarks || [];
+
+  if (bookmarksArray.length === 0) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 dark:text-gray-400">북마크가 없습니다.</p>
@@ -93,11 +267,11 @@ export const BookmarkList = ({
     >
       {viewMode === "grid" ? (
         <SortableContext
-          items={bookmarks.map((b) => b.id)}
+          items={bookmarksArray.map((b) => b.id)}
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {bookmarks.map((bookmark) => (
+            {bookmarksArray.map((bookmark) => (
               <SortableBookmarkCard
                 key={bookmark.id}
                 bookmark={bookmark}
@@ -111,11 +285,11 @@ export const BookmarkList = ({
         </SortableContext>
       ) : (
         <SortableContext
-          items={bookmarks.map((b) => b.id)}
+          items={bookmarksArray.map((b) => b.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2 w-full min-w-0 overflow-hidden">
-            {bookmarks.map((bookmark) => (
+            {bookmarksArray.map((bookmark) => (
               <SortableBookmarkListItem
                 key={bookmark.id}
                 bookmark={bookmark}

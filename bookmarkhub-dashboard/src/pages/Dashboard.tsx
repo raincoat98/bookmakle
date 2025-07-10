@@ -47,34 +47,118 @@ export const Dashboard = () => {
     return Array.from(tagSet).sort();
   }, [bookmarks]);
 
-  // 태그 필터링 적용
-  const filteredBookmarks = sortedBookmarks.filter((bookmark) => {
-    const matchesSearch =
-      bookmark.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bookmark.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (bookmark.description &&
-        bookmark.description.toLowerCase().includes(searchTerm.toLowerCase()));
+  // 하위 컬렉션 ID들을 재귀적으로 가져오는 함수
+  const getChildCollectionIds = (parentId: string): string[] => {
+    const childIds: string[] = [];
+    const getChildren = (id: string) => {
+      const children = collections.filter((col) => col.parentId === id);
+      children.forEach((child) => {
+        childIds.push(child.id);
+        getChildren(child.id);
+      });
+    };
+    getChildren(parentId);
+    return childIds;
+  };
 
-    const matchesTag = selectedTag
-      ? bookmark.tags?.includes(selectedTag)
-      : true;
+  // 필터링된 북마크 (그룹화된 형태)
+  const filteredBookmarksData = useMemo(() => {
+    const filtered = sortedBookmarks.filter((bookmark) => {
+      const matchesSearch = searchTerm
+        ? bookmark.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          bookmark.url.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (bookmark.description &&
+            bookmark.description
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()))
+        : true;
 
-    if (selectedCollection === "all") {
-      return matchesSearch && matchesTag;
-    } else if (selectedCollection === "none") {
-      return (
-        matchesSearch &&
-        matchesTag &&
-        (!bookmark.collection || bookmark.collection === "")
-      );
-    } else {
-      return (
-        matchesSearch &&
-        matchesTag &&
-        bookmark.collection === selectedCollection
-      );
+      const matchesTag = selectedTag
+        ? bookmark.tags && bookmark.tags.includes(selectedTag)
+        : true;
+
+      if (selectedCollection === "all") {
+        return matchesSearch && matchesTag;
+      } else if (selectedCollection === "none") {
+        return (
+          matchesSearch &&
+          matchesTag &&
+          (!bookmark.collection || bookmark.collection === "")
+        );
+      } else {
+        // 선택된 컬렉션과 모든 하위 컬렉션의 북마크들 포함
+        const childCollectionIds = getChildCollectionIds(selectedCollection);
+        const targetCollectionIds = [selectedCollection, ...childCollectionIds];
+
+        return (
+          matchesSearch &&
+          matchesTag &&
+          bookmark.collection &&
+          targetCollectionIds.includes(bookmark.collection)
+        );
+      }
+    });
+
+    // 상위 컬렉션이 선택된 경우 하위 컬렉션별로 그룹화
+    if (
+      selectedCollection !== "all" &&
+      selectedCollection !== "none" &&
+      selectedCollection
+    ) {
+      const childCollectionIds = getChildCollectionIds(selectedCollection);
+      if (childCollectionIds.length > 0) {
+        // 선택된 컬렉션의 북마크들
+        const selectedCollectionBookmarks = filtered.filter(
+          (bookmark) => bookmark.collection === selectedCollection
+        );
+
+        // 하위 컬렉션별로 그룹화
+        const groupedBookmarks: {
+          collectionId: string;
+          collectionName: string;
+          bookmarks: Bookmark[];
+        }[] = [];
+
+        childCollectionIds.forEach((childId) => {
+          const childCollection = collections.find((col) => col.id === childId);
+          if (childCollection) {
+            const childBookmarks = filtered.filter(
+              (bookmark) => bookmark.collection === childId
+            );
+            if (childBookmarks.length > 0) {
+              groupedBookmarks.push({
+                collectionId: childId,
+                collectionName: childCollection.name,
+                bookmarks: childBookmarks,
+              });
+            }
+          }
+        });
+
+        // 선택된 컬렉션과 하위 컬렉션들을 합쳐서 반환
+        return {
+          isGrouped: true,
+          selectedCollectionBookmarks,
+          selectedCollectionName:
+            collections.find((col) => col.id === selectedCollection)?.name ||
+            "선택된 컬렉션",
+          groupedBookmarks,
+        };
+      }
     }
-  });
+
+    // 그룹화가 필요없는 경우 일반 배열 반환
+    return {
+      isGrouped: false,
+      bookmarks: filtered,
+    };
+  }, [
+    sortedBookmarks,
+    searchTerm,
+    selectedCollection,
+    selectedTag,
+    collections,
+  ]);
 
   const handleAddBookmark = async (bookmarkData: BookmarkFormData) => {
     try {
@@ -228,7 +312,7 @@ export const Dashboard = () => {
           {/* 북마크 목록 */}
           <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
             <BookmarkList
-              bookmarks={filteredBookmarks}
+              bookmarks={filteredBookmarksData}
               onEdit={setEditingBookmark}
               onDelete={openDeleteBookmarkModal}
               onUpdateFavicon={handleUpdateFavicon}
