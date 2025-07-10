@@ -477,7 +477,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: "open-dashboard",
     title: "대시보드 열기",
-    contexts: ["all"],
+    contexts: ["all", "action"],
   });
 });
 
