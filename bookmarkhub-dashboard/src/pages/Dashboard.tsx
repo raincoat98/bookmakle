@@ -262,15 +262,7 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header
-        onMenuClick={() => setIsDrawerOpen(true)}
-        showMenuButton={true}
-        onAddBookmark={() => setIsAddModalOpen(true)}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-      />
+      <Header onMenuClick={() => setIsDrawerOpen(true)} showMenuButton={true} />
 
       <div className="flex h-[calc(100vh-64px)]">
         {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}
@@ -309,6 +301,99 @@ export const Dashboard = () => {
 
         {/* 메인 콘텐츠 */}
         <div className="flex-1 flex flex-col w-full min-w-0">
+          {/* 북마크 리스트 상단 컨트롤 바 */}
+          <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
+              {/* 검색 */}
+              <div className="flex-1 min-w-0 w-full">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder="북마크 검색..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
+                  />
+                  <svg
+                    className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* 뷰 모드 변경 버튼 */}
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-auto">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                      viewMode === "grid"
+                        ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                    title="그리드 뷰"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                      viewMode === "list"
+                        ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                    title="리스트 뷰"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* 북마크 추가 버튼 */}
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                >
+                  <svg
+                    className="w-5 h-5 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    />
+                  </svg>
+                  북마크 추가
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* 북마크 목록 */}
           <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
             <BookmarkList
