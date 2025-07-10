@@ -320,33 +320,70 @@ export const Dashboard = () => {
               viewMode={viewMode}
             />
             {/* 태그 필터 UI */}
-            {allTags.length > 0 && (
-              <div className="mt-6 flex flex-wrap gap-2">
-                <button
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    selectedTag === null
-                      ? "bg-purple-500 text-white border-purple-500"
-                      : "bg-gray-100 text-gray-700 border-gray-200"
-                  }`}
-                  onClick={() => setSelectedTag(null)}
-                >
-                  전체
-                </button>
-                {allTags.map((tag) => (
+            {(() => {
+              // 현재 표시되는 북마크들에서 태그가 있는 북마크가 있는지 확인
+              const currentBookmarks = (() => {
+                if (
+                  typeof filteredBookmarksData === "object" &&
+                  "isGrouped" in filteredBookmarksData &&
+                  filteredBookmarksData.isGrouped
+                ) {
+                  const groupedData = filteredBookmarksData as {
+                    isGrouped: true;
+                    selectedCollectionBookmarks: Bookmark[];
+                    selectedCollectionName: string;
+                    groupedBookmarks: {
+                      collectionId: string;
+                      collectionName: string;
+                      bookmarks: Bookmark[];
+                    }[];
+                  };
+                  return [
+                    ...groupedData.selectedCollectionBookmarks,
+                    ...groupedData.groupedBookmarks.flatMap(
+                      (group) => group.bookmarks
+                    ),
+                  ];
+                } else {
+                  const bookmarksArray = Array.isArray(filteredBookmarksData)
+                    ? filteredBookmarksData
+                    : filteredBookmarksData.bookmarks || [];
+                  return bookmarksArray;
+                }
+              })();
+
+              const hasBookmarksWithTags = currentBookmarks.some(
+                (bookmark) => bookmark.tags && bookmark.tags.length > 0
+              );
+
+              return allTags.length > 0 && hasBookmarksWithTags ? (
+                <div className="mt-6 flex flex-wrap gap-2">
                   <button
-                    key={tag}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      selectedTag === tag
+                    className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                      selectedTag === null
                         ? "bg-purple-500 text-white border-purple-500"
-                        : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                        : "bg-gray-100 text-gray-700 border-gray-200"
                     }`}
-                    onClick={() => setSelectedTag(tag)}
+                    onClick={() => setSelectedTag(null)}
                   >
-                    {tag}
+                    전체
                   </button>
-                ))}
-              </div>
-            )}
+                  {allTags.map((tag) => (
+                    <button
+                      key={tag}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        selectedTag === tag
+                          ? "bg-purple-500 text-white border-purple-500"
+                          : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                      }`}
+                      onClick={() => setSelectedTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
           </div>
 
           {/* 북마크 추가 모달 */}
