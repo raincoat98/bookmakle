@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Collection } from "../types";
 import toast from "react-hot-toast";
+import EmojiPicker from "emoji-picker-react";
 
 interface CollectionListProps {
   collections: Collection[];
@@ -40,6 +41,33 @@ export const CollectionList = ({
     null
   );
   const [targetCollectionName, setTargetCollectionName] = useState<string>("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showSubEmojiPicker, setShowSubEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const subEmojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+      if (
+        subEmojiPickerRef.current &&
+        !subEmojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowSubEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // 오픈된(열린) 컬렉션 id 목록
   const [openIds, setOpenIds] = useState<string[]>([]);
@@ -150,24 +178,15 @@ export const CollectionList = ({
     setSubParentId(null);
   };
 
-  const iconOptions = [
-    "📁",
-    "📚",
-    "📌",
-    "💼",
-    "🏠",
-    "🎯",
-    "⭐",
-    "🔥",
-    "💡",
-    "🎨",
-    "🎵",
-    "🎮",
-    "📱",
-    "💻",
-    "🌐",
-    "📖",
-  ];
+  const handleEmojiSelect = (emojiObject: { emoji: string }) => {
+    setNewCollectionIcon(emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleSubEmojiSelect = (emojiObject: { emoji: string }) => {
+    setNewCollectionIcon(emojiObject.emoji);
+    setShowSubEmojiPicker(false);
+  };
 
   // 트리 구조로 컬렉션을 렌더링하는 재귀 함수
   function renderCollectionTree(
@@ -326,26 +345,23 @@ export const CollectionList = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 아이콘 선택
               </label>
-              <div className="grid grid-cols-4  gap-2 w-full max-w-xs mx-auto">
-                {iconOptions.map((icon) => (
-                  <button
-                    key={icon}
-                    onClick={() => setNewCollectionIcon(icon)}
-                    className={`
-                      flex items-center justify-center
-                      w-10 h-10
-                      rounded-lg text-lg transition-colors
-                      ${
-                        newCollectionIcon === icon
-                          ? "outline outline-2 outline-blue-400 outline-offset-0 bg-blue-100 dark:bg-blue-900"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                      }
-                    `}
-                    style={{ padding: 0, overflow: "hidden" }}
-                  >
-                    {icon}
-                  </button>
-                ))}
+              <div className="relative" ref={emojiPickerRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg text-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  {newCollectionIcon}
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute z-10 bottom-full mb-2">
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiSelect}
+                      width={300}
+                      height={400}
+                    />
+                  </div>
+                )}
               </div>
             </div>
             <input
@@ -473,21 +489,26 @@ export const CollectionList = ({
                 )
               }
             />
-            <div className="grid grid-cols-4 gap-2 mb-4">
-              {iconOptions.map((icon) => (
-                <button
-                  key={icon}
-                  onClick={() => setNewCollectionIcon(icon)}
-                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-lg transition-colors ${
-                    newCollectionIcon === icon
-                      ? "outline outline-2 outline-blue-400 outline-offset-0 bg-blue-100 dark:bg-blue-900"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                  }`}
-                  style={{ padding: 0, overflow: "hidden" }}
-                >
-                  {icon}
-                </button>
-              ))}
+            <div className="relative mb-4" ref={subEmojiPickerRef}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                아이콘 선택
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowSubEmojiPicker(!showSubEmojiPicker)}
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {newCollectionIcon}
+              </button>
+              {showSubEmojiPicker && (
+                <div className="absolute z-20 bottom-full mb-2">
+                  <EmojiPicker
+                    onEmojiClick={handleSubEmojiSelect}
+                    width={300}
+                    height={400}
+                  />
+                </div>
+              )}
             </div>
             <div className="flex justify-end space-x-2">
               <button
