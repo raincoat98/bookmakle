@@ -166,7 +166,10 @@ export const CollectionList = ({
             style={{ marginLeft: depth * 18 }}
             onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
             onClick={() => {
-              if (hasChild) handleToggle(collection.id);
+              if (hasChild) {
+                handleToggle(collection.id);
+                if (!isOpen) return;
+              }
               onCollectionChange(collection.id);
             }}
           >
