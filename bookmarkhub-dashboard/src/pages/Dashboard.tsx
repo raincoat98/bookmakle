@@ -279,7 +279,7 @@ export const Dashboard = () => {
         {/* 모바일 Drawer */}
         {isDrawerOpen && (
           <div className="fixed inset-0 z-50 flex">
-            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
+            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transform transition-all duration-300 ease-in-out translate-x-0 opacity-100 animate-slide-in-left shadow-xl">
               <CollectionList
                 collections={collections}
                 loading={loading}
@@ -293,7 +293,7 @@ export const Dashboard = () => {
               />
             </div>
             <div
-              className="flex-1 bg-black bg-opacity-30"
+              className="flex-1 bg-black bg-opacity-30 transition-opacity duration-300"
               onClick={() => setIsDrawerOpen(false)}
             />
           </div>

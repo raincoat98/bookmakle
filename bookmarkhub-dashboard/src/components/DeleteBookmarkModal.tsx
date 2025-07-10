@@ -22,8 +22,8 @@ export const DeleteBookmarkModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-200 animate-fade-in">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md scale-95 animate-fade-in-up min-w-0 transition-transform duration-200">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           북마크 삭제
         </h3>
@@ -48,14 +48,14 @@ export const DeleteBookmarkModal = ({
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150 hover:scale-105 active:scale-95"
             disabled={isDeleting}
           >
             취소
           </button>
           <button
             onClick={handleDelete}
-            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors duration-150 hover:scale-105 active:scale-95"
             disabled={isDeleting}
           >
             {isDeleting ? "삭제 중..." : "삭제"}

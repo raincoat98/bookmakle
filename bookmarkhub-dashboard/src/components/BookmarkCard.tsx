@@ -42,7 +42,7 @@ export const BookmarkCard = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200 min-w-0 overflow-hidden">
       <div className="p-4">
         {/* 헤더 */}
         <div className="flex items-start justify-between mb-3">
@@ -91,7 +91,7 @@ export const BookmarkCard = ({
           <div className="relative flex-shrink-0">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-transform duration-150 hover:scale-110 active:scale-95"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
@@ -100,11 +100,11 @@ export const BookmarkCard = ({
 
             {/* 드롭다운 메뉴 */}
             {showMenu && (
-              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10">
+              <div className="absolute right-0 top-8 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 animate-fade-in transition-opacity duration-200 opacity-100">
                 <div className="py-1">
                   <button
                     onClick={handleEdit}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 transition-transform duration-150 hover:scale-105 active:scale-95"
                   >
                     <svg
                       className="w-4 h-4"
@@ -125,7 +125,7 @@ export const BookmarkCard = ({
                   <button
                     onClick={handleRefreshFavicon}
                     disabled={faviconLoading}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 disabled:opacity-50"
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2 disabled:opacity-50 transition-transform duration-150 hover:scale-105 active:scale-95"
                   >
                     <svg
                       className="w-4 h-4"
@@ -147,7 +147,7 @@ export const BookmarkCard = ({
 
                   <button
                     onClick={handleDelete}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
+                    className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2 transition-transform duration-150 hover:scale-105 active:scale-95"
                   >
                     <svg
                       className="w-4 h-4"
@@ -172,7 +172,7 @@ export const BookmarkCard = ({
 
         {/* 설명 */}
         {bookmark.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 transition-colors duration-200">
             {bookmark.description}
           </p>
         )}
@@ -182,7 +182,7 @@ export const BookmarkCard = ({
           href={bookmark.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200"
+          className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105 active:scale-95"
         >
           <span>방문하기</span>
           <svg

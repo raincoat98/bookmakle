@@ -50,7 +50,7 @@ export const SortableBookmarkCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 overflow-hidden ${
+      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200 overflow-hidden min-w-0 ${
         isDragging ? "opacity-50 shadow-lg" : ""
       }`}
     >
@@ -74,7 +74,7 @@ export const SortableBookmarkCard = ({
         <button
           onClick={handleRefreshFavicon}
           disabled={faviconLoading}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
+          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-transform duration-150 hover:scale-110 active:scale-95"
           title="파비콘 재가져오기"
         >
           <svg
@@ -93,7 +93,7 @@ export const SortableBookmarkCard = ({
         </button>
         <button
           onClick={handleEdit}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
           title="수정"
         >
           <svg
@@ -112,7 +112,7 @@ export const SortableBookmarkCard = ({
         </button>
         <button
           onClick={handleDelete}
-          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
           title="삭제"
         >
           <svg
@@ -187,7 +187,7 @@ export const SortableBookmarkCard = ({
               {bookmark.url}
             </p>
             {bookmark.description && (
-              <p className="text-xs text-gray-600 dark:text-gray-300 mt-2 line-clamp-2">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 transition-colors duration-200">
                 {bookmark.description}
               </p>
             )}

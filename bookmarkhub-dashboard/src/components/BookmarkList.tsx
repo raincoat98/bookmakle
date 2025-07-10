@@ -152,7 +152,7 @@ export const BookmarkList = ({
                   )}
                   strategy={rectSortingStrategy}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
                     {groupedData.selectedCollectionBookmarks.map((bookmark) => (
                       <SortableBookmarkCard
                         key={bookmark.id}
@@ -179,8 +179,6 @@ export const BookmarkList = ({
                         bookmark={bookmark}
                         onEdit={onEdit}
                         onDelete={onDelete}
-                        onRefreshFavicon={handleRefreshFavicon}
-                        faviconLoading={faviconLoadingStates[bookmark.id]}
                       />
                     ))}
                   </div>
@@ -207,7 +205,7 @@ export const BookmarkList = ({
                   items={group.bookmarks.map((b) => b.id)}
                   strategy={rectSortingStrategy}
                 >
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
                     {group.bookmarks.map((bookmark) => (
                       <SortableBookmarkCard
                         key={bookmark.id}
@@ -232,8 +230,6 @@ export const BookmarkList = ({
                         bookmark={bookmark}
                         onEdit={onEdit}
                         onDelete={onDelete}
-                        onRefreshFavicon={handleRefreshFavicon}
-                        faviconLoading={faviconLoadingStates[bookmark.id]}
                       />
                     ))}
                   </div>
@@ -270,7 +266,7 @@ export const BookmarkList = ({
           items={bookmarksArray.map((b) => b.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
             {bookmarksArray.map((bookmark) => (
               <SortableBookmarkCard
                 key={bookmark.id}
@@ -295,8 +291,6 @@ export const BookmarkList = ({
                 bookmark={bookmark}
                 onEdit={onEdit}
                 onDelete={onDelete}
-                onRefreshFavicon={handleRefreshFavicon}
-                faviconLoading={faviconLoadingStates[bookmark.id]}
               />
             ))}
           </div>

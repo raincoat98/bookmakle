@@ -1,36 +1,18 @@
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import type { Bookmark } from "../types";
 
 interface SortableBookmarkListItemProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
-  onRefreshFavicon: (bookmark: Bookmark) => Promise<void>;
-  faviconLoading: boolean;
+  // onRefreshFavicon: (bookmark: Bookmark) => Promise<void>; // 제거
+  // faviconLoading: boolean;
 }
 
 export const SortableBookmarkListItem = ({
   bookmark,
   onEdit,
   onDelete,
-  onRefreshFavicon,
-  faviconLoading,
 }: SortableBookmarkListItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: bookmark.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit(bookmark);
@@ -41,26 +23,10 @@ export const SortableBookmarkListItem = ({
     onDelete(bookmark);
   };
 
-  const handleRefreshFavicon = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    await onRefreshFavicon(bookmark);
-  };
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={
-        `group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 overflow-hidden w-full min-w-0 flex flex-col` +
-        (isDragging ? " opacity-50 shadow-lg" : "")
-      }
-    >
+    <div className="group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all duration-200 overflow-hidden min-w-0">
       {/* 드래그 핸들러 */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-20"
-      >
+      <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
         <svg
           className="w-4 h-4 text-gray-400"
           fill="currentColor"
@@ -71,30 +37,10 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 z-20">
-        <button
-          onClick={handleRefreshFavicon}
-          disabled={faviconLoading}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
-          title="파비콘 재가져오기"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-        </button>
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
         <button
           onClick={handleEdit}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
           title="수정"
         >
           <svg
@@ -113,7 +59,7 @@ export const SortableBookmarkListItem = ({
         </button>
         <button
           onClick={handleDelete}
-          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
           title="삭제"
         >
           <svg
@@ -133,69 +79,51 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 리스트 아이템 내용 */}
-      <div className="p-4 pt-10 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full min-w-0">
-        {/* 파비콘 */}
-        <div className="relative flex-shrink-0 mb-2 sm:mb-0">
-          {bookmark.favicon ? (
-            <img
-              src={bookmark.favicon}
-              alt="파비콘"
-              className="w-8 h-8 rounded"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
-          ) : (
-            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-gray-400"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-            </div>
-          )}
-          {faviconLoading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-            </div>
-          )}
-        </div>
+      <div className="p-4 pt-10">
+        <div className="flex items-center space-x-4">
+          {/* 파비콘 */}
+          <div className="flex-shrink-0">
+            {bookmark.favicon ? (
+              <img
+                src={bookmark.favicon}
+                alt="파비콘"
+                className="w-8 h-8 rounded"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-gray-400"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+            )}
+          </div>
 
-        {/* 텍스트 내용 */}
-        <div className="flex-1 min-w-0 w-full">
-          <div className="flex items-center space-x-2 mb-1">
+          {/* 텍스트 내용 */}
+          <div className="flex-1 min-w-0">
             <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
               {bookmark.title}
             </h3>
-          </div>
-          {/* 태그 배지 */}
-          {bookmark.tags && bookmark.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1">
-              {bookmark.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-          <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-all">
-            {bookmark.url}
-          </p>
-          {bookmark.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 break-all">
-              {bookmark.description}
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
+              {bookmark.url}
             </p>
-          )}
-        </div>
+            {bookmark.description && (
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 transition-colors duration-200">
+                {bookmark.description}
+              </p>
+            )}
+          </div>
 
-        {/* 날짜 */}
-        <div className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400 mt-2 sm:mt-0">
-          {bookmark.createdAt.toLocaleDateString()}
+          {/* 날짜 */}
+          <div className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
+            {bookmark.createdAt.toLocaleDateString()}
+          </div>
         </div>
       </div>
 
