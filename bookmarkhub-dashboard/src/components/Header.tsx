@@ -70,9 +70,9 @@ export const Header = ({
                 <button
                   onClick={logout}
                   className="btn-secondary text-sm px-2 sm:px-4"
+                  aria-label="로그아웃"
                 >
-                  <span className="hidden sm:inline">로그아웃</span>
-                  <span className="sm:hidden">⎋</span>
+                  로그아웃
                 </button>
               </div>
             ) : (
