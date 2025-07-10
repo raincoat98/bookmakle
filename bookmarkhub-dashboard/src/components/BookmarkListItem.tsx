@@ -35,7 +35,7 @@ export const BookmarkListItem = ({
         {/* 북마크 정보 */}
         <div className="flex-1 min-w-0 mr-4">
           <div className="flex items-start justify-between mb-2">
-            <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white truncate">
+            <h3 className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white truncate flex-1">
               {bookmark.title}
             </h3>
             <div className="flex items-center space-x-2 ml-4 flex-shrink-0">

@@ -19,6 +19,7 @@ export const Dashboard = () => {
     addBookmark,
     deleteBookmark,
     updateBookmark,
+    reorderBookmarks,
     refetch: refetchBookmarks,
   } = useBookmarks(user?.uid || "");
 
@@ -60,6 +61,7 @@ export const Dashboard = () => {
 
   // 모바일에서 컬렉션 선택 시 사이드바 닫기
   const handleCollectionChange = (collectionId: string) => {
+    console.log("컬렉션 변경:", collectionId);
     setSelectedCollection(collectionId);
     if (isMobile) {
       setIsSidebarOpen(false);
@@ -75,6 +77,10 @@ export const Dashboard = () => {
     bookmarkData: BookmarkFormData
   ) => {
     await updateBookmark(bookmarkId, bookmarkData);
+  };
+
+  const handleReorderBookmarks = async (newOrder: Bookmark[]) => {
+    await reorderBookmarks(newOrder);
   };
 
   const handleEditBookmark = (bookmark: Bookmark) => {
@@ -197,6 +203,7 @@ export const Dashboard = () => {
             loading={bookmarksLoading}
             onDelete={deleteBookmark}
             onEdit={handleEditBookmark}
+            onReorder={handleReorderBookmarks}
           />
         </div>
       </div>

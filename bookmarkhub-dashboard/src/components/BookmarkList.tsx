@@ -1,6 +1,22 @@
 import { useState, useEffect } from "react";
-import { BookmarkCard } from "./BookmarkCard";
-import { BookmarkListItem } from "./BookmarkListItem";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableBookmarkCard } from "./SortableBookmarkCard";
+import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 import type { Bookmark, Collection } from "../types";
 
 type ViewType = "grid" | "list";
@@ -11,6 +27,7 @@ interface BookmarkListProps {
   loading: boolean;
   onDelete: (id: string) => void;
   onEdit: (bookmark: Bookmark) => void;
+  onReorder: (newOrder: Bookmark[]) => Promise<void>;
 }
 
 export const BookmarkList = ({
@@ -19,8 +36,16 @@ export const BookmarkList = ({
   loading,
   onDelete,
   onEdit,
+  onReorder,
 }: BookmarkListProps) => {
   const [viewType, setViewType] = useState<ViewType>("grid");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // 로컬 스토리지에서 뷰 타입 불러오기
   useEffect(() => {
@@ -39,6 +64,23 @@ export const BookmarkList = ({
   const handleViewTypeChange = (newViewType: ViewType) => {
     setViewType(newViewType);
     localStorage.setItem("bookmark-view-type", newViewType);
+  };
+
+  // 드래그 종료 시 처리
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = bookmarks.findIndex(
+        (bookmark) => bookmark.id === active.id
+      );
+      const newIndex = bookmarks.findIndex(
+        (bookmark) => bookmark.id === over.id
+      );
+
+      const newOrder = arrayMove(bookmarks, oldIndex, newIndex);
+      await onReorder(newOrder);
+    }
   };
 
   if (loading) {
@@ -143,31 +185,47 @@ export const BookmarkList = ({
       </div>
 
       {/* 북마크 목록 */}
-      {viewType === "grid" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {bookmarks.map((bookmark) => (
-            <BookmarkCard
-              key={bookmark.id}
-              bookmark={bookmark}
-              collections={collections}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {bookmarks.map((bookmark) => (
-            <BookmarkListItem
-              key={bookmark.id}
-              bookmark={bookmark}
-              collections={collections}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
-        </div>
-      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        {viewType === "grid" ? (
+          <SortableContext
+            items={bookmarks.map((b) => b.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {bookmarks.map((bookmark) => (
+                <SortableBookmarkCard
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  collections={collections}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        ) : (
+          <SortableContext
+            items={bookmarks.map((b) => b.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {bookmarks.map((bookmark) => (
+                <SortableBookmarkListItem
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  collections={collections}
+                  onDelete={onDelete}
+                  onEdit={onEdit}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        )}
+      </DndContext>
     </div>
   );
 };

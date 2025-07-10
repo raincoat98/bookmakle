@@ -12,6 +12,7 @@ export interface Bookmark {
   url: string;
   description?: string;
   collection: string | null;
+  order: number;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
