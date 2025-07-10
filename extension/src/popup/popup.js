@@ -6,14 +6,15 @@ document.addEventListener("DOMContentLoaded", async function () {
   const currentPageUrl = document.getElementById("currentPageUrl");
   const memoInput = document.getElementById("memoInput");
   const collectionSelect = document.getElementById("collectionSelect");
-  const tagInput = document.getElementById("tagInput");
-  const tagBtns = document.querySelectorAll(".tag-btn");
   const saveBookmarkButton = document.getElementById("saveBookmarkButton");
   const mainContent = document.getElementById("mainContent");
+  const tagInput = document.getElementById("tagInput");
+  const tagList = document.getElementById("tagList");
 
   let user = null;
   let currentTab = null;
   let collections = [];
+  let tags = [];
 
   // toast 메시지 함수
   function showToast(message, type = "success") {
@@ -236,22 +237,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  // 태그 버튼 클릭 이벤트
-  tagBtns.forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const tag = this.getAttribute("data-tag");
-      const currentTags = tagInput.value
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-
-      if (!currentTags.includes(tag)) {
-        const newTags = [...currentTags, tag];
-        tagInput.value = newTags.join(", ");
-      }
-    });
-  });
-
   // 북마크 저장 버튼 클릭 이벤트
   saveBookmarkButton.addEventListener("click", async function () {
     if (!user) return;
@@ -319,6 +304,54 @@ document.addEventListener("DOMContentLoaded", async function () {
       saveBookmarkButton.textContent = "북마크 저장";
     }
   });
+
+  // 태그 렌더링 함수
+  function renderTags() {
+    tagList.innerHTML = "";
+    tags.forEach((tag, idx) => {
+      const tagEl = document.createElement("span");
+      tagEl.className =
+        "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200";
+      tagEl.textContent = tag;
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "ml-1 text-xs";
+      removeBtn.innerHTML = "&times;";
+      removeBtn.onclick = () => {
+        tags.splice(idx, 1);
+        renderTags();
+      };
+      tagEl.appendChild(removeBtn);
+      tagList.appendChild(tagEl);
+    });
+  }
+
+  // 태그 입력 엔터 이벤트
+  tagInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.isComposing) {
+      e.preventDefault();
+      const value = tagInput.value.trim();
+      if (value && !tags.includes(value)) {
+        tags.push(value);
+        renderTags();
+      }
+      tagInput.value = "";
+    }
+  });
+
+  // 태그 추가 버튼 동작 구현
+  const tagAddButton = tagInput.parentElement.querySelector("button");
+  if (tagAddButton) {
+    tagAddButton.addEventListener("click", function () {
+      const value = tagInput.value.trim();
+      if (value && !tags.includes(value)) {
+        tags.push(value);
+        renderTags();
+      }
+      tagInput.value = "";
+      tagInput.focus();
+    });
+  }
 });
 
 console.log("load popup.js");

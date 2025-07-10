@@ -17,6 +17,7 @@ export interface Bookmark {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+  tags: string[]; // 태그 필드 추가
 }
 
 export interface BookmarkFormData {
@@ -25,6 +26,7 @@ export interface BookmarkFormData {
   description: string;
   favicon?: string;
   collection: string;
+  tags: string[]; // 태그 필드 추가
 }
 
 export interface Collection {

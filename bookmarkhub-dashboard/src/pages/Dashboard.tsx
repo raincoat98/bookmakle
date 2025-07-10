@@ -80,6 +80,7 @@ export const Dashboard = () => {
           description: bookmark.description || "",
           favicon,
           collection: bookmark.collection || "",
+          tags: bookmark.tags || [],
         });
       }
     } catch (error) {
@@ -181,7 +182,6 @@ export const Dashboard = () => {
           <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
             <BookmarkList
               bookmarks={filteredBookmarks}
-              collections={collections}
               onEdit={setEditingBookmark}
               onDelete={handleDeleteBookmark}
               onUpdateFavicon={handleUpdateFavicon}

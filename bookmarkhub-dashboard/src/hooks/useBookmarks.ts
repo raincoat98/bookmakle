@@ -72,6 +72,7 @@ export const useBookmarks = (
             userId: data.userId || "",
             createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
             updatedAt: data.updatedAt ? data.updatedAt.toDate() : new Date(),
+            tags: data.tags || [],
           });
         });
 
@@ -166,6 +167,7 @@ export const useBookmarks = (
       userId: userId,
       createdAt: new Date(),
       updatedAt: new Date(),
+      tags: bookmarkData.tags || [],
     };
 
     await addDoc(collection(db, "bookmarks"), newBookmark);
@@ -191,6 +193,7 @@ export const useBookmarks = (
       favicon: favicon,
       collection: bookmarkData.collection || null,
       updatedAt: new Date(),
+      tags: bookmarkData.tags || [],
     });
   };
 

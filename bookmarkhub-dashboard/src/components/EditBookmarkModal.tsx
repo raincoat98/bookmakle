@@ -22,12 +22,14 @@ export const EditBookmarkModal = ({
   bookmark,
   collections,
 }: EditBookmarkModalProps) => {
+  const [tagInput, setTagInput] = useState("");
   const [formData, setFormData] = useState<BookmarkFormData>({
     title: "",
     url: "",
     description: "",
     favicon: "",
     collection: "",
+    tags: [],
   });
   const [loading, setLoading] = useState(false);
   const [faviconLoading, setFaviconLoading] = useState(false);
@@ -43,6 +45,7 @@ export const EditBookmarkModal = ({
         description: bookmark.description || "",
         favicon: bookmark.favicon || "",
         collection: bookmark.collection || collections[0]?.id || "",
+        tags: bookmark.tags || [],
       });
     }
   }, [bookmark, collections]);
@@ -84,6 +87,29 @@ export const EditBookmarkModal = ({
 
     checkStatus();
   }, [formData.favicon]);
+
+  // 태그 추가 함수
+  const handleAddTag = () => {
+    const value = tagInput.trim();
+    if (value && !formData.tags.includes(value)) {
+      setFormData({ ...formData, tags: [...formData.tags, value] });
+    }
+    setTagInput("");
+  };
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const nativeEvent = e.nativeEvent as unknown as { isComposing?: boolean };
+    const isComposing =
+      typeof nativeEvent.isComposing === "boolean"
+        ? nativeEvent.isComposing
+        : false;
+    if (e.key === "Enter" && !isComposing) {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+  const handleRemoveTag = (tag: string) => {
+    setFormData({ ...formData, tags: formData.tags.filter((t) => t !== tag) });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -304,6 +330,47 @@ export const EditBookmarkModal = ({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* 태그 입력 UI */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              태그
+            </label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {formData.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    className="ml-1 text-xs"
+                    onClick={() => handleRemoveTag(tag)}
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagInputKeyDown}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="태그를 입력 후 엔터 또는 쉼표"
+              />
+              <button
+                type="button"
+                onClick={handleAddTag}
+                className="px-3 py-2 text-sm bg-purple-500 text-white rounded hover:bg-purple-600"
+              >
+                추가
+              </button>
             </div>
           </div>
 

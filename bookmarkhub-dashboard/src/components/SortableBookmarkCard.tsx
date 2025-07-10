@@ -1,10 +1,9 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Bookmark, Collection } from "../types";
+import type { Bookmark } from "../types";
 
 interface SortableBookmarkCardProps {
   bookmark: Bookmark;
-  collections: Collection[];
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: string) => void;
   onRefreshFavicon: (bookmark: Bookmark) => Promise<void>;
@@ -13,7 +12,6 @@ interface SortableBookmarkCardProps {
 
 export const SortableBookmarkCard = ({
   bookmark,
-  collections,
   onEdit,
   onDelete,
   onRefreshFavicon,
@@ -32,11 +30,6 @@ export const SortableBookmarkCard = ({
     transform: CSS.Transform.toString(transform),
     transition,
   };
-
-  // 북마크의 컬렉션 정보 찾기
-  const bookmarkCollection = bookmark.collection
-    ? collections.find((c) => c.id === bookmark.collection)
-    : null;
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -178,14 +171,20 @@ export const SortableBookmarkCard = ({
               <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {bookmark.title}
               </h3>
-              {/* 컬렉션 표시 */}
-              {bookmarkCollection && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 flex-shrink-0">
-                  <span className="mr-1">{bookmarkCollection.icon}</span>
-                  <span className="truncate">{bookmarkCollection.name}</span>
-                </span>
-              )}
             </div>
+            {/* 태그 배지 */}
+            {bookmark.tags && bookmark.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-1">
+                {bookmark.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
               {bookmark.url}
             </p>
