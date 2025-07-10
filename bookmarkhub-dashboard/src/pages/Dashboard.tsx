@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AddBookmarkModal } from "../components/AddBookmarkModal";
 import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { BookmarkList } from "../components/BookmarkList";
@@ -22,13 +22,21 @@ export const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortedBookmarks, setSortedBookmarks] = useState<Bookmark[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
   // 북마크 데이터가 변경될 때마다 정렬 상태 초기화
   useEffect(() => {
     setSortedBookmarks(bookmarks);
   }, [bookmarks]);
 
-  // 선택된 컬렉션에 따라 북마크 필터링
+  // 전체 북마크에서 사용된 태그 집계 (중복 없이)
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    bookmarks.forEach((b) => b.tags?.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet).sort();
+  }, [bookmarks]);
+
+  // 태그 필터링 적용
   const filteredBookmarks = sortedBookmarks.filter((bookmark) => {
     const matchesSearch =
       bookmark.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -36,14 +44,24 @@ export const Dashboard = () => {
       (bookmark.description &&
         bookmark.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    const matchesTag = selectedTag
+      ? bookmark.tags?.includes(selectedTag)
+      : true;
+
     if (selectedCollection === "all") {
-      return matchesSearch;
+      return matchesSearch && matchesTag;
     } else if (selectedCollection === "none") {
       return (
-        matchesSearch && (!bookmark.collection || bookmark.collection === "")
+        matchesSearch &&
+        matchesTag &&
+        (!bookmark.collection || bookmark.collection === "")
       );
     } else {
-      return matchesSearch && bookmark.collection === selectedCollection;
+      return (
+        matchesSearch &&
+        matchesTag &&
+        bookmark.collection === selectedCollection
+      );
     }
   });
 
@@ -188,6 +206,34 @@ export const Dashboard = () => {
               onReorder={handleReorderBookmarks}
               viewMode={viewMode}
             />
+            {/* 태그 필터 UI */}
+            {allTags.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                <button
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                    selectedTag === null
+                      ? "bg-purple-500 text-white border-purple-500"
+                      : "bg-gray-100 text-gray-700 border-gray-200"
+                  }`}
+                  onClick={() => setSelectedTag(null)}
+                >
+                  전체
+                </button>
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                      selectedTag === tag
+                        ? "bg-purple-500 text-white border-purple-500"
+                        : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                    }`}
+                    onClick={() => setSelectedTag(tag)}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 북마크 추가 모달 */}
