@@ -472,4 +472,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// 컨텍스트 메뉴 등록
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "open-dashboard",
+    title: "대시보드 열기",
+    contexts: ["all"],
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === "open-dashboard") {
+    chrome.tabs.create({ url: "https://bookmarkhub-5ea6c-dashboard.web.app/" });
+  }
+});
+
 console.log("Background script loaded");

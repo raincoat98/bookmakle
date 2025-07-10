@@ -10,7 +10,8 @@
     "cookies",
     "tabs",
     "activeTab",
-    "clipboardWrite"
+    "clipboardWrite",
+    "contextMenus"
   ],
   "host_permissions": [
     "https://*.firebaseapp.com/*",
