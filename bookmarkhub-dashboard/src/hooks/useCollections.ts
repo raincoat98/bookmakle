@@ -64,6 +64,7 @@ export const useCollections = (userId: string) => {
           id: doc.id,
           name: data.name,
           icon: data.icon,
+          description: data.description || "",
           userId: data.userId,
           createdAt: data.createdAt.toDate(),
           updatedAt: data.updatedAt.toDate(),
@@ -115,6 +116,7 @@ export const useCollections = (userId: string) => {
     try {
       const docRef = await addDoc(collection(db, "collections"), {
         ...collectionData,
+        description: collectionData.description || "",
         userId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -124,6 +126,7 @@ export const useCollections = (userId: string) => {
       const newCollection: Collection = {
         id: docRef.id,
         ...collectionData,
+        description: collectionData.description || "",
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),

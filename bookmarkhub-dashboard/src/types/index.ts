@@ -11,6 +11,7 @@ export interface Bookmark {
   title: string;
   url: string;
   description?: string;
+  favicon?: string;
   collection: string | null;
   order: number;
   userId: string;
@@ -22,6 +23,7 @@ export interface BookmarkFormData {
   title: string;
   url: string;
   description: string;
+  favicon?: string;
   collection: string;
 }
 

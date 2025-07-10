@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { BookmarkFormData, Collection } from "../types";
+import {
+  getFaviconUrl,
+  findFaviconFromWebsite,
+  refreshFavicon,
+  getFaviconPreviewUrl,
+} from "../utils/favicon";
 
 interface AddBookmarkModalProps {
   isOpen: boolean;
@@ -18,9 +24,49 @@ export const AddBookmarkModal = ({
     title: "",
     url: "",
     description: "",
+    favicon: "",
     collection: collections.length > 0 ? collections[0].id : "",
   });
   const [loading, setLoading] = useState(false);
+  const [faviconLoading, setFaviconLoading] = useState(false);
+  // faviconStatus, setFaviconStatus 등 상태 제거
+  const [showFaviconPreview, setShowFaviconPreview] = useState(false);
+
+  // URL이 변경될 때 파비콘 자동 가져오기
+  useEffect(() => {
+    const fetchFavicon = async () => {
+      if (formData.url && !formData.favicon) {
+        setFaviconLoading(true);
+        try {
+          // 먼저 기본 파비콘 URL 생성
+          const defaultFavicon = getFaviconUrl(formData.url);
+          setFormData((prev) => ({ ...prev, favicon: defaultFavicon }));
+
+          // 웹사이트에서 실제 파비콘 찾기 시도
+          const actualFavicon = await findFaviconFromWebsite(formData.url);
+          setFormData((prev) => ({ ...prev, favicon: actualFavicon }));
+        } catch (error) {
+          console.error("파비콘 가져오기 실패:", error);
+        } finally {
+          setFaviconLoading(false);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(fetchFavicon, 1000); // 1초 후 실행
+    return () => clearTimeout(timeoutId);
+  }, [formData.url]);
+
+  // 파비콘 상태 확인
+  useEffect(() => {
+    const checkStatus = async () => {
+      if (formData.favicon) {
+        // 상태 검증 코드 완전 제거
+      }
+    };
+
+    checkStatus();
+  }, [formData.favicon]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +79,7 @@ export const AddBookmarkModal = ({
         title: "",
         url: "",
         description: "",
+        favicon: "",
         collection: collections.length > 0 ? collections[0].id : "",
       });
       onClose();
@@ -41,6 +88,37 @@ export const AddBookmarkModal = ({
       alert("북마크 추가 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefreshFavicon = async () => {
+    if (!formData.url) return;
+
+    setFaviconLoading(true);
+    try {
+      const newFavicon = await refreshFavicon(formData.url);
+      setFormData((prev) => ({ ...prev, favicon: newFavicon }));
+    } catch (error) {
+      console.error("파비콘 재가져오기 실패:", error);
+      alert("파비콘 재가져오기에 실패했습니다.");
+    } finally {
+      setFaviconLoading(false);
+    }
+  };
+
+  const handleFaviconUrlChange = (newUrl: string) => {
+    setFormData((prev) => ({ ...prev, favicon: newUrl }));
+  };
+
+  const handleApplyFavicon = async () => {
+    if (!formData.favicon) return;
+    setFaviconLoading(true);
+    try {
+      // 상태 검증 코드 완전 제거
+    } catch (error) {
+      console.error("파비콘 URL 검증 실패:", error);
+    } finally {
+      setFaviconLoading(false);
     }
   };
 
@@ -118,6 +196,103 @@ export const AddBookmarkModal = ({
               required
             />
           </div>
+
+          {/* 파비콘 미리보기 및 수정 */}
+          {formData.favicon && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                파비콘
+              </label>
+              <div className="space-y-3">
+                {/* 파비콘 미리보기 */}
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="relative">
+                    <img
+                      src={formData.favicon}
+                      alt="파비콘"
+                      className="w-8 h-8 rounded"
+                      onError={(e) => {
+                        e.currentTarget.src = "/favicon.svg";
+                      }}
+                    />
+                    {faviconLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1">
+                    {/* 파비콘 오류/상태 메시지 UI 모두 제거 */}
+                  </div>
+                </div>
+
+                {/* 파비콘 URL 입력 */}
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <input
+                      type="url"
+                      value={formData.favicon}
+                      onChange={(e) => handleFaviconUrlChange(e.target.value)}
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="파비콘 URL"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyFavicon}
+                      className="px-3 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                      disabled={!formData.favicon || faviconLoading}
+                    >
+                      {faviconLoading ? "확인 중..." : "적용하기"}
+                    </button>
+                  </div>
+
+                  {/* 파비콘 액션 버튼들 */}
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={handleRefreshFavicon}
+                      className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                      disabled={faviconLoading || !formData.url}
+                    >
+                      {faviconLoading ? "가져오는 중..." : "재가져오기"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowFaviconPreview(!showFaviconPreview)}
+                      className="px-3 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+                    >
+                      {showFaviconPreview ? "미리보기 닫기" : "미리보기"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 파비콘 미리보기 */}
+                {showFaviconPreview && formData.url && (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      파비콘 미리보기
+                    </h4>
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={getFaviconPreviewUrl(formData.url)}
+                        alt="파비콘 미리보기"
+                        className="w-12 h-12 rounded"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        <p>도메인: {new URL(formData.url).hostname}</p>
+                        <p>미리보기 크기: 64x64</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

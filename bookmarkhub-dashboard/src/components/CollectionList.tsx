@@ -187,6 +187,12 @@ export const CollectionList = ({
                     <span className="font-medium truncate block text-left">
                       {collection.name}
                     </span>
+                    {collection.description &&
+                      collection.description.trim() !== "" && (
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
+                          {collection.description}
+                        </span>
+                      )}
                   </div>
                 </button>
                 {/* 기본 컬렉션은 삭제 버튼 숨김 */}
