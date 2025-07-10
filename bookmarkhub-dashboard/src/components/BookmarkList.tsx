@@ -15,13 +15,14 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useState } from "react";
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 import { refreshFavicon } from "../utils/favicon";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
+  collections: Collection[];
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: string) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
@@ -31,6 +32,7 @@ interface BookmarkListProps {
 
 export const BookmarkList = ({
   bookmarks,
+  collections,
   onEdit,
   onDelete,
   onUpdateFavicon,
@@ -101,6 +103,7 @@ export const BookmarkList = ({
               <SortableBookmarkCard
                 key={bookmark.id}
                 bookmark={bookmark}
+                collections={collections}
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onRefreshFavicon={handleRefreshFavicon}
@@ -123,6 +126,7 @@ export const BookmarkList = ({
                 onDelete={onDelete}
                 onRefreshFavicon={handleRefreshFavicon}
                 faviconLoading={faviconLoadingStates[bookmark.id]}
+                collections={collections}
               />
             ))}
           </div>
