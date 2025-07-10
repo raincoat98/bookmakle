@@ -10,7 +10,8 @@ interface CollectionListProps {
   onAddCollection: (
     name: string,
     description: string,
-    icon: string
+    icon: string,
+    parentId?: string
   ) => Promise<void>;
   onDeleteCollection: (collectionId: string) => Promise<void>;
 }
@@ -27,6 +28,9 @@ export const CollectionList = ({
   const [newCollectionName, setNewCollectionName] = useState("");
   const [newCollectionDescription, setNewCollectionDescription] = useState("");
   const [newCollectionIcon, setNewCollectionIcon] = useState("📁");
+  const [newCollectionParentId, setNewCollectionParentId] = useState<
+    string | null
+  >(null);
   const [deletingCollectionId, setDeletingCollectionId] = useState<
     string | null
   >(null);
@@ -37,6 +41,24 @@ export const CollectionList = ({
   );
   const [targetCollectionName, setTargetCollectionName] = useState<string>("");
 
+  // 오픈된(열린) 컬렉션 id 목록
+  const [openIds, setOpenIds] = useState<string[]>([]);
+
+  // 하위 컬렉션 존재 여부
+  const hasChildren = (id: string) =>
+    collections.some((col) => col.parentId === id);
+
+  // 토글 핸들러
+  const handleToggle = (id: string) => {
+    setOpenIds((prev) =>
+      prev.includes(id) ? prev.filter((openId) => openId !== id) : [...prev, id]
+    );
+  };
+
+  // 하위 컬렉션 추가 모달 상태
+  const [isAddSubModalOpen, setIsAddSubModalOpen] = useState(false);
+  const [subParentId, setSubParentId] = useState<string | null>(null);
+
   const handleAddCollection = async () => {
     if (!newCollectionName.trim() || isCollectionSubmitting) return;
     setIsCollectionSubmitting(true);
@@ -44,11 +66,13 @@ export const CollectionList = ({
       await onAddCollection(
         newCollectionName.trim(),
         newCollectionDescription.trim(),
-        newCollectionIcon
+        newCollectionIcon,
+        newCollectionParentId ?? undefined
       );
       setNewCollectionName("");
       setNewCollectionDescription("");
       setNewCollectionIcon("📁");
+      setNewCollectionParentId(null);
       setIsAddingCollection(false);
       toast.success("컬렉션이 추가되었습니다!");
     } catch (error) {
@@ -80,6 +104,27 @@ export const CollectionList = ({
     setTargetCollectionName("");
   };
 
+  // 우클릭 컨텍스트 메뉴 이벤트
+  const handleCollectionContextMenu = (
+    e: React.MouseEvent,
+    collectionId: string
+  ) => {
+    e.preventDefault();
+    setSubParentId(collectionId);
+    setIsAddSubModalOpen(true);
+  };
+
+  // 하위 컬렉션 추가 핸들러
+  const handleAddSubCollection = async (
+    name: string,
+    description: string,
+    icon: string
+  ) => {
+    await onAddCollection(name, description, icon, subParentId ?? undefined);
+    setIsAddSubModalOpen(false);
+    setSubParentId(null);
+  };
+
   const iconOptions = [
     "📁",
     "📚",
@@ -98,6 +143,80 @@ export const CollectionList = ({
     "🌐",
     "📖",
   ];
+
+  // 트리 구조로 컬렉션을 렌더링하는 재귀 함수
+  function renderCollectionTree(
+    parentId: string | null,
+    depth: number = 0
+  ): React.JSX.Element[] {
+    return collections
+      .filter((col) => col.parentId === parentId)
+      .flatMap((collection) => {
+        const children = renderCollectionTree(collection.id, depth + 1);
+        const isOpen = openIds.includes(collection.id);
+        const hasChild = hasChildren(collection.id);
+        const nodes = [
+          <div
+            key={collection.id}
+            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer ${
+              selectedCollection === collection.id
+                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+            style={{ marginLeft: depth * 18 }}
+            onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
+            onClick={() => {
+              if (hasChild) handleToggle(collection.id);
+              onCollectionChange(collection.id);
+            }}
+          >
+            {hasChild && (
+              <span className="mr-1 text-xs select-none">
+                {isOpen ? "▼" : "▶"}
+              </span>
+            )}
+            <span className="text-lg">{collection.icon}</span>
+            <div className="flex-1 min-w-0">
+              <span className="font-medium truncate block text-left">
+                {collection.name}
+              </span>
+              {collection.description &&
+                collection.description.trim() !== "" && (
+                  <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
+                    {collection.description}
+                  </span>
+                )}
+            </div>
+            {/* 삭제 버튼 */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                openDeleteModal(collection.id, collection.name);
+              }}
+              className="ml-2 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              disabled={deletingCollectionId === collection.id}
+              title="삭제"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+          </div>,
+        ];
+        if (hasChild && isOpen) nodes.push(...children);
+        return nodes;
+      });
+  }
 
   return (
     <div className="w-full h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -144,63 +263,13 @@ export const CollectionList = ({
             </div>
           )}
 
-          {/* 사용자 컬렉션들 */}
-          {loading ? (
+          {/* 트리 구조 컬렉션 렌더링 */}
+          {!loading && renderCollectionTree(null, 0)}
+
+          {loading && (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
             </div>
-          ) : (
-            collections.map((collection) => (
-              <div
-                key={collection.id}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
-                  selectedCollection === collection.id
-                    ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-              >
-                <button
-                  onClick={() => onCollectionChange(collection.id)}
-                  className="flex-1 flex items-center space-x-3"
-                >
-                  <span className="text-lg">{collection.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <span className="font-medium truncate block text-left">
-                      {collection.name}
-                    </span>
-                    {collection.description &&
-                      collection.description.trim() !== "" && (
-                        <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
-                          {collection.description}
-                        </span>
-                      )}
-                  </div>
-                </button>
-                {/* 삭제 버튼 - 모든 컬렉션에 항상 표시 */}
-                <button
-                  onClick={() =>
-                    openDeleteModal(collection.id, collection.name)
-                  }
-                  className="ml-2 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                  disabled={deletingCollectionId === collection.id}
-                  title="삭제"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-            ))
           )}
         </nav>
       </div>
@@ -321,6 +390,85 @@ export const CollectionList = ({
           </button>
         )}
       </div>
+
+      {/* 하위 컬렉션 추가 모달 */}
+      {isAddSubModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              하위 컬렉션 추가
+            </h3>
+            <input
+              type="text"
+              placeholder="컬렉션 이름을 입력하세요"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+              autoFocus
+              value={newCollectionName}
+              onChange={(e) => setNewCollectionName(e.target.value)}
+              onKeyPress={(e) =>
+                e.key === "Enter" &&
+                handleAddSubCollection(
+                  newCollectionName,
+                  newCollectionDescription,
+                  newCollectionIcon
+                )
+              }
+            />
+            <input
+              type="text"
+              placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+              value={newCollectionDescription}
+              onChange={(e) => setNewCollectionDescription(e.target.value)}
+              onKeyPress={(e) =>
+                e.key === "Enter" &&
+                handleAddSubCollection(
+                  newCollectionName,
+                  newCollectionDescription,
+                  newCollectionIcon
+                )
+              }
+            />
+            <div className="grid grid-cols-4 gap-2 mb-4">
+              {iconOptions.map((icon) => (
+                <button
+                  key={icon}
+                  onClick={() => setNewCollectionIcon(icon)}
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg text-lg transition-colors ${
+                    newCollectionIcon === icon
+                      ? "outline outline-2 outline-blue-400 outline-offset-0 bg-blue-100 dark:bg-blue-900"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                  style={{ padding: 0, overflow: "hidden" }}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsAddSubModalOpen(false)}
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={() =>
+                  handleAddSubCollection(
+                    newCollectionName,
+                    newCollectionDescription,
+                    newCollectionIcon
+                  )
+                }
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                disabled={!newCollectionName.trim()}
+              >
+                추가
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 삭제 확인 모달 */}
       {showDeleteModal && (

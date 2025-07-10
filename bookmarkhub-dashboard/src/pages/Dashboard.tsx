@@ -123,9 +123,15 @@ export const Dashboard = () => {
   const handleAddCollection = async (
     name: string,
     description: string,
-    icon: string
+    icon: string,
+    parentId?: string | null
   ) => {
-    await addCollection({ name, description, icon });
+    await addCollection({
+      name,
+      description,
+      icon,
+      parentId: parentId ?? null,
+    });
   };
 
   const handleDeleteCollection = async (collectionId: string) => {

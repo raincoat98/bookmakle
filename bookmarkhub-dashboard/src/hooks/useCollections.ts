@@ -68,6 +68,7 @@ export const useCollections = (userId: string) => {
           userId: data.userId,
           createdAt: data.createdAt.toDate(),
           updatedAt: data.updatedAt.toDate(),
+          parentId: data.parentId ?? null,
         });
       });
 
@@ -84,6 +85,7 @@ export const useCollections = (userId: string) => {
             userId,
             createdAt: new Date(),
             updatedAt: new Date(),
+            parentId: null,
           })
         );
         setCollections(defaultCollectionList);
@@ -120,6 +122,7 @@ export const useCollections = (userId: string) => {
         userId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        parentId: collectionData.parentId ?? null,
       });
 
       // 새로 추가된 컬렉션을 목록에 추가
@@ -130,6 +133,7 @@ export const useCollections = (userId: string) => {
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
+        parentId: collectionData.parentId ?? null,
       };
 
       setCollections((prev) => [newCollection, ...prev]);

@@ -37,12 +37,14 @@ export interface Collection {
   userId: string;
   createdAt: Date;
   updatedAt: Date;
+  parentId: string | null; // 하위 컬렉션 지원
 }
 
 export interface CollectionFormData {
   name: string;
   description?: string;
   icon: string;
+  parentId: string | null; // 하위 컬렉션 지원
 }
 
 // 기존 하드코딩된 컬렉션 타입은 호환성을 위해 유지
