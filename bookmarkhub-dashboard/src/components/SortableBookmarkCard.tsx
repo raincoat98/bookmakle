@@ -5,7 +5,7 @@ import type { Bookmark } from "../types";
 interface SortableBookmarkCardProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
+  onDelete: (bookmark: Bookmark) => void;
   onRefreshFavicon: (bookmark: Bookmark) => Promise<void>;
   faviconLoading: boolean;
 }
@@ -38,9 +38,7 @@ export const SortableBookmarkCard = ({
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("이 북마크를 삭제하시겠습니까?")) {
-      onDelete(bookmark.id);
-    }
+    onDelete(bookmark);
   };
 
   const handleRefreshFavicon = async (e: React.MouseEvent) => {

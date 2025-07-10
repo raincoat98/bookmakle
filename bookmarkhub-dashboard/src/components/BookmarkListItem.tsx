@@ -3,7 +3,7 @@ import type { Bookmark } from "../types";
 interface BookmarkListItemProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
+  onDelete: (bookmark: Bookmark) => void;
 }
 
 export const BookmarkListItem = ({
@@ -18,9 +18,7 @@ export const BookmarkListItem = ({
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm("이 북마크를 삭제하시겠습니까?")) {
-      onDelete(bookmark.id);
-    }
+    onDelete(bookmark);
   };
 
   return (

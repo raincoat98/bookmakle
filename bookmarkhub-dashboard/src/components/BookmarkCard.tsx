@@ -5,7 +5,7 @@ import { refreshFavicon } from "../utils/favicon";
 interface BookmarkCardProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
+  onDelete: (bookmark: Bookmark) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
 }
 
@@ -38,9 +38,7 @@ export const BookmarkCard = ({
 
   const handleDelete = () => {
     setShowMenu(false);
-    if (confirm("정말로 이 북마크를 삭제하시겠습니까?")) {
-      onDelete(bookmark.id);
-    }
+    onDelete(bookmark);
   };
 
   return (

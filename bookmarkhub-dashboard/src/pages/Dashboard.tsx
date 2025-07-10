@@ -7,6 +7,7 @@ import { Header } from "../components/Header";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
+import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import type { Bookmark, BookmarkFormData } from "../types";
 
 export const Dashboard = () => {
@@ -23,6 +24,16 @@ export const Dashboard = () => {
   const [sortedBookmarks, setSortedBookmarks] = useState<Bookmark[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // 북마크 삭제 모달 상태
+  const [deleteBookmarkModal, setDeleteBookmarkModal] = useState<{
+    isOpen: boolean;
+    bookmark: Bookmark | null;
+  }>({
+    isOpen: false,
+    bookmark: null,
+  });
+  const [isDeletingBookmark, setIsDeletingBookmark] = useState(false);
 
   // 북마크 데이터가 변경될 때마다 정렬 상태 초기화
   useEffect(() => {
@@ -108,12 +119,24 @@ export const Dashboard = () => {
   };
 
   const handleDeleteBookmark = async (id: string) => {
+    setIsDeletingBookmark(true);
     try {
       await deleteBookmark(id);
+      setDeleteBookmarkModal({ isOpen: false, bookmark: null });
     } catch (error) {
       console.error("Error deleting bookmark:", error);
       alert("북마크 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeletingBookmark(false);
     }
+  };
+
+  const openDeleteBookmarkModal = (bookmark: Bookmark) => {
+    setDeleteBookmarkModal({ isOpen: true, bookmark });
+  };
+
+  const closeDeleteBookmarkModal = () => {
+    setDeleteBookmarkModal({ isOpen: false, bookmark: null });
   };
 
   const handleReorderBookmarks = (newBookmarks: Bookmark[]) => {
@@ -207,7 +230,7 @@ export const Dashboard = () => {
             <BookmarkList
               bookmarks={filteredBookmarks}
               onEdit={setEditingBookmark}
-              onDelete={handleDeleteBookmark}
+              onDelete={openDeleteBookmarkModal}
               onUpdateFavicon={handleUpdateFavicon}
               onReorder={handleReorderBookmarks}
               viewMode={viewMode}
@@ -257,6 +280,15 @@ export const Dashboard = () => {
             onUpdate={handleUpdateBookmark}
             bookmark={editingBookmark}
             collections={collections}
+          />
+
+          {/* 북마크 삭제 모달 */}
+          <DeleteBookmarkModal
+            isOpen={deleteBookmarkModal.isOpen}
+            onClose={closeDeleteBookmarkModal}
+            onDelete={handleDeleteBookmark}
+            bookmark={deleteBookmarkModal.bookmark}
+            isDeleting={isDeletingBookmark}
           />
         </div>
       </div>

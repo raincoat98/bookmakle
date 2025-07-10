@@ -23,7 +23,7 @@ import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 interface BookmarkListProps {
   bookmarks: Bookmark[];
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
+  onDelete: (bookmark: Bookmark) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
   onReorder: (bookmarks: Bookmark[]) => void;
   viewMode: "grid" | "list";
