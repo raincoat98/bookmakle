@@ -226,7 +226,13 @@ export const CollectionList = ({
             }}
           >
             {hasChild && (
-              <span className="mr-1 text-xs select-none">
+              <span
+                className="mr-1 text-xs select-none cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggle(collection.id);
+                }}
+              >
                 {isOpen ? "▼" : "▶"}
               </span>
             )}
