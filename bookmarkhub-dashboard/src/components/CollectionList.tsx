@@ -114,12 +114,32 @@ export const CollectionList = ({
     setIsAddSubModalOpen(true);
   };
 
+  // parentId의 깊이 계산 함수
+  function getCollectionDepth(id: string | null): number {
+    let depth = 0;
+    let current = collections.find((col) => col.id === id);
+    while (current && current.parentId) {
+      depth++;
+      const parent = collections.find((col) => col.id === current!.parentId);
+      if (!parent) break;
+      current = parent;
+    }
+    return depth;
+  }
+
   // 하위 컬렉션 추가 핸들러
   const handleAddSubCollection = async (
     name: string,
     description: string,
     icon: string
   ) => {
+    // parentId의 깊이가 2 이상이면 추가 불가
+    if (getCollectionDepth(subParentId) >= 2) {
+      toast.error("2단계 이상 하위 컬렉션은 추가할 수 없습니다.");
+      setIsAddSubModalOpen(false);
+      setSubParentId(null);
+      return;
+    }
     await onAddCollection(name, description, icon, subParentId ?? undefined);
     setIsAddSubModalOpen(false);
     setSubParentId(null);
@@ -149,6 +169,7 @@ export const CollectionList = ({
     parentId: string | null,
     depth: number = 0
   ): React.JSX.Element[] {
+    if (depth > 2) return [];
     return collections
       .filter((col) => col.parentId === parentId)
       .flatMap((collection) => {
@@ -161,10 +182,17 @@ export const CollectionList = ({
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer ${
               selectedCollection === collection.id
                 ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                : depth === 1
+                ? "bg-gray-50 dark:bg-gray-900 border-l-4 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 pl-6"
+                : depth === 2
+                ? "bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-200 dark:border-blue-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 pl-12 text-sm"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 pl-0"
             }`}
-            style={{ marginLeft: depth * 18 }}
-            onContextMenu={(e) => handleCollectionContextMenu(e, collection.id)}
+            onContextMenu={
+              depth < 2
+                ? (e) => handleCollectionContextMenu(e, collection.id)
+                : undefined
+            }
             onClick={() => {
               if (hasChild) {
                 handleToggle(collection.id);
