@@ -44,6 +44,11 @@ export const CollectionList = ({
   // 오픈된(열린) 컬렉션 id 목록
   const [openIds, setOpenIds] = useState<string[]>([]);
 
+  // 상태 및 핸들러 추가
+  const allIds = collections.map((col) => col.id);
+  const handleOpenAll = () => setOpenIds(allIds);
+  const handleCloseAll = () => setOpenIds([]);
+
   // 하위 컬렉션 존재 여부
   const hasChildren = (id: string) =>
     collections.some((col) => col.parentId === id);
@@ -252,10 +257,18 @@ export const CollectionList = ({
   return (
     <div className="w-full h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
       {/* 헤더 */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           컬렉션
         </h2>
+        <button
+          onClick={
+            openIds.length === allIds.length ? handleCloseAll : handleOpenAll
+          }
+          className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+        >
+          {openIds.length === allIds.length ? "전체 닫기" : "전체 열기"}
+        </button>
       </div>
 
       {/* 컬렉션 목록 */}
