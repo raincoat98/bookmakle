@@ -66,8 +66,12 @@ export const Dashboard = () => {
     await addBookmark(bookmarkData);
   };
 
-  const handleAddCollection = async (name: string, icon: string) => {
-    await addCollection({ name, icon });
+  const handleAddCollection = async (
+    name: string,
+    description: string,
+    icon: string
+  ) => {
+    await addCollection({ name, description, icon });
   };
 
   const handleDeleteCollection = async (collectionId: string) => {

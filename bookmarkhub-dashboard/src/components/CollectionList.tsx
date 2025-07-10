@@ -7,7 +7,11 @@ interface CollectionListProps {
   loading: boolean;
   selectedCollection: string;
   onCollectionChange: (collectionId: string) => void;
-  onAddCollection: (name: string, icon: string) => Promise<void>;
+  onAddCollection: (
+    name: string,
+    description: string,
+    icon: string
+  ) => Promise<void>;
   onDeleteCollection: (collectionId: string) => Promise<void>;
 }
 
@@ -21,6 +25,7 @@ export const CollectionList = ({
 }: CollectionListProps) => {
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
+  const [newCollectionDescription, setNewCollectionDescription] = useState("");
   const [newCollectionIcon, setNewCollectionIcon] = useState("📁");
   const [deletingCollectionId, setDeletingCollectionId] = useState<
     string | null
@@ -31,8 +36,13 @@ export const CollectionList = ({
     if (!newCollectionName.trim() || isCollectionSubmitting) return;
     setIsCollectionSubmitting(true);
     try {
-      await onAddCollection(newCollectionName.trim(), newCollectionIcon);
+      await onAddCollection(
+        newCollectionName.trim(),
+        newCollectionDescription.trim(),
+        newCollectionIcon
+      );
       setNewCollectionName("");
+      setNewCollectionDescription("");
       setNewCollectionIcon("📁");
       setIsAddingCollection(false);
       toast.success("컬렉션이 추가되었습니다!");
@@ -173,9 +183,11 @@ export const CollectionList = ({
                   className="flex-1 flex items-center space-x-3"
                 >
                   <span className="text-lg">{collection.icon}</span>
-                  <span className="font-medium truncate">
-                    {collection.name}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium truncate block text-left">
+                      {collection.name}
+                    </span>
+                  </div>
                 </button>
                 {/* 기본 컬렉션은 삭제 버튼 숨김 */}
                 {![
@@ -258,6 +270,14 @@ export const CollectionList = ({
               onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
               autoFocus
             />
+            <input
+              type="text"
+              value={newCollectionDescription}
+              onChange={(e) => setNewCollectionDescription(e.target.value)}
+              placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
+            />
             <div className="flex space-x-2">
               <button
                 onClick={handleAddCollection}
@@ -295,6 +315,7 @@ export const CollectionList = ({
                 onClick={() => {
                   setIsAddingCollection(false);
                   setNewCollectionName("");
+                  setNewCollectionDescription("");
                   setNewCollectionIcon("📁");
                 }}
                 className="flex-1 btn-secondary py-3 text-sm font-medium"

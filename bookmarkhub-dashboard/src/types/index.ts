@@ -27,6 +27,7 @@ export interface BookmarkFormData {
 export interface Collection {
   id: string;
   name: string;
+  description?: string;
   icon: string;
   userId: string;
   createdAt: Date;
@@ -35,6 +36,7 @@ export interface Collection {
 
 export interface CollectionFormData {
   name: string;
+  description?: string;
   icon: string;
 }
 
