@@ -298,12 +298,18 @@ export const CollectionList = ({
             {!hasChild && depth > 0 && <span className="tree-leaf">└</span>}
           </div>
           <span className="text-lg">{collection.icon}</span>
-          <div className="flex-1 min-w-0">
-            <span className="font-medium truncate block text-left">
+          <div className="flex-1">
+            <span
+              className="font-medium block text-left"
+              style={{ wordBreak: "break-all", whiteSpace: "normal" }}
+            >
               {collection.name}
             </span>
             {collection.description && collection.description.trim() !== "" && (
-              <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
+              <span
+                className="block text-xs text-gray-500 dark:text-gray-400 text-left mt-0.5"
+                style={{ wordBreak: "break-all", whiteSpace: "normal" }}
+              >
                 {collection.description}
               </span>
             )}

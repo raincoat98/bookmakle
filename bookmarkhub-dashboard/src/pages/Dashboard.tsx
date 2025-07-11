@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { AddBookmarkModal } from "../components/AddBookmarkModal";
 import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { BookmarkList } from "../components/BookmarkList";
@@ -39,6 +39,44 @@ export const Dashboard = () => {
     bookmark: null,
   });
   const [isDeletingBookmark, setIsDeletingBookmark] = useState(false);
+
+  // 사이드바 width 상태 및 드래그 관련
+  const SIDEBAR_WIDTH_KEY = "sidebarWidth";
+  const DEFAULT_WIDTH = 256; // 64px * 4 = 256px (w-64)
+  const MIN_WIDTH = 280;
+  const MAX_WIDTH = 480;
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+      return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
+    }
+    return DEFAULT_WIDTH;
+  });
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  const handleSidebarDrag = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDragging.current) return;
+      let newWidth = startWidth + (moveEvent.clientX - startX);
+      newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
+      setSidebarWidth(newWidth);
+    };
+    const onMouseUp = () => {
+      isDragging.current = false;
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
 
   // 북마크 데이터가 변경될 때마다 정렬 상태 초기화
   useEffect(() => {
@@ -275,7 +313,15 @@ export const Dashboard = () => {
 
       <div className="flex h-[calc(100vh-64px)]">
         {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}
-        <div className="hidden sm:flex w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col">
+        <div
+          ref={sidebarRef}
+          className="hidden sm:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
+          style={{
+            width: sidebarWidth,
+            minWidth: MIN_WIDTH,
+            maxWidth: MAX_WIDTH,
+          }}
+        >
           <CollectionList
             collections={collections}
             loading={loading}
@@ -284,6 +330,18 @@ export const Dashboard = () => {
             onAddCollection={handleAddCollection}
             onUpdateCollection={updateCollection}
             onDeleteCollection={handleDeleteCollection}
+          />
+          {/* 드래그 핸들러 */}
+          <div
+            style={{
+              right: 0,
+              top: 0,
+              width: 6,
+              cursor: "ew-resize",
+              zIndex: 20,
+            }}
+            className="absolute h-full bg-transparent hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+            onMouseDown={handleSidebarDrag}
           />
         </div>
         {/* 모바일 Drawer */}
