@@ -14,8 +14,13 @@ export const Dashboard = () => {
   const { user } = useAuth();
   const { bookmarks, addBookmark, updateBookmark, deleteBookmark } =
     useBookmarks(user?.uid || "", "all");
-  const { collections, loading, addCollection, deleteCollection } =
-    useCollections(user?.uid || "");
+  const {
+    collections,
+    loading,
+    addCollection,
+    updateCollection,
+    deleteCollection,
+  } = useCollections(user?.uid || "");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
   const [selectedCollection, setSelectedCollection] = useState("all");
@@ -277,6 +282,7 @@ export const Dashboard = () => {
             selectedCollection={selectedCollection}
             onCollectionChange={setSelectedCollection}
             onAddCollection={handleAddCollection}
+            onUpdateCollection={updateCollection}
             onDeleteCollection={handleDeleteCollection}
           />
         </div>
@@ -293,6 +299,7 @@ export const Dashboard = () => {
                   setIsDrawerOpen(false);
                 }}
                 onAddCollection={handleAddCollection}
+                onUpdateCollection={updateCollection}
                 onDeleteCollection={handleDeleteCollection}
               />
             </div>
