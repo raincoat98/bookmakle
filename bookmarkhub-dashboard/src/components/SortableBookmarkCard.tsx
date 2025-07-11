@@ -67,14 +67,14 @@ export const SortableBookmarkCard = ({
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      {/* 드래그 핸들러 */}
+      {/* 드래그 핸들러 - 모바일에서 더 크게 */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg p-1.5 shadow-sm"
+        className="absolute top-2 left-2 sm:top-3 sm:left-3 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-2 sm:p-1.5 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
       >
         <svg
-          className="w-4 h-4 text-gray-500"
+          className="w-5 h-5 sm:w-4 sm:h-4 text-gray-500"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
@@ -82,18 +82,18 @@ export const SortableBookmarkCard = ({
         </svg>
       </div>
 
-      {/* 액션 버튼들 */}
-      <div className="absolute top-3 right-3 flex space-x-1.5 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300">
+      {/* 액션 버튼들 - 모바일에서 더 크고 간격 조정 */}
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex space-x-2 sm:space-x-1.5 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300">
         <button
           onClick={handleRefreshFavicon}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
           disabled={faviconLoading}
-          className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md"
+          className="p-3 sm:p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
           title="파비콘 재가져오기"
         >
           <svg
-            className="w-4 h-4"
+            className="w-5 h-5 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -110,11 +110,11 @@ export const SortableBookmarkCard = ({
           onClick={handleEdit}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md"
+          className="p-3 sm:p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
           title="수정"
         >
           <svg
-            className="w-4 h-4"
+            className="w-5 h-5 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -131,11 +131,11 @@ export const SortableBookmarkCard = ({
           onClick={handleDelete}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md"
+          className="p-3 sm:p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
           title="삭제"
         >
           <svg
-            className="w-4 h-4"
+            className="w-5 h-5 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -150,24 +150,24 @@ export const SortableBookmarkCard = ({
         </button>
       </div>
 
-      {/* 카드 내용 */}
-      <div className="p-5 pt-12 relative z-10">
-        <div className="flex items-start space-x-4">
-          {/* 파비콘 */}
-          <div className="relative flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center shadow-sm">
+      {/* 카드 내용 - 모바일에서 수직 배치 */}
+      <div className="p-4 sm:p-5 pt-14 sm:pt-12 relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-y-3 sm:space-x-4">
+          {/* 파비콘 - 모바일에서 위쪽 */}
+          <div className="relative flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
+            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center shadow-sm">
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
                   alt="파비콘"
-                  className="w-6 h-6 rounded-lg"
+                  className="w-8 h-8 sm:w-6 sm:h-6 rounded-lg"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
                 <svg
-                  className="w-5 h-5 text-gray-500 dark:text-gray-400"
+                  className="w-6 h-6 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -177,71 +177,69 @@ export const SortableBookmarkCard = ({
             </div>
             {faviconLoading && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-500 border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-6 w-6 sm:h-5 sm:w-5 border-2 border-blue-500 border-t-transparent"></div>
               </div>
             )}
           </div>
 
-          {/* 텍스트 내용 */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center space-x-2 mb-2">
+          {/* 텍스트 및 정보 영역 - 수직 배치 */}
+          <div className="flex-1 min-w-0 flex flex-col gap-y-2">
+            <div className="flex items-center space-x-2 mb-1">
               <a
                 href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-base font-semibold text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
+                className="text-lg sm:text-base font-semibold text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
                 title={bookmark.title}
               >
                 {bookmark.title}
               </a>
             </div>
-
-            {/* 컬렉션 정보 */}
-            <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center">
+            <p className="text-sm sm:text-sm text-gray-500 dark:text-gray-400 truncate">
+              {bookmark.url}
+            </p>
+            {/* 컬렉션 정보 - 모바일에서 아래쪽 */}
+            <div className="flex flex-wrap items-center gap-2 mb-1">
               {collection ? (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                <span className="inline-flex items-center px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                   {collection.icon} {collection.name}
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                <span className="inline-flex items-center px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
                   컬렉션 없음
                 </span>
               )}
+              <div className="text-sm sm:text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-2 sm:px-2 sm:py-1 rounded-md">
+                {bookmark.createdAt.toLocaleDateString()}
+              </div>
             </div>
-
-            {/* 태그 배지 */}
+            {/* 태그 배지 - 모바일에서 아래쪽 */}
             {bookmark.tags && bookmark.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
+              <div className="flex flex-wrap gap-2 sm:gap-1.5 mb-1">
                 {bookmark.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 shadow-sm"
+                    className="inline-flex items-center px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 shadow-sm"
                   >
                     #{tag}
                   </span>
                 ))}
               </div>
             )}
-
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate mb-3">
-              {bookmark.url}
-            </p>
-
             {bookmark.description && (
-              <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 transition-colors duration-200 leading-relaxed">
+              <p className="text-sm sm:text-sm text-gray-600 dark:text-gray-300 line-clamp-2 transition-colors duration-200 leading-relaxed">
                 {bookmark.description}
               </p>
             )}
           </div>
         </div>
-
-        {/* 방문하기 버튼: 모든 화면에서 보임 */}
-        <div className="flex justify-end mt-4">
+        {/* 방문하기 버튼: 모바일에서 전체 너비, 데스크톱은 우측 정렬 */}
+        <div className="flex mt-4 sm:justify-end">
           <a
             href={bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
+            className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px]"
           >
             <span>방문하기</span>
             <svg
