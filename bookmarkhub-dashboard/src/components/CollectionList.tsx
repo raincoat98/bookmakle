@@ -357,7 +357,7 @@ export const CollectionList = ({
           onClick={
             openIds.length === allIds.length ? handleCloseAll : handleOpenAll
           }
-          className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+          className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold"
         >
           {openIds.length === allIds.length ? "전체 닫기" : "전체 열기"}
         </button>
