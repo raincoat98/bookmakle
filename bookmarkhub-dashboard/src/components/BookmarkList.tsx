@@ -39,6 +39,7 @@ interface BookmarkListProps {
   onDelete: (bookmark: Bookmark) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
   onReorder: (bookmarks: Bookmark[]) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
   viewMode: "grid" | "list";
   collections: Collection[];
 }
@@ -49,6 +50,7 @@ export const BookmarkList = ({
   onDelete,
   onUpdateFavicon,
   onReorder,
+  onToggleFavorite, // 즐겨찾기 토글 함수 추가
   viewMode,
   collections,
 }: BookmarkListProps) => {
@@ -278,6 +280,7 @@ export const BookmarkList = ({
                             groupedData.selectedCollectionBookmarks.length - 1
                           }
                           collections={collections}
+                          onToggleFavorite={onToggleFavorite}
                         />
                       )
                     )}
@@ -306,6 +309,7 @@ export const BookmarkList = ({
                             groupedData.selectedCollectionBookmarks.length - 1
                           }
                           collections={collections}
+                          onToggleFavorite={onToggleFavorite}
                         />
                       )
                     )}
@@ -347,6 +351,7 @@ export const BookmarkList = ({
                         isFirst={index === 0}
                         isLast={index === group.bookmarks.length - 1}
                         collections={collections}
+                        onToggleFavorite={onToggleFavorite}
                       />
                     ))}
                   </div>
@@ -368,6 +373,7 @@ export const BookmarkList = ({
                         isFirst={index === 0}
                         isLast={index === group.bookmarks.length - 1}
                         collections={collections}
+                        onToggleFavorite={onToggleFavorite}
                       />
                     ))}
                   </div>
@@ -418,6 +424,7 @@ export const BookmarkList = ({
                 isFirst={index === 0}
                 isLast={index === bookmarksArray.length - 1}
                 collections={collections}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>
@@ -439,6 +446,7 @@ export const BookmarkList = ({
                 isFirst={index === 0}
                 isLast={index === bookmarksArray.length - 1}
                 collections={collections}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>

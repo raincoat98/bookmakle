@@ -8,6 +8,7 @@ interface BookmarkCardProps {
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
   onUpdateFavicon: (id: string, favicon: string) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
 }
 
 export const BookmarkCard = ({
@@ -15,6 +16,7 @@ export const BookmarkCard = ({
   onEdit,
   onDelete,
   onUpdateFavicon,
+  onToggleFavorite,
 }: BookmarkCardProps) => {
   const [faviconLoading, setFaviconLoading] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -119,7 +121,36 @@ export const BookmarkCard = ({
           </div>
 
           {/* 메뉴 버튼 */}
-          <div className="relative flex-shrink-0">
+          <div className="relative flex-shrink-0 flex items-center space-x-1">
+            {/* 즐겨찾기 버튼 */}
+            <button
+              onClick={() =>
+                onToggleFavorite(bookmark.id, !bookmark.isFavorite)
+              }
+              className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded transition-all duration-150 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[32px] min-h-[32px] flex items-center justify-center"
+              aria-label={
+                bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+              }
+            >
+              <svg
+                className={`w-4 h-4 ${
+                  bookmark.isFavorite
+                    ? "text-red-500 dark:text-red-400 fill-current"
+                    : "text-gray-400"
+                }`}
+                fill={bookmark.isFavorite ? "currentColor" : "none"}
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </button>
+
             <button
               ref={buttonRef}
               onClick={() => setShowMenu(!showMenu)}

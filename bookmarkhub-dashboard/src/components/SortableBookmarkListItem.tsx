@@ -11,6 +11,7 @@ interface SortableBookmarkListItemProps {
   onMoveDown?: (bookmark: Bookmark) => void;
   isFirst?: boolean;
   isLast?: boolean;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
 }
 
 export const SortableBookmarkListItem = ({
@@ -22,6 +23,7 @@ export const SortableBookmarkListItem = ({
   onMoveDown,
   isFirst = false,
   isLast = false,
+  onToggleFavorite, // 즐겨찾기 토글 함수 추가
 }: SortableBookmarkListItemProps) => {
   const {
     attributes,
@@ -165,6 +167,43 @@ export const SortableBookmarkListItem = ({
               strokeLinejoin="round"
               strokeWidth={2}
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+            />
+          </svg>
+        </button>
+
+        {/* 즐겨찾기 버튼 */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.nativeEvent.stopImmediatePropagation();
+            onToggleFavorite(bookmark.id, !bookmark.isFavorite);
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          className={`p-2.5 sm:p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 ${
+            bookmark.isFavorite
+              ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+              : "text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+          }`}
+          title={bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+        >
+          <svg
+            className={`w-4 h-4 sm:w-4 sm:h-4 ${
+              bookmark.isFavorite
+                ? "text-red-500 dark:text-red-400"
+                : "text-gray-500"
+            }`}
+            fill={bookmark.isFavorite ? "currentColor" : "none"}
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
             />
           </svg>
         </button>

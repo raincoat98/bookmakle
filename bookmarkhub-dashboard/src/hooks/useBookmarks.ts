@@ -73,6 +73,7 @@ export const useBookmarks = (
             createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
             updatedAt: data.updatedAt ? data.updatedAt.toDate() : new Date(),
             tags: data.tags || [],
+            isFavorite: data.isFavorite || false, // 즐겨찾기 필드 추가
           });
         });
 
@@ -148,6 +149,40 @@ export const useBookmarks = (
     }
   };
 
+  // isFavorite 필드 마이그레이션 함수 추가
+  const migrateIsFavorite = async () => {
+    if (!userId) return;
+
+    const batch = writeBatch(db);
+    let updatedCount = 0;
+
+    for (const bookmark of bookmarks) {
+      if (bookmark.isFavorite === undefined) {
+        try {
+          const bookmarkRef = doc(db, "bookmarks", bookmark.id);
+          batch.update(bookmarkRef, { isFavorite: false });
+          updatedCount++;
+        } catch (error) {
+          console.error(
+            `북마크 ${bookmark.id}의 isFavorite 마이그레이션 실패:`,
+            error
+          );
+        }
+      }
+    }
+
+    if (updatedCount > 0) {
+      try {
+        await batch.commit();
+        console.log(
+          `${updatedCount}개의 북마크 isFavorite 필드가 마이그레이션되었습니다.`
+        );
+      } catch (error) {
+        console.error("isFavorite 마이그레이션 실패:", error);
+      }
+    }
+  };
+
   const addBookmark = async (bookmarkData: BookmarkFormData) => {
     if (!userId) throw new Error("사용자가 로그인되지 않았습니다.");
 
@@ -168,6 +203,7 @@ export const useBookmarks = (
       createdAt: new Date(),
       updatedAt: new Date(),
       tags: bookmarkData.tags || [],
+      isFavorite: bookmarkData.isFavorite || false, // 즐겨찾기 필드 추가
     };
 
     await addDoc(collection(db, "bookmarks"), newBookmark);
@@ -194,6 +230,7 @@ export const useBookmarks = (
       collection: bookmarkData.collection || null,
       updatedAt: new Date(),
       tags: bookmarkData.tags || [],
+      isFavorite: bookmarkData.isFavorite || false, // 즐겨찾기 필드 추가
     });
   };
 
@@ -214,6 +251,17 @@ export const useBookmarks = (
     await batch.commit();
   };
 
+  // 즐겨찾기 토글 함수 추가
+  const toggleFavorite = async (bookmarkId: string, isFavorite: boolean) => {
+    if (!userId) throw new Error("사용자가 로그인되지 않았습니다.");
+
+    const bookmarkRef = doc(db, "bookmarks", bookmarkId);
+    await updateDoc(bookmarkRef, {
+      isFavorite: isFavorite,
+      updatedAt: new Date(),
+    });
+  };
+
   return {
     bookmarks,
     loading,
@@ -221,6 +269,8 @@ export const useBookmarks = (
     updateBookmark,
     deleteBookmark,
     reorderBookmarks,
+    toggleFavorite, // 즐겨찾기 토글 함수 추가
     migrateFavicons,
+    migrateIsFavorite, // isFavorite 마이그레이션 함수 추가
   };
 };

@@ -31,6 +31,7 @@ export const EditBookmarkModal = ({
     favicon: "",
     collection: "",
     tags: [],
+    isFavorite: false, // 즐겨찾기 필드 추가
   });
   const [loading, setLoading] = useState(false);
   const [faviconLoading, setFaviconLoading] = useState(false);
@@ -47,6 +48,7 @@ export const EditBookmarkModal = ({
         favicon: bookmark.favicon || "",
         collection: bookmark.collection || collections[0]?.id || "",
         tags: bookmark.tags || [],
+        isFavorite: bookmark.isFavorite || false, // 즐겨찾기 필드 추가
       });
     }
   }, [bookmark, collections]);

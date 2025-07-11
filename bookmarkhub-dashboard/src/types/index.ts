@@ -18,6 +18,7 @@ export interface Bookmark {
   createdAt: Date;
   updatedAt: Date;
   tags: string[]; // 태그 필드 추가
+  isFavorite: boolean; // 즐겨찾기 필드 추가
 }
 
 export interface BookmarkFormData {
@@ -27,6 +28,7 @@ export interface BookmarkFormData {
   favicon?: string;
   collection: string;
   tags: string[]; // 태그 필드 추가
+  isFavorite: boolean; // 즐겨찾기 필드 추가
 }
 
 export interface Collection {
