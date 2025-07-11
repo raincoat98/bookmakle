@@ -1,6 +1,6 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 
 interface SortableBookmarkCardProps {
   bookmark: Bookmark;
@@ -8,6 +8,7 @@ interface SortableBookmarkCardProps {
   onDelete: (bookmark: Bookmark) => void;
   onRefreshFavicon: (bookmark: Bookmark) => Promise<void>;
   faviconLoading: boolean;
+  collections: Collection[];
 }
 
 export const SortableBookmarkCard = ({
@@ -16,6 +17,7 @@ export const SortableBookmarkCard = ({
   onDelete,
   onRefreshFavicon,
   faviconLoading,
+  collections,
 }: SortableBookmarkCardProps) => {
   const {
     attributes,
@@ -45,6 +47,8 @@ export const SortableBookmarkCard = ({
     e.stopPropagation();
     await onRefreshFavicon(bookmark);
   };
+
+  const collection = collections.find((col) => col.id === bookmark.collection);
 
   return (
     <div
@@ -169,6 +173,16 @@ export const SortableBookmarkCard = ({
               <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                 {bookmark.title}
               </h3>
+            </div>
+            {/* 컬렉션 정보 */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+              {collection ? (
+                <span>
+                  {collection.icon} {collection.name}
+                </span>
+              ) : (
+                <span className="text-gray-400">컬렉션 없음</span>
+              )}
             </div>
             {/* 태그 배지 */}
             {bookmark.tags && bookmark.tags.length > 0 && (

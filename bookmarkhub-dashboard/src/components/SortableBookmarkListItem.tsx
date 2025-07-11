@@ -1,11 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 
 interface SortableBookmarkListItemProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
+  collections: Collection[];
   // onRefreshFavicon: (bookmark: Bookmark) => Promise<void>; // 제거
   // faviconLoading: boolean;
 }
@@ -14,6 +15,7 @@ export const SortableBookmarkListItem = ({
   bookmark,
   onEdit,
   onDelete,
+  collections,
 }: SortableBookmarkListItemProps) => {
   const {
     attributes,
@@ -38,6 +40,8 @@ export const SortableBookmarkListItem = ({
     e.stopPropagation();
     onDelete(bookmark);
   };
+
+  const collection = collections.find((col) => col.id === bookmark.collection);
 
   return (
     <div
@@ -139,6 +143,16 @@ export const SortableBookmarkListItem = ({
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
               {bookmark.url}
             </p>
+            {/* 컬렉션 정보 */}
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {collection ? (
+                <span>
+                  {collection.icon} {collection.name}
+                </span>
+              ) : (
+                <span className="text-gray-400">컬렉션 없음</span>
+              )}
+            </div>
             {bookmark.description && (
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-2 transition-colors duration-200">
                 {bookmark.description}

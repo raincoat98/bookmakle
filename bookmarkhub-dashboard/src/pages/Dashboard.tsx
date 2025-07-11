@@ -414,6 +414,7 @@ export const Dashboard = () => {
               onUpdateFavicon={handleUpdateFavicon}
               onReorder={handleReorderBookmarks}
               viewMode={effectiveViewMode}
+              collections={collections}
             />
             {/* 태그 필터 UI */}
             {(() => {

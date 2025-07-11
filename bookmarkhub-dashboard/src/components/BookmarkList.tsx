@@ -15,7 +15,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useState } from "react";
-import type { Bookmark } from "../types";
+import type { Bookmark, Collection } from "../types";
 import { refreshFavicon } from "../utils/favicon";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
@@ -39,6 +39,7 @@ interface BookmarkListProps {
   onUpdateFavicon: (id: string, favicon: string) => void;
   onReorder: (bookmarks: Bookmark[]) => void;
   viewMode: "grid" | "list";
+  collections: Collection[];
 }
 
 export const BookmarkList = ({
@@ -48,6 +49,7 @@ export const BookmarkList = ({
   onUpdateFavicon,
   onReorder,
   viewMode,
+  collections,
 }: BookmarkListProps) => {
   const [faviconLoadingStates, setFaviconLoadingStates] = useState<
     Record<string, boolean>
@@ -161,6 +163,7 @@ export const BookmarkList = ({
                         onDelete={onDelete}
                         onRefreshFavicon={handleRefreshFavicon}
                         faviconLoading={faviconLoadingStates[bookmark.id]}
+                        collections={collections}
                       />
                     ))}
                   </div>
@@ -179,6 +182,7 @@ export const BookmarkList = ({
                         bookmark={bookmark}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        collections={collections}
                       />
                     ))}
                   </div>
@@ -214,6 +218,7 @@ export const BookmarkList = ({
                         onDelete={onDelete}
                         onRefreshFavicon={handleRefreshFavicon}
                         faviconLoading={faviconLoadingStates[bookmark.id]}
+                        collections={collections}
                       />
                     ))}
                   </div>
@@ -230,6 +235,7 @@ export const BookmarkList = ({
                         bookmark={bookmark}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        collections={collections}
                       />
                     ))}
                   </div>
@@ -275,6 +281,7 @@ export const BookmarkList = ({
                 onDelete={onDelete}
                 onRefreshFavicon={handleRefreshFavicon}
                 faviconLoading={faviconLoadingStates[bookmark.id]}
+                collections={collections}
               />
             ))}
           </div>
@@ -291,6 +298,7 @@ export const BookmarkList = ({
                 bookmark={bookmark}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                collections={collections}
               />
             ))}
           </div>
