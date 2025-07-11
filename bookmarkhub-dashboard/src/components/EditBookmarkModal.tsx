@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import {
   getFaviconUrl,
@@ -121,7 +122,7 @@ export const EditBookmarkModal = ({
       onClose();
     } catch (error) {
       console.error("Error updating bookmark:", error);
-      alert("북마크 수정 중 오류가 발생했습니다.");
+      toast.error("북마크 수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
@@ -136,7 +137,7 @@ export const EditBookmarkModal = ({
       setFormData((prev) => ({ ...prev, favicon: newFavicon }));
     } catch (error) {
       console.error("파비콘 재가져오기 실패:", error);
-      alert("파비콘 재가져오기에 실패했습니다.");
+      toast.error("파비콘 재가져오기에 실패했습니다.");
     } finally {
       setFaviconLoading(false);
     }

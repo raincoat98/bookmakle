@@ -15,6 +15,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 import type { Bookmark, Collection } from "../types";
 import { refreshFavicon } from "../utils/favicon";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
@@ -66,18 +67,36 @@ export const BookmarkList = ({
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      // 그룹화된 데이터의 경우 드래그 앤 드롭은 비활성화
+      let allBookmarks: Bookmark[] = [];
+
+      // 그룹화된 데이터인지 확인
       if (
         typeof bookmarks === "object" &&
         "isGrouped" in bookmarks &&
         bookmarks.isGrouped
       ) {
-        return;
+        const groupedData = bookmarks as {
+          isGrouped: true;
+          selectedCollectionBookmarks: Bookmark[];
+          selectedCollectionName: string;
+          groupedBookmarks: {
+            collectionId: string;
+            collectionName: string;
+            bookmarks: Bookmark[];
+          }[];
+        };
+
+        // 모든 북마크를 하나의 배열로 합치기
+        allBookmarks = [
+          ...groupedData.selectedCollectionBookmarks,
+          ...groupedData.groupedBookmarks.flatMap((group) => group.bookmarks),
+        ];
+      } else {
+        allBookmarks = Array.isArray(bookmarks)
+          ? bookmarks
+          : bookmarks.bookmarks || [];
       }
 
-      const allBookmarks = Array.isArray(bookmarks)
-        ? bookmarks
-        : bookmarks.bookmarks || [];
       const oldIndex = allBookmarks.findIndex(
         (bookmark) => bookmark.id === active.id
       );
@@ -85,8 +104,10 @@ export const BookmarkList = ({
         (bookmark) => bookmark.id === over?.id
       );
 
-      const newBookmarks = arrayMove(allBookmarks, oldIndex, newIndex);
-      onReorder(newBookmarks);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newBookmarks = arrayMove(allBookmarks, oldIndex, newIndex);
+        onReorder(newBookmarks);
+      }
     }
   };
 
@@ -97,7 +118,7 @@ export const BookmarkList = ({
       onUpdateFavicon(bookmark.id, newFavicon);
     } catch (error) {
       console.error("파비콘 재가져오기 실패:", error);
-      alert("파비콘 재가져오기에 실패했습니다.");
+      toast.error("파비콘 재가져오기에 실패했습니다.");
     } finally {
       setFaviconLoadingStates((prev) => ({ ...prev, [bookmark.id]: false }));
     }
@@ -105,9 +126,36 @@ export const BookmarkList = ({
 
   // 상하 이동 핸들러들
   const handleMoveUp = (bookmark: Bookmark) => {
-    const allBookmarks = Array.isArray(bookmarks)
-      ? bookmarks
-      : bookmarks.bookmarks || [];
+    let allBookmarks: Bookmark[] = [];
+
+    // 그룹화된 데이터인지 확인
+    if (
+      typeof bookmarks === "object" &&
+      "isGrouped" in bookmarks &&
+      bookmarks.isGrouped
+    ) {
+      const groupedData = bookmarks as {
+        isGrouped: true;
+        selectedCollectionBookmarks: Bookmark[];
+        selectedCollectionName: string;
+        groupedBookmarks: {
+          collectionId: string;
+          collectionName: string;
+          bookmarks: Bookmark[];
+        }[];
+      };
+
+      // 모든 북마크를 하나의 배열로 합치기
+      allBookmarks = [
+        ...groupedData.selectedCollectionBookmarks,
+        ...groupedData.groupedBookmarks.flatMap((group) => group.bookmarks),
+      ];
+    } else {
+      allBookmarks = Array.isArray(bookmarks)
+        ? bookmarks
+        : bookmarks.bookmarks || [];
+    }
+
     const currentIndex = allBookmarks.findIndex((b) => b.id === bookmark.id);
     if (currentIndex > 0) {
       const newBookmarks = [...allBookmarks];
@@ -120,9 +168,36 @@ export const BookmarkList = ({
   };
 
   const handleMoveDown = (bookmark: Bookmark) => {
-    const allBookmarks = Array.isArray(bookmarks)
-      ? bookmarks
-      : bookmarks.bookmarks || [];
+    let allBookmarks: Bookmark[] = [];
+
+    // 그룹화된 데이터인지 확인
+    if (
+      typeof bookmarks === "object" &&
+      "isGrouped" in bookmarks &&
+      bookmarks.isGrouped
+    ) {
+      const groupedData = bookmarks as {
+        isGrouped: true;
+        selectedCollectionBookmarks: Bookmark[];
+        selectedCollectionName: string;
+        groupedBookmarks: {
+          collectionId: string;
+          collectionName: string;
+          bookmarks: Bookmark[];
+        }[];
+      };
+
+      // 모든 북마크를 하나의 배열로 합치기
+      allBookmarks = [
+        ...groupedData.selectedCollectionBookmarks,
+        ...groupedData.groupedBookmarks.flatMap((group) => group.bookmarks),
+      ];
+    } else {
+      allBookmarks = Array.isArray(bookmarks)
+        ? bookmarks
+        : bookmarks.bookmarks || [];
+    }
+
     const currentIndex = allBookmarks.findIndex((b) => b.id === bookmark.id);
     if (currentIndex < allBookmarks.length - 1) {
       const newBookmarks = [...allBookmarks];

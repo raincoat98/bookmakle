@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import type { Bookmark } from "../types";
 import { refreshFavicon } from "../utils/favicon";
 
@@ -49,7 +50,7 @@ export const BookmarkCard = ({
       onUpdateFavicon(bookmark.id, newFavicon);
     } catch (error) {
       console.error("파비콘 재가져오기 실패:", error);
-      alert("파비콘 재가져오기에 실패했습니다.");
+      toast.error("파비콘 재가져오기에 실패했습니다.");
     } finally {
       setFaviconLoading(false);
     }

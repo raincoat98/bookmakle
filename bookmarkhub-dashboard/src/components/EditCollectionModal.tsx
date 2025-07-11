@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Collection, CollectionFormData } from "../types";
 import EmojiPicker from "emoji-picker-react";
+import toast from "react-hot-toast";
 
 interface EditCollectionModalProps {
   isOpen: boolean;
@@ -84,7 +85,7 @@ export const EditCollectionModal = ({
       onClose();
     } catch (error) {
       console.error("Error updating collection:", error);
-      alert("컬렉션 수정 중 오류가 발생했습니다.");
+      toast.error("컬렉션 수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }

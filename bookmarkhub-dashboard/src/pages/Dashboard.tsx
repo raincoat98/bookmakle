@@ -11,11 +11,17 @@ import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import type { Bookmark, BookmarkFormData } from "../types";
 import { EditCollectionModal } from "../components/EditCollectionModal";
 import type { Collection } from "../types";
+import toast from "react-hot-toast";
 
 export const Dashboard = () => {
   const { user } = useAuth();
-  const { bookmarks, addBookmark, updateBookmark, deleteBookmark } =
-    useBookmarks(user?.uid || "", "all");
+  const {
+    bookmarks,
+    addBookmark,
+    updateBookmark,
+    deleteBookmark,
+    reorderBookmarks,
+  } = useBookmarks(user?.uid || "", "all");
   const {
     collections,
     loading,
@@ -231,9 +237,10 @@ export const Dashboard = () => {
     try {
       await addBookmark(bookmarkData);
       setIsAddModalOpen(false);
+      toast.success("북마크가 추가되었습니다.");
     } catch (error) {
       console.error("Error adding bookmark:", error);
-      alert("북마크 추가 중 오류가 발생했습니다.");
+      toast.error("북마크 추가 중 오류가 발생했습니다.");
     }
   };
 
@@ -244,9 +251,10 @@ export const Dashboard = () => {
     try {
       await updateBookmark(id, bookmarkData);
       setEditingBookmark(null);
+      toast.success("북마크가 수정되었습니다.");
     } catch (error) {
       console.error("Error updating bookmark:", error);
-      alert("북마크 수정 중 오류가 발생했습니다.");
+      toast.error("북마크 수정 중 오류가 발생했습니다.");
     }
   };
 
@@ -265,7 +273,7 @@ export const Dashboard = () => {
       }
     } catch (error) {
       console.error("Error updating favicon:", error);
-      alert("파비콘 업데이트 중 오류가 발생했습니다.");
+      toast.error("파비콘 업데이트 중 오류가 발생했습니다.");
     }
   };
 
@@ -274,9 +282,10 @@ export const Dashboard = () => {
     try {
       await deleteBookmark(id);
       setDeleteBookmarkModal({ isOpen: false, bookmark: null });
+      toast.success("북마크가 삭제되었습니다.");
     } catch (error) {
       console.error("Error deleting bookmark:", error);
-      alert("북마크 삭제 중 오류가 발생했습니다.");
+      toast.error("북마크 삭제 중 오류가 발생했습니다.");
     } finally {
       setIsDeletingBookmark(false);
     }
@@ -290,8 +299,15 @@ export const Dashboard = () => {
     setDeleteBookmarkModal({ isOpen: false, bookmark: null });
   };
 
-  const handleReorderBookmarks = (newBookmarks: Bookmark[]) => {
-    setSortedBookmarks(newBookmarks);
+  const handleReorderBookmarks = async (newBookmarks: Bookmark[]) => {
+    try {
+      await reorderBookmarks(newBookmarks);
+      setSortedBookmarks(newBookmarks);
+      toast.success("북마크 순서가 변경되었습니다.");
+    } catch (error) {
+      console.error("Error reordering bookmarks:", error);
+      toast.error("북마크 순서 변경 중 오류가 발생했습니다.");
+    }
   };
 
   const handleAddCollection = async (
@@ -300,19 +316,32 @@ export const Dashboard = () => {
     icon: string,
     parentId?: string | null
   ) => {
-    await addCollection({
-      name,
-      description,
-      icon,
-      parentId: parentId ?? null,
-    });
+    try {
+      await addCollection({
+        name,
+        description,
+        icon,
+        parentId: parentId ?? null,
+      });
+      toast.success("컬렉션이 추가되었습니다.");
+    } catch (error) {
+      console.error("Error adding collection:", error);
+      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
+    }
   };
 
   const handleDeleteCollection = async (collectionId: string) => {
     setDeletingCollectionId(collectionId);
-    await deleteCollection(collectionId);
-    setDeletingCollectionId(null);
-    closeDeleteCollectionModal();
+    try {
+      await deleteCollection(collectionId);
+      toast.success("컬렉션이 삭제되었습니다.");
+      setDeletingCollectionId(null);
+      closeDeleteCollectionModal();
+    } catch (error) {
+      console.error("Error deleting collection:", error);
+      toast.error("컬렉션 삭제 중 오류가 발생했습니다.");
+      setDeletingCollectionId(null);
+    }
   };
 
   // 컬렉션 수정 모달 열기
@@ -332,10 +361,11 @@ export const Dashboard = () => {
   ) => {
     try {
       await updateCollection(collectionId, collectionData);
+      toast.success("컬렉션이 수정되었습니다.");
       closeEditModal();
     } catch (error) {
       console.error("Error updating collection:", error);
-      alert("컬렉션 수정 중 오류가 발생했습니다.");
+      toast.error("컬렉션 수정 중 오류가 발생했습니다.");
     }
   };
 

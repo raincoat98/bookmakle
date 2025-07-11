@@ -110,11 +110,9 @@ export const CollectionList = ({
       setNewCollectionIcon("📁");
       setNewCollectionParentId(null);
       setIsAddingCollection(false);
-      toast.success("컬렉션이 추가되었습니다!");
     } catch (error) {
       console.error("Error adding collection:", error);
       toast.error("컬렉션 추가 중 오류가 발생했습니다.");
-      alert("컬렉션 추가 중 오류가 발생했습니다.");
     } finally {
       setIsCollectionSubmitting(false);
     }
