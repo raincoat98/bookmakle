@@ -356,9 +356,20 @@ export const Dashboard = () => {
         </div>
         {/* 모바일 Drawer */}
         {(isDrawerOpen || isDrawerClosing) && (
-          <div className="fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 z-50">
+            {/* 큰 배경 - 클릭 시 사이드바 닫기 */}
             <div
-              className={`w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transform transition-all duration-300 ease-in-out shadow-xl ${
+              className={`absolute inset-0 bg-black bg-opacity-30 ${
+                isDrawerClosing
+                  ? "animate-fade-out-simple"
+                  : "animate-fade-in-simple"
+              }`}
+              onClick={closeDrawer}
+            />
+
+            {/* 사이드바 */}
+            <div
+              className={`absolute left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transform transition-all duration-300 ease-in-out shadow-xl ${
                 isDrawerClosing
                   ? "translate-x-[-100%] opacity-0"
                   : "translate-x-0 opacity-100 animate-slide-in-left"
@@ -377,14 +388,6 @@ export const Dashboard = () => {
                 onDeleteCollection={handleDeleteCollection}
               />
             </div>
-            <div
-              className={`flex-1 bg-black bg-opacity-30 ${
-                isDrawerClosing
-                  ? "animate-fade-out-simple"
-                  : "animate-fade-in-simple"
-              }`}
-              onClick={closeDrawer}
-            />
           </div>
         )}
 

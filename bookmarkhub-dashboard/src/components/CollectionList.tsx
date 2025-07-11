@@ -600,7 +600,7 @@ export const CollectionList = ({
                 {newCollectionIcon}
               </button>
               {showSubEmojiPicker && (
-                <div className="absolute z-20 bottom-full mb-2">
+                <div className="absolute z-[70] bottom-full mb-2">
                   <EmojiPicker
                     onEmojiClick={handleSubEmojiSelect}
                     width={300}
