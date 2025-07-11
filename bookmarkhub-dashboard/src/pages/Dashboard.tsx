@@ -63,6 +63,60 @@ export const Dashboard = () => {
     useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
+  // 데이터 가져오기 함수
+  const handleImportData = async (importData: {
+    version: string;
+    exportedAt: string;
+    bookmarks: Record<string, unknown>[];
+    collections: Record<string, unknown>[];
+  }) => {
+    try {
+      // 북마크 데이터 가져오기
+      if (importData.bookmarks && Array.isArray(importData.bookmarks)) {
+        for (const bookmark of importData.bookmarks) {
+          // 기존 북마크와 중복되지 않는 경우에만 추가
+          const existingBookmark = bookmarks.find(
+            (b) => b.url === bookmark.url
+          );
+          if (!existingBookmark) {
+            await addBookmark({
+              title: (bookmark.title as string) || "",
+              url: (bookmark.url as string) || "",
+              description: (bookmark.description as string) || "",
+              favicon: (bookmark.favicon as string) || "",
+              collection: (bookmark.collection as string) || "",
+              tags: (bookmark.tags as string[]) || [],
+              isFavorite: (bookmark.isFavorite as boolean) || false,
+            });
+          }
+        }
+      }
+
+      // 컬렉션 데이터 가져오기
+      if (importData.collections && Array.isArray(importData.collections)) {
+        for (const collection of importData.collections) {
+          // 기존 컬렉션과 중복되지 않는 경우에만 추가
+          const existingCollection = collections.find(
+            (c) => c.name === collection.name
+          );
+          if (!existingCollection) {
+            await addCollection({
+              name: (collection.name as string) || "",
+              description: (collection.description as string) || "",
+              icon: (collection.icon as string) || "📁",
+              parentId: (collection.parentId as string) || null,
+            });
+          }
+        }
+      }
+
+      // toast는 Settings 컴포넌트에서 처리하므로 여기서는 제거
+    } catch (error) {
+      console.error("Import error:", error);
+      throw error;
+    }
+  };
+
   // 즐겨찾기 토글 함수 추가
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
     try {
@@ -478,7 +532,10 @@ export const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {showSettings ? (
-        <Settings onBack={() => setShowSettings(false)} />
+        <Settings
+          onBack={() => setShowSettings(false)}
+          onImportData={handleImportData}
+        />
       ) : (
         <>
           <Header
