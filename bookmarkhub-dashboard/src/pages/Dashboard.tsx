@@ -9,6 +9,8 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import type { Bookmark, BookmarkFormData } from "../types";
+import { EditCollectionModal } from "../components/EditCollectionModal";
+import type { Collection } from "../types";
 
 export const Dashboard = () => {
   const { user } = useAuth();
@@ -30,6 +32,18 @@ export const Dashboard = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(
+    null
+  );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [targetCollectionId, setTargetCollectionId] = useState<string | null>(
+    null
+  );
+  const [targetCollectionName, setTargetCollectionName] = useState<string>("");
+  const [deletingCollectionId, setDeletingCollectionId] = useState<
+    string | null
+  >(null);
 
   // 사이드바 닫기 함수
   const closeDrawer = () => {
@@ -295,7 +309,50 @@ export const Dashboard = () => {
   };
 
   const handleDeleteCollection = async (collectionId: string) => {
+    setDeletingCollectionId(collectionId);
     await deleteCollection(collectionId);
+    setDeletingCollectionId(null);
+    closeDeleteCollectionModal();
+  };
+
+  // 컬렉션 수정 모달 열기
+  const openEditModal = (collection: Collection) => {
+    setEditingCollection(collection);
+    setShowEditModal(true);
+  };
+  // 컬렉션 수정 모달 닫기
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingCollection(null);
+  };
+  // 컬렉션 수정 처리
+  const handleUpdateCollection = async (
+    collectionId: string,
+    collectionData: Partial<Collection>
+  ) => {
+    try {
+      await updateCollection(collectionId, collectionData);
+      closeEditModal();
+    } catch (error) {
+      console.error("Error updating collection:", error);
+      alert("컬렉션 수정 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 삭제 모달 열기
+  const openDeleteCollectionModal = (
+    collectionId: string,
+    collectionName: string
+  ) => {
+    setTargetCollectionId(collectionId);
+    setTargetCollectionName(collectionName);
+    setShowDeleteModal(true);
+  };
+  // 삭제 모달 닫기
+  const closeDeleteCollectionModal = () => {
+    setShowDeleteModal(false);
+    setTargetCollectionId(null);
+    setTargetCollectionName("");
   };
 
   // 모바일에서 리스트뷰 고정
@@ -338,8 +395,8 @@ export const Dashboard = () => {
             selectedCollection={selectedCollection}
             onCollectionChange={setSelectedCollection}
             onAddCollection={handleAddCollection}
-            onUpdateCollection={updateCollection}
-            onDeleteCollection={handleDeleteCollection}
+            onDeleteCollectionRequest={openDeleteCollectionModal}
+            onEditCollection={openEditModal}
           />
           {/* 드래그 핸들러 */}
           <div
@@ -384,8 +441,8 @@ export const Dashboard = () => {
                   closeDrawer();
                 }}
                 onAddCollection={handleAddCollection}
-                onUpdateCollection={updateCollection}
-                onDeleteCollection={handleDeleteCollection}
+                onDeleteCollectionRequest={openDeleteCollectionModal}
+                onEditCollection={openEditModal}
               />
             </div>
           </div>
@@ -589,6 +646,49 @@ export const Dashboard = () => {
             bookmark={deleteBookmarkModal.bookmark}
             isDeleting={isDeletingBookmark}
           />
+
+          {/* 컬렉션 수정 모달 */}
+          <EditCollectionModal
+            isOpen={showEditModal}
+            onClose={closeEditModal}
+            onUpdate={handleUpdateCollection}
+            collection={editingCollection}
+            collections={collections}
+          />
+
+          {/* 컬렉션 삭제 모달 */}
+          {showDeleteModal && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  컬렉션 삭제
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">
+                  <span className="font-bold">{targetCollectionName}</span>{" "}
+                  컬렉션을 삭제하시겠습니까?
+                  <br />이 컬렉션에 속한 북마크들은 컬렉션에서 제거됩니다.
+                </p>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={closeDeleteCollectionModal}
+                    className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={() =>
+                      targetCollectionId &&
+                      handleDeleteCollection(targetCollectionId)
+                    }
+                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                    disabled={deletingCollectionId === targetCollectionId}
+                  >
+                    삭제
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

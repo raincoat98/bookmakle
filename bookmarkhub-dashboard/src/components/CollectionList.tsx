@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import type { Collection, CollectionFormData } from "../types";
+import type { Collection } from "../types";
 import toast from "react-hot-toast";
 import EmojiPicker from "emoji-picker-react";
-import { EditCollectionModal } from "./EditCollectionModal";
 
 interface CollectionListProps {
   collections: Collection[];
@@ -15,11 +14,11 @@ interface CollectionListProps {
     icon: string,
     parentId?: string
   ) => Promise<void>;
-  onUpdateCollection: (
+  onDeleteCollectionRequest: (
     collectionId: string,
-    collectionData: CollectionFormData
-  ) => Promise<void>;
-  onDeleteCollection: (collectionId: string) => Promise<void>;
+    collectionName: string
+  ) => void;
+  onEditCollection: (collection: Collection) => void;
 }
 
 export const CollectionList = ({
@@ -28,8 +27,8 @@ export const CollectionList = ({
   selectedCollection,
   onCollectionChange,
   onAddCollection,
-  onUpdateCollection,
-  onDeleteCollection,
+  onDeleteCollectionRequest,
+  onEditCollection,
 }: CollectionListProps) => {
   const [isAddingCollection, setIsAddingCollection] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
@@ -38,25 +37,17 @@ export const CollectionList = ({
   const [newCollectionParentId, setNewCollectionParentId] = useState<
     string | null
   >(null);
-  const [deletingCollectionId, setDeletingCollectionId] = useState<
-    string | null
-  >(null);
   const [isCollectionSubmitting, setIsCollectionSubmitting] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [targetCollectionId, setTargetCollectionId] = useState<string | null>(
-    null
-  );
-  const [targetCollectionName, setTargetCollectionName] = useState<string>("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showSubEmojiPicker, setShowSubEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const subEmojiPickerRef = useRef<HTMLDivElement>(null);
 
   // 컬렉션 수정 모달 상태
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingCollection, setEditingCollection] = useState<Collection | null>(
-    null
-  );
+  // const [showEditModal, setShowEditModal] = useState(false);
+  // const [editingCollection, setEditingCollection] = useState<Collection | null>(
+  //   null
+  // );
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -129,52 +120,32 @@ export const CollectionList = ({
     }
   };
 
-  const handleDeleteCollection = async (collectionId: string) => {
-    setDeletingCollectionId(collectionId);
-    await onDeleteCollection(collectionId);
-    setDeletingCollectionId(null);
-    setShowDeleteModal(false);
-    setTargetCollectionId(null);
-    setTargetCollectionName("");
-  };
-
-  const openDeleteModal = (collectionId: string, collectionName: string) => {
-    setTargetCollectionId(collectionId);
-    setTargetCollectionName(collectionName);
-    setShowDeleteModal(true);
-  };
-  const closeDeleteModal = () => {
-    setShowDeleteModal(false);
-    setTargetCollectionId(null);
-    setTargetCollectionName("");
-  };
-
   // 컬렉션 수정 모달 열기
-  const openEditModal = (collection: Collection) => {
-    setEditingCollection(collection);
-    setShowEditModal(true);
-  };
+  // const openEditModal = (collection: Collection) => {
+  //   setEditingCollection(collection);
+  //   setShowEditModal(true);
+  // };
 
   // 컬렉션 수정 모달 닫기
-  const closeEditModal = () => {
-    setShowEditModal(false);
-    setEditingCollection(null);
-  };
+  // const closeEditModal = () => {
+  //   setShowEditModal(false);
+  //   setEditingCollection(null);
+  // };
 
   // 컬렉션 수정 처리
-  const handleUpdateCollection = async (
-    collectionId: string,
-    collectionData: CollectionFormData
-  ) => {
-    try {
-      await onUpdateCollection(collectionId, collectionData);
-      closeEditModal();
-      toast.success("컬렉션이 수정되었습니다!");
-    } catch (error) {
-      console.error("Error updating collection:", error);
-      toast.error("컬렉션 수정 중 오류가 발생했습니다.");
-    }
-  };
+  // const handleUpdateCollection = async (
+  //   collectionId: string,
+  //   collectionData: CollectionFormData
+  // ) => {
+  //   try {
+  //     await onUpdateCollection(collectionId, collectionData);
+  //     closeEditModal();
+  //     toast.success("컬렉션이 수정되었습니다!");
+  //   } catch (error) {
+  //     console.error("Error updating collection:", error);
+  //     toast.error("컬렉션 수정 중 오류가 발생했습니다.");
+  //   }
+  // };
 
   // 우클릭 컨텍스트 메뉴 이벤트
   const handleCollectionContextMenu = (
@@ -318,10 +289,7 @@ export const CollectionList = ({
           <div className="flex items-center space-x-1 ml-2">
             {/* 수정 버튼 */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openEditModal(collection);
-              }}
+              onClick={() => onEditCollection(collection)}
               className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="수정"
             >
@@ -342,12 +310,10 @@ export const CollectionList = ({
 
             {/* 삭제 버튼 */}
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openDeleteModal(collection.id, collection.name);
-              }}
+              onClick={() =>
+                onDeleteCollectionRequest(collection.id, collection.name)
+              }
               className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              disabled={deletingCollectionId === collection.id}
               title="삭제"
             >
               <svg
@@ -636,46 +602,13 @@ export const CollectionList = ({
 
       {/* 삭제 확인 모달 */}
       {/* 컬렉션 수정 모달 */}
-      <EditCollectionModal
+      {/* <EditCollectionModal
         isOpen={showEditModal}
         onClose={closeEditModal}
         onUpdate={handleUpdateCollection}
         collection={editingCollection}
         collections={collections}
-      />
-
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              컬렉션 삭제
-            </h3>
-            <p className="text-gray-700 dark:text-gray-300 mb-6">
-              <span className="font-bold">{targetCollectionName}</span> 컬렉션을
-              삭제하시겠습니까?
-              <br />이 컬렉션에 속한 북마크들은 컬렉션에서 제거됩니다.
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-              >
-                취소
-              </button>
-              <button
-                onClick={() =>
-                  targetCollectionId &&
-                  handleDeleteCollection(targetCollectionId)
-                }
-                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
-                disabled={deletingCollectionId === targetCollectionId}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      /> */}
     </div>
   );
 };
