@@ -145,9 +145,15 @@ export const SortableBookmarkListItem = ({
 
           {/* 텍스트 내용 */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
+            <a
+              href={bookmark.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-base font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer block"
+              title={bookmark.title}
+            >
               {bookmark.title}
-            </h3>
+            </a>
             <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
               {bookmark.url}
             </p>
@@ -174,8 +180,8 @@ export const SortableBookmarkListItem = ({
           </div>
         </div>
 
-        {/* 모바일에서만 보이는 방문하기 버튼 */}
-        <div className="flex justify-end mt-3 sm:hidden">
+        {/* 방문하기 버튼: 모든 화면에서 보임 */}
+        <div className="flex justify-end mt-3">
           <a
             href={bookmark.url}
             target="_blank"

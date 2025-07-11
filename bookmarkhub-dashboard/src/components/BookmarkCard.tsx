@@ -102,9 +102,15 @@ export const BookmarkCard = ({
 
             {/* 제목 */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <a
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer block"
+                title={bookmark.title}
+              >
                 {bookmark.title}
-              </h3>
+              </a>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {bookmark.url}
               </p>
