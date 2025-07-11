@@ -194,89 +194,110 @@ export const CollectionList = ({
     depth: number = 0
   ): React.JSX.Element[] {
     if (depth > 2) return [];
-    return collections
-      .filter((col) => col.parentId === parentId)
-      .flatMap((collection) => {
-        const children = renderCollectionTree(collection.id, depth + 1);
-        const isOpen = openIds.includes(collection.id);
-        const hasChild = hasChildren(collection.id);
-        const nodes = [
-          <div
-            key={collection.id}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer ${
-              selectedCollection === collection.id
-                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
-                : depth === 1
-                ? "bg-gray-50 dark:bg-gray-900 border-l-4 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 pl-6"
-                : depth === 2
-                ? "bg-gray-100 dark:bg-gray-800 border-l-4 border-blue-200 dark:border-blue-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 pl-12 text-sm"
-                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 pl-0"
-            }`}
-            onContextMenu={
-              depth < 2
-                ? (e) => handleCollectionContextMenu(e, collection.id)
-                : undefined
+    const filteredCollections = collections.filter(
+      (col) => col.parentId === parentId
+    );
+    return filteredCollections.flatMap((collection, index) => {
+      const children = renderCollectionTree(collection.id, depth + 1);
+      const isOpen = openIds.includes(collection.id);
+      const hasChild = hasChildren(collection.id);
+      const isLastChild = index === filteredCollections.length - 1;
+      const nodes = [
+        <div
+          key={collection.id}
+          className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer relative tree-item border-l-4 ${
+            selectedCollection === collection.id
+              ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-500 dark:border-blue-400"
+              : depth === 1
+              ? "tree-depth-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              : depth === 2
+              ? "tree-depth-2 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+              : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border-transparent"
+          }`}
+          style={{
+            paddingLeft: `${depth * 12 + 8}px`,
+          }}
+          onContextMenu={
+            depth < 2
+              ? (e) => handleCollectionContextMenu(e, collection.id)
+              : undefined
+          }
+          onClick={() => {
+            if (hasChild) {
+              handleToggle(collection.id);
+              if (!isOpen) return;
             }
-            onClick={() => {
-              if (hasChild) {
-                handleToggle(collection.id);
-                if (!isOpen) return;
-              }
-              onCollectionChange(collection.id);
-            }}
-          >
+            onCollectionChange(collection.id);
+          }}
+        >
+          {/* 트리 라인 표시 */}
+          {depth > 0 && (
+            <div className="tree-line">
+              <div className="tree-line-horizontal"></div>
+            </div>
+          )}
+
+          {/* 하위 컬렉션 연결선 - 마지막 자식이 아닌 경우에만 표시 */}
+          {depth > 0 && !isLastChild && (
+            <div className="tree-line-vertical"></div>
+          )}
+
+          {/* 트리 아이콘 영역 - 고정된 공간 할당 */}
+          <div className="w-4 h-4 flex items-center justify-center">
             {hasChild && (
               <span
-                className="mr-1 text-xs select-none cursor-pointer"
+                className="tree-toggle"
+                style={{ transform: isOpen ? "rotate(90deg)" : "rotate(0deg)" }}
                 onClick={(e) => {
                   e.stopPropagation();
                   handleToggle(collection.id);
                 }}
               >
-                {isOpen ? "▼" : "▶"}
+                ▶
               </span>
             )}
-            <span className="text-lg">{collection.icon}</span>
-            <div className="flex-1 min-w-0">
-              <span className="font-medium truncate block text-left">
-                {collection.name}
+            {!hasChild && depth > 0 && <span className="tree-leaf">└</span>}
+          </div>
+          <span className="text-lg">{collection.icon}</span>
+          <div className="flex-1 min-w-0">
+            <span className="font-medium truncate block text-left">
+              {collection.name}
+            </span>
+            {collection.description && collection.description.trim() !== "" && (
+              <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
+                {collection.description}
               </span>
-              {collection.description &&
-                collection.description.trim() !== "" && (
-                  <span className="block text-xs text-gray-500 dark:text-gray-400 text-left truncate mt-0.5">
-                    {collection.description}
-                  </span>
-                )}
-            </div>
-            {/* 삭제 버튼 */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                openDeleteModal(collection.id, collection.name);
-              }}
-              className="ml-2 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              disabled={deletingCollectionId === collection.id}
-              title="삭제"
+            )}
+          </div>
+          {/* 삭제 버튼 */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openDeleteModal(collection.id, collection.name);
+            }}
+            className="ml-2 p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+            disabled={deletingCollectionId === collection.id}
+            title="삭제"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
-          </div>,
-        ];
-        if (hasChild && isOpen) nodes.push(...children);
-        return nodes;
-      });
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+          </button>
+        </div>,
+      ];
+      if (hasChild && isOpen) nodes.push(...children);
+      return nodes;
+    });
   }
 
   return (
