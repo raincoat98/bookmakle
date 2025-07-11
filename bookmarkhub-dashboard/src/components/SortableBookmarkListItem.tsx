@@ -7,8 +7,10 @@ interface SortableBookmarkListItemProps {
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
   collections: Collection[];
-  // onRefreshFavicon: (bookmark: Bookmark) => Promise<void>; // 제거
-  // faviconLoading: boolean;
+  onMoveUp?: (bookmark: Bookmark) => void;
+  onMoveDown?: (bookmark: Bookmark) => void;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
 export const SortableBookmarkListItem = ({
@@ -16,6 +18,10 @@ export const SortableBookmarkListItem = ({
   onEdit,
   onDelete,
   collections,
+  onMoveUp,
+  onMoveDown,
+  isFirst = false,
+  isLast = false,
 }: SortableBookmarkListItemProps) => {
   const {
     attributes,
@@ -43,6 +49,20 @@ export const SortableBookmarkListItem = ({
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     onDelete(bookmark);
+  };
+
+  const handleMoveUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    onMoveUp?.(bookmark);
+  };
+
+  const handleMoveDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    onMoveDown?.(bookmark);
   };
 
   const collection = collections.find((col) => col.id === bookmark.collection);
@@ -73,17 +93,69 @@ export const SortableBookmarkListItem = ({
         </svg>
       </div>
 
-      {/* 액션 버튼들 - 모바일에서 더 크고 간격 조정 */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex space-x-2 sm:space-x-1.5 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300">
+      {/* 액션 버튼들 - 모바일에서 항상 보이도록 수정 */}
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex space-x-1.5 sm:space-x-1.5 z-30 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 max-w-[200px] sm:max-w-none overflow-x-auto sm:overflow-visible">
+        {/* 상하 이동 버튼들 */}
+        {onMoveUp && !isFirst && (
+          <button
+            onClick={handleMoveUp}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+            title="위로 이동"
+          >
+            <svg
+              className="w-4 h-4 sm:w-4 sm:h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 15l7-7 7 7"
+              />
+            </svg>
+          </button>
+        )}
+        {onMoveDown && !isLast && (
+          <button
+            onClick={handleMoveDown}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
+            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+            title="아래로 이동"
+          >
+            <svg
+              className="w-4 h-4 sm:w-4 sm:h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* 수정 버튼 */}
         <button
           onClick={handleEdit}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="p-3 sm:p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
+          onTouchEnd={(e) => e.stopPropagation()}
+          className="p-2.5 sm:p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="수정"
         >
           <svg
-            className="w-5 h-5 sm:w-4 sm:h-4"
+            className="w-4 h-4 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -96,15 +168,18 @@ export const SortableBookmarkListItem = ({
             />
           </svg>
         </button>
+
+        {/* 삭제 버튼 */}
         <button
           onClick={handleDelete}
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
-          className="p-3 sm:p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95"
+          onTouchEnd={(e) => e.stopPropagation()}
+          className="p-2.5 sm:p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="삭제"
         >
           <svg
-            className="w-5 h-5 sm:w-4 sm:h-4"
+            className="w-4 h-4 sm:w-4 sm:h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -120,23 +195,23 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 리스트 아이템 내용 - 모바일에서 수직 배치 */}
-      <div className="p-4 sm:p-6 pt-16 sm:pt-14 relative z-10">
+      <div className="p-4 sm:p-6 pt-14 sm:pt-14 relative z-10">
         <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 sm:space-x-5">
           {/* 파비콘 - 모바일에서 위쪽 */}
           <div className="flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
-            <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center shadow-sm">
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
                   alt="파비콘"
-                  className="w-10 h-10 sm:w-8 sm:h-8 rounded-lg"
+                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
                 <svg
-                  className="w-7 h-7 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400"
+                  className="w-6 h-6 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >

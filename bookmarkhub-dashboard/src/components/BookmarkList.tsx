@@ -103,6 +103,37 @@ export const BookmarkList = ({
     }
   };
 
+  // 상하 이동 핸들러들
+  const handleMoveUp = (bookmark: Bookmark) => {
+    const allBookmarks = Array.isArray(bookmarks)
+      ? bookmarks
+      : bookmarks.bookmarks || [];
+    const currentIndex = allBookmarks.findIndex((b) => b.id === bookmark.id);
+    if (currentIndex > 0) {
+      const newBookmarks = [...allBookmarks];
+      [newBookmarks[currentIndex], newBookmarks[currentIndex - 1]] = [
+        newBookmarks[currentIndex - 1],
+        newBookmarks[currentIndex],
+      ];
+      onReorder(newBookmarks);
+    }
+  };
+
+  const handleMoveDown = (bookmark: Bookmark) => {
+    const allBookmarks = Array.isArray(bookmarks)
+      ? bookmarks
+      : bookmarks.bookmarks || [];
+    const currentIndex = allBookmarks.findIndex((b) => b.id === bookmark.id);
+    if (currentIndex < allBookmarks.length - 1) {
+      const newBookmarks = [...allBookmarks];
+      [newBookmarks[currentIndex], newBookmarks[currentIndex + 1]] = [
+        newBookmarks[currentIndex + 1],
+        newBookmarks[currentIndex],
+      ];
+      onReorder(newBookmarks);
+    }
+  };
+
   // 그룹화된 데이터인지 확인
   const isGrouped =
     typeof bookmarks === "object" &&
@@ -155,17 +186,26 @@ export const BookmarkList = ({
                   strategy={rectSortingStrategy}
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
-                    {groupedData.selectedCollectionBookmarks.map((bookmark) => (
-                      <SortableBookmarkCard
-                        key={bookmark.id}
-                        bookmark={bookmark}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        onRefreshFavicon={handleRefreshFavicon}
-                        faviconLoading={faviconLoadingStates[bookmark.id]}
-                        collections={collections}
-                      />
-                    ))}
+                    {groupedData.selectedCollectionBookmarks.map(
+                      (bookmark, index) => (
+                        <SortableBookmarkCard
+                          key={bookmark.id}
+                          bookmark={bookmark}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onRefreshFavicon={handleRefreshFavicon}
+                          faviconLoading={faviconLoadingStates[bookmark.id]}
+                          onMoveUp={handleMoveUp}
+                          onMoveDown={handleMoveDown}
+                          isFirst={index === 0}
+                          isLast={
+                            index ===
+                            groupedData.selectedCollectionBookmarks.length - 1
+                          }
+                          collections={collections}
+                        />
+                      )
+                    )}
                   </div>
                 </SortableContext>
               ) : (
@@ -176,15 +216,24 @@ export const BookmarkList = ({
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2 w-full min-w-0 overflow-hidden">
-                    {groupedData.selectedCollectionBookmarks.map((bookmark) => (
-                      <SortableBookmarkListItem
-                        key={bookmark.id}
-                        bookmark={bookmark}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                        collections={collections}
-                      />
-                    ))}
+                    {groupedData.selectedCollectionBookmarks.map(
+                      (bookmark, index) => (
+                        <SortableBookmarkListItem
+                          key={bookmark.id}
+                          bookmark={bookmark}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                          onMoveUp={handleMoveUp}
+                          onMoveDown={handleMoveDown}
+                          isFirst={index === 0}
+                          isLast={
+                            index ===
+                            groupedData.selectedCollectionBookmarks.length - 1
+                          }
+                          collections={collections}
+                        />
+                      )
+                    )}
                   </div>
                 </SortableContext>
               )}
@@ -210,7 +259,7 @@ export const BookmarkList = ({
                   strategy={rectSortingStrategy}
                 >
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
-                    {group.bookmarks.map((bookmark) => (
+                    {group.bookmarks.map((bookmark, index) => (
                       <SortableBookmarkCard
                         key={bookmark.id}
                         bookmark={bookmark}
@@ -218,6 +267,10 @@ export const BookmarkList = ({
                         onDelete={onDelete}
                         onRefreshFavicon={handleRefreshFavicon}
                         faviconLoading={faviconLoadingStates[bookmark.id]}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
+                        isFirst={index === 0}
+                        isLast={index === group.bookmarks.length - 1}
                         collections={collections}
                       />
                     ))}
@@ -229,12 +282,16 @@ export const BookmarkList = ({
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2 w-full min-w-0 overflow-hidden">
-                    {group.bookmarks.map((bookmark) => (
+                    {group.bookmarks.map((bookmark, index) => (
                       <SortableBookmarkListItem
                         key={bookmark.id}
                         bookmark={bookmark}
                         onEdit={onEdit}
                         onDelete={onDelete}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
+                        isFirst={index === 0}
+                        isLast={index === group.bookmarks.length - 1}
                         collections={collections}
                       />
                     ))}
@@ -273,7 +330,7 @@ export const BookmarkList = ({
           strategy={rectSortingStrategy}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 min-w-0">
-            {bookmarksArray.map((bookmark) => (
+            {bookmarksArray.map((bookmark, index) => (
               <SortableBookmarkCard
                 key={bookmark.id}
                 bookmark={bookmark}
@@ -281,6 +338,10 @@ export const BookmarkList = ({
                 onDelete={onDelete}
                 onRefreshFavicon={handleRefreshFavicon}
                 faviconLoading={faviconLoadingStates[bookmark.id]}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+                isFirst={index === 0}
+                isLast={index === bookmarksArray.length - 1}
                 collections={collections}
               />
             ))}
@@ -292,12 +353,16 @@ export const BookmarkList = ({
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2 w-full min-w-0 ">
-            {bookmarksArray.map((bookmark) => (
+            {bookmarksArray.map((bookmark, index) => (
               <SortableBookmarkListItem
                 key={bookmark.id}
                 bookmark={bookmark}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+                isFirst={index === 0}
+                isLast={index === bookmarksArray.length - 1}
                 collections={collections}
               />
             ))}
