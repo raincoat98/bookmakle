@@ -1,12 +1,13 @@
 import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
-import { Menu, Sun, Moon, Briefcase, List } from "lucide-react";
+import { Menu, Sun, Moon, Briefcase, List, Settings } from "lucide-react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
   showMenuButton?: boolean;
   showDashboard?: boolean;
   setShowDashboard?: (value: boolean) => void;
+  onSettingsClick?: () => void;
 }
 
 export const Header = ({
@@ -14,6 +15,7 @@ export const Header = ({
   showMenuButton = false,
   showDashboard,
   setShowDashboard,
+  onSettingsClick,
 }: HeaderProps) => {
   const { user, login, logout } = useAuth();
   const [theme, setTheme] = useState(
@@ -106,6 +108,16 @@ export const Header = ({
               </button>
             )}
 
+            {/* 설정 버튼 */}
+            {onSettingsClick && (
+              <button
+                onClick={onSettingsClick}
+                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                aria-label="설정"
+              >
+                <Settings className="w-5 h-5" />
+              </button>
+            )}
             {/* 테마 토글 버튼 */}
             <button
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}

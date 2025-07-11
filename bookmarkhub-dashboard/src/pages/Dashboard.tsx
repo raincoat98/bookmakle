@@ -14,6 +14,7 @@ import { EditCollectionModal } from "../components/EditCollectionModal";
 import type { Collection } from "../types";
 import toast from "react-hot-toast";
 import { AddCollectionModal } from "../components/AddCollectionModal";
+import { Settings } from "../components/Settings";
 import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
 
 export const Dashboard = () => {
@@ -38,7 +39,10 @@ export const Dashboard = () => {
   const [selectedCollection, setSelectedCollection] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showDashboard, setShowDashboard] = useState(true);
+  const [showDashboard, setShowDashboard] = useState(() => {
+    const defaultPage = localStorage.getItem("defaultPage") || "dashboard";
+    return defaultPage === "dashboard";
+  });
   const [sortedBookmarks, setSortedBookmarks] = useState<Bookmark[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
@@ -57,6 +61,7 @@ export const Dashboard = () => {
   >(null);
   const [isAddCollectionModalOpen, setIsAddCollectionModalOpen] =
     useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // 즐겨찾기 토글 함수 추가
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
@@ -472,326 +477,333 @@ export const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header
-        onMenuClick={() => setIsDrawerOpen(true)}
-        showMenuButton={true}
-        showDashboard={showDashboard}
-        setShowDashboard={setShowDashboard}
-      />
+      {showSettings ? (
+        <Settings onBack={() => setShowSettings(false)} />
+      ) : (
+        <>
+          <Header
+            onMenuClick={() => setIsDrawerOpen(true)}
+            showMenuButton={true}
+            showDashboard={showDashboard}
+            setShowDashboard={setShowDashboard}
+            onSettingsClick={() => setShowSettings(true)}
+          />
 
-      <div className="flex h-[calc(100vh-64px)]">
-        {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer (대시보드 모드에서는 숨김) */}
-        {!showDashboard && (
-          <div
-            ref={sidebarRef}
-            className="hidden sm:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
-            style={{
-              width: sidebarWidth,
-              minWidth: MIN_WIDTH,
-              maxWidth: MAX_WIDTH,
-            }}
-          >
-            <CollectionList
-              collections={collections}
-              loading={loading}
-              selectedCollection={selectedCollection}
-              onCollectionChange={setSelectedCollection}
-              onAddCollection={handleAddCollection}
-              onDeleteCollectionRequest={openDeleteCollectionModal}
-              onEditCollection={openEditModal}
-            />
-            {/* 드래그 핸들러 */}
-            <div
-              style={{
-                right: 0,
-                top: 0,
-                width: 6,
-                cursor: "ew-resize",
-                zIndex: 20,
-              }}
-              className="absolute h-full bg-transparent hover:bg-brand-200 dark:hover:bg-brand-900 transition-colors"
-              onMouseDown={handleSidebarDrag}
-            />
-          </div>
-        )}
-        {/* 모바일 Drawer (대시보드 모드에서는 숨김) */}
-        {!showDashboard && (isDrawerOpen || isDrawerClosing) && (
-          <div className="fixed inset-0 z-50">
-            {/* 큰 배경 - 클릭 시 사이드바 닫기 */}
-            <div
-              className={`absolute inset-0 bg-black bg-opacity-30 ${
-                isDrawerClosing
-                  ? "animate-fade-out-simple"
-                  : "animate-fade-in-simple"
-              }`}
-              onClick={closeDrawer}
-            />
-
-            {/* 사이드바 */}
-            <div
-              className={`absolute left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transform transition-all duration-300 ease-in-out shadow-xl ${
-                isDrawerClosing
-                  ? "translate-x-[-100%] opacity-0"
-                  : "translate-x-0 opacity-100 animate-slide-in-left"
-              }`}
-            >
-              <CollectionList
-                collections={collections}
-                loading={loading}
-                selectedCollection={selectedCollection}
-                onCollectionChange={(id) => {
-                  setSelectedCollection(id);
-                  closeDrawer();
+          <div className="flex h-[calc(100vh-64px)]">
+            {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer (대시보드 모드에서는 숨김) */}
+            {!showDashboard && (
+              <div
+                ref={sidebarRef}
+                className="hidden sm:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
+                style={{
+                  width: sidebarWidth,
+                  minWidth: MIN_WIDTH,
+                  maxWidth: MAX_WIDTH,
                 }}
-                onAddCollection={handleAddCollection}
-                onDeleteCollectionRequest={openDeleteCollectionModal}
-                onEditCollection={openEditModal}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 메인 콘텐츠 */}
-        <div className="flex-1 flex flex-col w-full min-w-0">
-          {/* 북마크 리스트 상단 컨트롤 바 (대시보드 모드에서는 숨김) */}
-          {!showDashboard && (
-            <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
-                {/* 검색 */}
-                <div className="flex-1 min-w-0 w-full">
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      placeholder="북마크 검색..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent min-w-0"
-                    />
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
-
-                {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  {/* 북마크 뷰에서만 뷰 모드 버튼 */}
-                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded-md transition-colors min-w-[40px] ${
-                        viewMode === "grid"
-                          ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                      title="그리드 뷰"
-                    >
-                      <Grid3X3 className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded-md transition-colors min-w-[40px] ${
-                        viewMode === "list"
-                          ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                      }`}
-                      title="리스트 뷰"
-                    >
-                      <List className="w-5 h-5" />
-                    </button>
-                  </div>
-                  {/* 컬렉션 추가 버튼 */}
-                  <button
-                    onClick={() => setIsAddCollectionModalOpen(true)}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
-                  >
-                    <FolderPlus className="w-5 h-5 mr-2" />
-                    컬렉션 추가
-                  </button>
-                  {/* 북마크 추가 버튼 */}
-                  <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    북마크 추가
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 메인 콘텐츠 */}
-          <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
-            {showDashboard ? (
-              <DashboardOverview
-                bookmarks={bookmarks}
-                collections={collections}
-                onEdit={setEditingBookmark}
-                onDelete={openDeleteBookmarkModal}
-                onAddBookmark={() => setIsAddModalOpen(true)}
-                onAddCollection={() => setIsAddCollectionModalOpen(true)}
-                onToggleFavorite={handleToggleFavorite}
-                onReorderFavorites={handleReorderFavorites}
-              />
-            ) : (
-              <>
-                <BookmarkList
-                  bookmarks={filteredBookmarksData}
-                  onEdit={setEditingBookmark}
-                  onDelete={openDeleteBookmarkModal}
-                  onUpdateFavicon={handleUpdateFavicon}
-                  onReorder={handleReorderBookmarks}
-                  onToggleFavorite={handleToggleFavorite}
-                  viewMode={effectiveViewMode}
+              >
+                <CollectionList
                   collections={collections}
+                  loading={loading}
+                  selectedCollection={selectedCollection}
+                  onCollectionChange={setSelectedCollection}
+                  onAddCollection={handleAddCollection}
+                  onDeleteCollectionRequest={openDeleteCollectionModal}
+                  onEditCollection={openEditModal}
                 />
-                {/* 태그 필터 UI */}
-                {(() => {
-                  // 현재 표시되는 북마크들에서 태그가 있는 북마크가 있는지 확인
-                  const currentBookmarks = (() => {
-                    if (
-                      typeof filteredBookmarksData === "object" &&
-                      "isGrouped" in filteredBookmarksData &&
-                      filteredBookmarksData.isGrouped
-                    ) {
-                      const groupedData = filteredBookmarksData as {
-                        isGrouped: true;
-                        selectedCollectionBookmarks: Bookmark[];
-                        selectedCollectionName: string;
-                        groupedBookmarks: {
-                          collectionId: string;
-                          collectionName: string;
-                          bookmarks: Bookmark[];
-                        }[];
-                      };
-                      return [
-                        ...groupedData.selectedCollectionBookmarks,
-                        ...groupedData.groupedBookmarks.flatMap(
-                          (group) => group.bookmarks
-                        ),
-                      ];
-                    } else {
-                      const bookmarksArray = Array.isArray(
-                        filteredBookmarksData
-                      )
-                        ? filteredBookmarksData
-                        : filteredBookmarksData.bookmarks || [];
-                      return bookmarksArray;
-                    }
-                  })();
-
-                  const hasBookmarksWithTags = currentBookmarks.some(
-                    (bookmark) => bookmark.tags && bookmark.tags.length > 0
-                  );
-
-                  return allTags.length > 0 && hasBookmarksWithTags ? (
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      <button
-                        className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                          selectedTag === null
-                            ? "bg-purple-500 text-white border-purple-500"
-                            : "bg-gray-100 text-gray-700 border-gray-200"
-                        }`}
-                        onClick={() => setSelectedTag(null)}
-                      >
-                        전체
-                      </button>
-                      {allTags.map((tag) => (
-                        <button
-                          key={tag}
-                          className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                            selectedTag === tag
-                              ? "bg-purple-500 text-white border-purple-500"
-                              : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
-                          }`}
-                          onClick={() => setSelectedTag(tag)}
-                        >
-                          {tag}
-                        </button>
-                      ))}
-                    </div>
-                  ) : null;
-                })()}
-              </>
+                {/* 드래그 핸들러 */}
+                <div
+                  style={{
+                    right: 0,
+                    top: 0,
+                    width: 6,
+                    cursor: "ew-resize",
+                    zIndex: 20,
+                  }}
+                  className="absolute h-full bg-transparent hover:bg-brand-200 dark:hover:bg-brand-900 transition-colors"
+                  onMouseDown={handleSidebarDrag}
+                />
+              </div>
             )}
-          </div>
+            {/* 모바일 Drawer (대시보드 모드에서는 숨김) */}
+            {!showDashboard && (isDrawerOpen || isDrawerClosing) && (
+              <div className="fixed inset-0 z-50">
+                {/* 큰 배경 - 클릭 시 사이드바 닫기 */}
+                <div
+                  className={`absolute inset-0 bg-black bg-opacity-30 ${
+                    isDrawerClosing
+                      ? "animate-fade-out-simple"
+                      : "animate-fade-in-simple"
+                  }`}
+                  onClick={closeDrawer}
+                />
 
-          {/* 북마크 추가 모달 */}
-          <AddBookmarkModal
-            isOpen={isAddModalOpen}
-            onClose={() => setIsAddModalOpen(false)}
-            onAdd={handleAddBookmark}
-            collections={collections}
-          />
-
-          {/* 북마크 수정 모달 */}
-          <EditBookmarkModal
-            isOpen={!!editingBookmark}
-            onClose={() => setEditingBookmark(null)}
-            onUpdate={handleUpdateBookmark}
-            bookmark={editingBookmark}
-            collections={collections}
-          />
-
-          {/* 북마크 삭제 모달 */}
-          <DeleteBookmarkModal
-            isOpen={deleteBookmarkModal.isOpen}
-            onClose={closeDeleteBookmarkModal}
-            onDelete={handleDeleteBookmark}
-            bookmark={deleteBookmarkModal.bookmark}
-            isDeleting={isDeletingBookmark}
-          />
-
-          {/* 컬렉션 수정 모달 */}
-          <EditCollectionModal
-            isOpen={showEditModal}
-            onClose={closeEditModal}
-            onUpdate={handleUpdateCollection}
-            collection={editingCollection}
-            collections={collections}
-          />
-
-          {/* 컬렉션 삭제 모달 */}
-          {showDeleteModal && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                  컬렉션 삭제
-                </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  <span className="font-bold">{targetCollectionName}</span>{" "}
-                  컬렉션을 삭제하시겠습니까?
-                  <br />이 컬렉션에 속한 북마크들은 컬렉션에서 제거됩니다.
-                </p>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    onClick={closeDeleteCollectionModal}
-                    className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-                  >
-                    취소
-                  </button>
-                  <button
-                    onClick={() =>
-                      targetCollectionId &&
-                      handleDeleteCollection(targetCollectionId)
-                    }
-                    className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
-                    disabled={deletingCollectionId === targetCollectionId}
-                  >
-                    삭제
-                  </button>
+                {/* 사이드바 */}
+                <div
+                  className={`absolute left-0 top-0 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transform transition-all duration-300 ease-in-out shadow-xl ${
+                    isDrawerClosing
+                      ? "translate-x-[-100%] opacity-0"
+                      : "translate-x-0 opacity-100 animate-slide-in-left"
+                  }`}
+                >
+                  <CollectionList
+                    collections={collections}
+                    loading={loading}
+                    selectedCollection={selectedCollection}
+                    onCollectionChange={(id) => {
+                      setSelectedCollection(id);
+                      closeDrawer();
+                    }}
+                    onAddCollection={handleAddCollection}
+                    onDeleteCollectionRequest={openDeleteCollectionModal}
+                    onEditCollection={openEditModal}
+                  />
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
 
-      {/* 컬렉션 추가 모달 */}
-      <AddCollectionModal
-        isOpen={isAddCollectionModalOpen}
-        onClose={() => setIsAddCollectionModalOpen(false)}
-        onAdd={handleAddCollection}
-      />
+            {/* 메인 콘텐츠 */}
+            <div className="flex-1 flex flex-col w-full min-w-0">
+              {/* 북마크 리스트 상단 컨트롤 바 (대시보드 모드에서는 숨김) */}
+              {!showDashboard && (
+                <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
+                    {/* 검색 */}
+                    <div className="flex-1 min-w-0 w-full">
+                      <div className="relative w-full">
+                        <input
+                          type="text"
+                          placeholder="북마크 검색..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent min-w-0"
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      {/* 북마크 뷰에서만 뷰 모드 버튼 */}
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
+                        <button
+                          onClick={() => setViewMode("grid")}
+                          className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                            viewMode === "grid"
+                              ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                          }`}
+                          title="그리드 뷰"
+                        >
+                          <Grid3X3 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => setViewMode("list")}
+                          className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                            viewMode === "list"
+                              ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
+                              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                          }`}
+                          title="리스트 뷰"
+                        >
+                          <List className="w-5 h-5" />
+                        </button>
+                      </div>
+                      {/* 컬렉션 추가 버튼 */}
+                      <button
+                        onClick={() => setIsAddCollectionModalOpen(true)}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                      >
+                        <FolderPlus className="w-5 h-5 mr-2" />
+                        컬렉션 추가
+                      </button>
+                      {/* 북마크 추가 버튼 */}
+                      <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                      >
+                        <Plus className="w-5 h-5 mr-2" />
+                        북마크 추가
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 메인 콘텐츠 */}
+              <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
+                {showDashboard ? (
+                  <DashboardOverview
+                    bookmarks={bookmarks}
+                    collections={collections}
+                    onEdit={setEditingBookmark}
+                    onDelete={openDeleteBookmarkModal}
+                    onAddBookmark={() => setIsAddModalOpen(true)}
+                    onAddCollection={() => setIsAddCollectionModalOpen(true)}
+                    onToggleFavorite={handleToggleFavorite}
+                    onReorderFavorites={handleReorderFavorites}
+                  />
+                ) : (
+                  <>
+                    <BookmarkList
+                      bookmarks={filteredBookmarksData}
+                      onEdit={setEditingBookmark}
+                      onDelete={openDeleteBookmarkModal}
+                      onUpdateFavicon={handleUpdateFavicon}
+                      onReorder={handleReorderBookmarks}
+                      onToggleFavorite={handleToggleFavorite}
+                      viewMode={effectiveViewMode}
+                      collections={collections}
+                    />
+                    {/* 태그 필터 UI */}
+                    {(() => {
+                      // 현재 표시되는 북마크들에서 태그가 있는 북마크가 있는지 확인
+                      const currentBookmarks = (() => {
+                        if (
+                          typeof filteredBookmarksData === "object" &&
+                          "isGrouped" in filteredBookmarksData &&
+                          filteredBookmarksData.isGrouped
+                        ) {
+                          const groupedData = filteredBookmarksData as {
+                            isGrouped: true;
+                            selectedCollectionBookmarks: Bookmark[];
+                            selectedCollectionName: string;
+                            groupedBookmarks: {
+                              collectionId: string;
+                              collectionName: string;
+                              bookmarks: Bookmark[];
+                            }[];
+                          };
+                          return [
+                            ...groupedData.selectedCollectionBookmarks,
+                            ...groupedData.groupedBookmarks.flatMap(
+                              (group) => group.bookmarks
+                            ),
+                          ];
+                        } else {
+                          const bookmarksArray = Array.isArray(
+                            filteredBookmarksData
+                          )
+                            ? filteredBookmarksData
+                            : filteredBookmarksData.bookmarks || [];
+                          return bookmarksArray;
+                        }
+                      })();
+
+                      const hasBookmarksWithTags = currentBookmarks.some(
+                        (bookmark) => bookmark.tags && bookmark.tags.length > 0
+                      );
+
+                      return allTags.length > 0 && hasBookmarksWithTags ? (
+                        <div className="mt-6 flex flex-wrap gap-2">
+                          <button
+                            className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                              selectedTag === null
+                                ? "bg-purple-500 text-white border-purple-500"
+                                : "bg-gray-100 text-gray-700 border-gray-200"
+                            }`}
+                            onClick={() => setSelectedTag(null)}
+                          >
+                            전체
+                          </button>
+                          {allTags.map((tag) => (
+                            <button
+                              key={tag}
+                              className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                                selectedTag === tag
+                                  ? "bg-purple-500 text-white border-purple-500"
+                                  : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                              }`}
+                              onClick={() => setSelectedTag(tag)}
+                            >
+                              {tag}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null;
+                    })()}
+                  </>
+                )}
+              </div>
+
+              {/* 북마크 추가 모달 */}
+              <AddBookmarkModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onAdd={handleAddBookmark}
+                collections={collections}
+              />
+
+              {/* 북마크 수정 모달 */}
+              <EditBookmarkModal
+                isOpen={!!editingBookmark}
+                onClose={() => setEditingBookmark(null)}
+                onUpdate={handleUpdateBookmark}
+                bookmark={editingBookmark}
+                collections={collections}
+              />
+
+              {/* 북마크 삭제 모달 */}
+              <DeleteBookmarkModal
+                isOpen={deleteBookmarkModal.isOpen}
+                onClose={closeDeleteBookmarkModal}
+                onDelete={handleDeleteBookmark}
+                bookmark={deleteBookmarkModal.bookmark}
+                isDeleting={isDeletingBookmark}
+              />
+
+              {/* 컬렉션 수정 모달 */}
+              <EditCollectionModal
+                isOpen={showEditModal}
+                onClose={closeEditModal}
+                onUpdate={handleUpdateCollection}
+                collection={editingCollection}
+                collections={collections}
+              />
+
+              {/* 컬렉션 삭제 모달 */}
+              {showDeleteModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                      컬렉션 삭제
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 mb-6">
+                      <span className="font-bold">{targetCollectionName}</span>{" "}
+                      컬렉션을 삭제하시겠습니까?
+                      <br />이 컬렉션에 속한 북마크들은 컬렉션에서 제거됩니다.
+                    </p>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={closeDeleteCollectionModal}
+                        className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() =>
+                          targetCollectionId &&
+                          handleDeleteCollection(targetCollectionId)
+                        }
+                        className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                        disabled={deletingCollectionId === targetCollectionId}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 컬렉션 추가 모달 */}
+          <AddCollectionModal
+            isOpen={isAddCollectionModalOpen}
+            onClose={() => setIsAddCollectionModalOpen(false)}
+            onAdd={handleAddCollection}
+          />
+        </>
+      )}
     </div>
   );
 };
