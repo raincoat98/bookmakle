@@ -12,6 +12,8 @@ import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import toast from "react-hot-toast";
 import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
 import { Drawer } from "../components/Drawer";
+import { CollectionList } from "../components/CollectionList";
+import { useRef } from "react";
 
 interface BookmarksPageProps {
   isDrawerOpen: boolean;
@@ -68,22 +70,42 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
   const [isDeletingBookmark, setIsDeletingBookmark] = useState(false);
 
   // 사이드바 width 상태 및 드래그 관련
-  // const SIDEBAR_WIDTH_KEY = "sidebarWidth";
-  // const DEFAULT_WIDTH = 256;
-  // const MIN_WIDTH = 280;
-  // const MAX_WIDTH = 480;
-  // const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
-  //   if (typeof window !== "undefined") {
-  //     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-  //     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
-  //   }
-  //   return DEFAULT_WIDTH;
-  // });
-  // const isDragging = useRef(false);
+  const SIDEBAR_WIDTH_KEY = "sidebarWidth";
+  const DEFAULT_WIDTH = 256;
+  const MIN_WIDTH = 280;
+  const MAX_WIDTH = 480;
+  const [sidebarWidth, setSidebarWidth] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
+      return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
+    }
+    return DEFAULT_WIDTH;
+  });
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
 
   useEffect(() => {
-    // localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
-  }, []);
+    localStorage.setItem(SIDEBAR_WIDTH_KEY, String(sidebarWidth));
+  }, [sidebarWidth]);
+
+  const handleSidebarDrag = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDragging.current) return;
+      let newWidth = startWidth + (moveEvent.clientX - startX);
+      newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
+      setSidebarWidth(newWidth);
+    };
+    const onMouseUp = () => {
+      isDragging.current = false;
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+  };
 
   // 북마크 데이터가 변경될 때마다 정렬 상태 초기화
   useEffect(() => {
@@ -382,163 +404,205 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
       />
 
       {/* 메인 콘텐츠 */}
-      <div className="flex-1 flex flex-col w-full min-w-0">
-        {/* 북마크 리스트 상단 컨트롤 바 */}
-        <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
-            {/* 검색 */}
-            <div className="flex-1 min-w-0 w-full">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="북마크 검색..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent min-w-0"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-
-            {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {/* 뷰 모드 버튼 */}
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-md transition-colors min-w-[40px] ${
-                    viewMode === "grid"
-                      ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
-                  title="그리드 뷰"
-                >
-                  <Grid3X3 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-md transition-colors min-w-[40px] ${
-                    viewMode === "list"
-                      ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                  }`}
-                  title="리스트 뷰"
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-              {/* 컬렉션 추가 버튼 */}
-              <button
-                onClick={() => setIsAddCollectionModalOpen(true)}
-                className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
-              >
-                <FolderPlus className="w-5 h-5 mr-2" />
-                컬렉션 추가
-              </button>
-              {/* 북마크 추가 버튼 */}
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                북마크 추가
-              </button>
-            </div>
-          </div>
+      <div className="flex h-[calc(100vh-64px)]">
+        {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}
+        <div
+          ref={sidebarRef}
+          className="hidden sm:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
+          style={{
+            width: sidebarWidth,
+            minWidth: MIN_WIDTH,
+            maxWidth: MAX_WIDTH,
+          }}
+        >
+          <CollectionList
+            collections={collections}
+            loading={false}
+            selectedCollection={selectedCollection}
+            onCollectionChange={setSelectedCollection}
+            onAddCollection={handleAddCollection}
+            onDeleteCollectionRequest={(id, name) => {
+              setTargetCollectionId(id);
+              setTargetCollectionName(name);
+              setShowDeleteModal(true);
+            }}
+            onEditCollection={(collection) => {
+              setEditingCollection(collection);
+              setShowEditModal(true);
+            }}
+          />
+          {/* 드래그 핸들러 */}
+          <div
+            style={{
+              right: 0,
+              top: 0,
+              width: 6,
+              cursor: "ew-resize",
+              zIndex: 20,
+            }}
+            className="absolute h-full bg-transparent hover:bg-brand-200 dark:hover:bg-brand-900 transition-colors"
+            onMouseDown={handleSidebarDrag}
+          />
         </div>
 
-        {/* 메인 콘텐츠 */}
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
-          <BookmarkList
-            bookmarks={filteredBookmarksData}
-            onEdit={setEditingBookmark}
-            onDelete={(bookmark) =>
-              setDeleteBookmarkModal({ isOpen: true, bookmark })
-            }
-            onUpdateFavicon={async (id, favicon) => {
-              const bookmark = bookmarks.find((b) => b.id === id);
-              if (bookmark) {
-                await updateBookmark(id, {
-                  title: bookmark.title,
-                  url: bookmark.url,
-                  description: bookmark.description || "",
-                  favicon,
-                  collection: bookmark.collection || "",
-                  tags: bookmark.tags || [],
-                  isFavorite: bookmark.isFavorite || false,
-                });
-              }
-            }}
-            onReorder={handleReorderBookmarks}
-            onToggleFavorite={handleToggleFavorite}
-            viewMode={effectiveViewMode}
-            collections={collections}
-          />
-
-          {/* 태그 필터 UI */}
-          {(() => {
-            const currentBookmarks = (() => {
-              if (
-                typeof filteredBookmarksData === "object" &&
-                "isGrouped" in filteredBookmarksData &&
-                filteredBookmarksData.isGrouped
-              ) {
-                const groupedData = filteredBookmarksData as {
-                  isGrouped: true;
-                  selectedCollectionBookmarks: Bookmark[];
-                  selectedCollectionName: string;
-                  groupedBookmarks: {
-                    collectionId: string;
-                    collectionName: string;
-                    bookmarks: Bookmark[];
-                  }[];
-                };
-                return [
-                  ...groupedData.selectedCollectionBookmarks,
-                  ...groupedData.groupedBookmarks.flatMap(
-                    (group) => group.bookmarks
-                  ),
-                ];
-              } else {
-                const bookmarksArray = Array.isArray(filteredBookmarksData)
-                  ? filteredBookmarksData
-                  : filteredBookmarksData.bookmarks || [];
-                return bookmarksArray;
-              }
-            })();
-
-            const hasBookmarksWithTags = currentBookmarks.some(
-              (bookmark) => bookmark.tags && bookmark.tags.length > 0
-            );
-
-            return allTags.length > 0 && hasBookmarksWithTags ? (
-              <div className="mt-6 flex flex-wrap gap-2">
-                <button
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    selectedTag === null
-                      ? "bg-purple-500 text-white border-purple-500"
-                      : "bg-gray-100 text-gray-700 border-gray-200"
-                  }`}
-                  onClick={() => setSelectedTag(null)}
-                >
-                  전체
-                </button>
-                {allTags.map((tag) => (
-                  <button
-                    key={tag}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      selectedTag === tag
-                        ? "bg-purple-500 text-white border-purple-500"
-                        : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
-                    }`}
-                    onClick={() => setSelectedTag(tag)}
-                  >
-                    {tag}
-                  </button>
-                ))}
+        <div className="flex-1 flex flex-col w-full min-w-0">
+          {/* 북마크 리스트 상단 컨트롤 바 */}
+          <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
+              {/* 검색 */}
+              <div className="flex-1 min-w-0 w-full">
+                <div className="relative w-full">
+                  <input
+                    type="text"
+                    placeholder="북마크 검색..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent min-w-0"
+                  />
+                  <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                </div>
               </div>
-            ) : null;
-          })()}
+
+              {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* 뷰 모드 버튼 */}
+                <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
+                  <button
+                    onClick={() => setViewMode("grid")}
+                    className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                      viewMode === "grid"
+                        ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                    title="그리드 뷰"
+                  >
+                    <Grid3X3 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`p-2 rounded-md transition-colors min-w-[40px] ${
+                      viewMode === "list"
+                        ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
+                        : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                    title="리스트 뷰"
+                  >
+                    <List className="w-5 h-5" />
+                  </button>
+                </div>
+                {/* 컬렉션 추가 버튼 */}
+                <button
+                  onClick={() => setIsAddCollectionModalOpen(true)}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                >
+                  <FolderPlus className="w-5 h-5 mr-2" />
+                  컬렉션 추가
+                </button>
+                {/* 북마크 추가 버튼 */}
+                <button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  북마크 추가
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 메인 콘텐츠 */}
+          <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
+            <BookmarkList
+              bookmarks={filteredBookmarksData}
+              onEdit={setEditingBookmark}
+              onDelete={(bookmark) =>
+                setDeleteBookmarkModal({ isOpen: true, bookmark })
+              }
+              onUpdateFavicon={async (id, favicon) => {
+                const bookmark = bookmarks.find((b) => b.id === id);
+                if (bookmark) {
+                  await updateBookmark(id, {
+                    title: bookmark.title,
+                    url: bookmark.url,
+                    description: bookmark.description || "",
+                    favicon,
+                    collection: bookmark.collection || "",
+                    tags: bookmark.tags || [],
+                    isFavorite: bookmark.isFavorite || false,
+                  });
+                }
+              }}
+              onReorder={handleReorderBookmarks}
+              onToggleFavorite={handleToggleFavorite}
+              viewMode={effectiveViewMode}
+              collections={collections}
+            />
+
+            {/* 태그 필터 UI */}
+            {(() => {
+              const currentBookmarks = (() => {
+                if (
+                  typeof filteredBookmarksData === "object" &&
+                  "isGrouped" in filteredBookmarksData &&
+                  filteredBookmarksData.isGrouped
+                ) {
+                  const groupedData = filteredBookmarksData as {
+                    isGrouped: true;
+                    selectedCollectionBookmarks: Bookmark[];
+                    selectedCollectionName: string;
+                    groupedBookmarks: {
+                      collectionId: string;
+                      collectionName: string;
+                      bookmarks: Bookmark[];
+                    }[];
+                  };
+                  return [
+                    ...groupedData.selectedCollectionBookmarks,
+                    ...groupedData.groupedBookmarks.flatMap(
+                      (group) => group.bookmarks
+                    ),
+                  ];
+                } else {
+                  const bookmarksArray = Array.isArray(filteredBookmarksData)
+                    ? filteredBookmarksData
+                    : filteredBookmarksData.bookmarks || [];
+                  return bookmarksArray;
+                }
+              })();
+
+              const hasBookmarksWithTags = currentBookmarks.some(
+                (bookmark) => bookmark.tags && bookmark.tags.length > 0
+              );
+
+              return allTags.length > 0 && hasBookmarksWithTags ? (
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <button
+                    className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                      selectedTag === null
+                        ? "bg-purple-500 text-white border-purple-500"
+                        : "bg-gray-100 text-gray-700 border-gray-200"
+                    }`}
+                    onClick={() => setSelectedTag(null)}
+                  >
+                    전체
+                  </button>
+                  {allTags.map((tag) => (
+                    <button
+                      key={tag}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                        selectedTag === tag
+                          ? "bg-purple-500 text-white border-purple-500"
+                          : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                      }`}
+                      onClick={() => setSelectedTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+          </div>
         </div>
       </div>
 

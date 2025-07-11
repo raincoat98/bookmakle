@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Bookmark, Collection } from "../types";
 import {
   Heart,
@@ -11,6 +12,7 @@ import {
   FileText,
   Sparkles,
   Globe,
+  Settings,
 } from "lucide-react";
 
 interface StatsCardProps {
@@ -193,13 +195,16 @@ interface RecentBookmarksProps {
   bookmarks: Bookmark[];
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (bookmark: Bookmark) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void;
 }
 
 const RecentBookmarks: React.FC<RecentBookmarksProps> = ({
   bookmarks,
   onEdit,
   onDelete,
+  onToggleFavorite,
 }) => {
+  const navigate = useNavigate();
   const recentBookmarks = bookmarks
     .sort(
       (a, b) =>
@@ -251,16 +256,44 @@ const RecentBookmarks: React.FC<RecentBookmarksProps> = ({
               </div>
               <div className="flex items-center space-x-1">
                 <button
+                  onClick={() =>
+                    onToggleFavorite(bookmark.id, !bookmark.isFavorite)
+                  }
+                  className={`p-1 rounded transition-colors ${
+                    bookmark.isFavorite
+                      ? "text-red-500 hover:text-red-600"
+                      : "text-gray-400 hover:text-red-500"
+                  }`}
+                  title={
+                    bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+                  }
+                >
+                  <Heart
+                    className={`w-4 h-4 ${
+                      bookmark.isFavorite ? "fill-current" : ""
+                    }`}
+                  />
+                </button>
+                <button
                   onClick={() => onEdit(bookmark)}
                   className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded"
+                  title="편집"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDelete(bookmark)}
                   className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded"
+                  title="삭제"
                 >
                   <Trash2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => navigate(`/bookmarks?bookmark=${bookmark.id}`)}
+                  className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded"
+                  title="북마크 페이지에서 보기"
+                >
+                  <Settings className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -531,6 +564,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           bookmarks={bookmarks}
           onEdit={onEdit}
           onDelete={onDelete}
+          onToggleFavorite={onToggleFavorite}
         />
         <CollectionDistribution
           bookmarks={bookmarks}
