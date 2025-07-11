@@ -291,7 +291,7 @@ export const BookmarkList = ({
           items={bookmarksArray.map((b) => b.id)}
           strategy={verticalListSortingStrategy}
         >
-          <div className="space-y-2 w-full min-w-0 overflow-hidden">
+          <div className="space-y-2 w-full min-w-0 ">
             {bookmarksArray.map((bookmark) => (
               <SortableBookmarkListItem
                 key={bookmark.id}

@@ -34,17 +34,23 @@ export const SortableBookmarkCard = ({
   };
 
   const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     onEdit(bookmark);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     onDelete(bookmark);
   };
 
   const handleRefreshFavicon = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
     await onRefreshFavicon(bookmark);
   };
 
@@ -54,7 +60,7 @@ export const SortableBookmarkCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all duration-200 overflow-hidden min-w-0 ${
+      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 overflow-visible min-w-0 ${
         isDragging ? "opacity-50 shadow-lg" : ""
       }`}
     >
@@ -74,11 +80,13 @@ export const SortableBookmarkCard = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 z-20">
+      <div className="absolute top-2 right-2 flex space-x-1 z-30">
         <button
           onClick={handleRefreshFavicon}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           disabled={faviconLoading}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-transform duration-150 hover:scale-110 active:scale-95"
+          className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 transition-all duration-150 min-w-[32px] min-h-[32px] flex items-center justify-center bg-white dark:bg-gray-800 shadow-sm"
           title="파비콘 재가져오기"
         >
           <svg
@@ -97,7 +105,9 @@ export const SortableBookmarkCard = ({
         </button>
         <button
           onClick={handleEdit}
-          className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 min-w-[32px] min-h-[32px] flex items-center justify-center bg-white dark:bg-gray-800 shadow-sm"
           title="수정"
         >
           <svg
@@ -116,7 +126,9 @@ export const SortableBookmarkCard = ({
         </button>
         <button
           onClick={handleDelete}
-          className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-150 min-w-[32px] min-h-[32px] flex items-center justify-center bg-white dark:bg-gray-800 shadow-sm"
           title="삭제"
         >
           <svg
@@ -213,7 +225,7 @@ export const SortableBookmarkCard = ({
             href={bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105 active:scale-95"
+            className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105"
           >
             <span>방문하기</span>
             <svg
@@ -232,14 +244,6 @@ export const SortableBookmarkCard = ({
           </a>
         </div>
       </div>
-      {/* 클릭 영역: 데스크탑에서만 전체 이동 */}
-      <a
-        href={bookmark.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute inset-0 z-10 hidden sm:block"
-        aria-label={`${bookmark.title} 열기`}
-      />
     </div>
   );
 };
