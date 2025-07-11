@@ -105,4 +105,46 @@
   .dark .tree-depth-2 {
     border-left-color: rgb(147 51 234); /* brand-600 */
   }
+
+  /* Drawer 애니메이션 */
+  @keyframes fade-in-simple {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out-simple {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-in-left {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in-simple {
+    animation: fade-in-simple 0.3s ease-in-out;
+  }
+
+  .animate-fade-out-simple {
+    animation: fade-out-simple 0.3s ease-in-out;
+  }
+
+  .animate-slide-in-left {
+    animation: slide-in-left 0.3s ease-in-out;
+  }
 }

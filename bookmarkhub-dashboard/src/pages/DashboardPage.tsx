@@ -1,0 +1,229 @@
+import React, { useState } from "react";
+import { DashboardOverview } from "../components/DashboardWidgets";
+import { useAuth } from "../hooks/useAuth";
+import { useBookmarks } from "../hooks/useBookmarks";
+import { useCollections } from "../hooks/useCollections";
+import type { Bookmark, BookmarkFormData } from "../types";
+import toast from "react-hot-toast";
+import { AddBookmarkModal } from "../components/AddBookmarkModal";
+import { EditBookmarkModal } from "../components/EditBookmarkModal";
+import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
+import { AddCollectionModal } from "../components/AddCollectionModal";
+import { Drawer } from "../components/Drawer";
+
+interface DashboardPageProps {
+  isDrawerOpen: boolean;
+  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({
+  isDrawerOpen,
+  setIsDrawerOpen,
+}) => {
+  const { user } = useAuth();
+  const {
+    bookmarks,
+    addBookmark,
+    updateBookmark,
+    deleteBookmark,
+    toggleFavorite,
+    reorderBookmarks,
+  } = useBookmarks(user?.uid || "", "all");
+  const { collections, addCollection } = useCollections(user?.uid || "");
+
+  // 모달 상태
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
+  const [deleteBookmarkModal, setDeleteBookmarkModal] = useState<{
+    isOpen: boolean;
+    bookmark: Bookmark | null;
+  }>({ isOpen: false, bookmark: null });
+  const [isDeletingBookmark, setIsDeletingBookmark] = useState(false);
+  const [isAddCollectionModalOpen, setIsAddCollectionModalOpen] =
+    useState(false);
+
+  // Drawer 관련 상태
+  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState("all");
+
+  // localStorage에서 defaultPage 가져오기
+  const defaultPage = localStorage.getItem("defaultPage") || "dashboard";
+
+  // 사이드바 닫기 함수
+  const closeDrawer = () => {
+    setIsDrawerClosing(true);
+    setTimeout(() => {
+      setIsDrawerOpen(false);
+      setIsDrawerClosing(false);
+    }, 300);
+  };
+
+  // 북마크 추가
+  const handleAddBookmark = async (data: BookmarkFormData) => {
+    try {
+      await addBookmark({ ...data, isFavorite: data.isFavorite || false });
+      setIsAddModalOpen(false);
+      toast.success("북마크가 추가되었습니다.");
+    } catch {
+      toast.error("북마크 추가 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 북마크 수정
+  const handleUpdateBookmark = async (id: string, data: BookmarkFormData) => {
+    try {
+      await updateBookmark(id, {
+        ...data,
+        isFavorite: data.isFavorite || false,
+      });
+      setEditingBookmark(null);
+      toast.success("북마크가 수정되었습니다.");
+    } catch {
+      toast.error("북마크 수정 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 북마크 삭제
+  const handleDeleteBookmark = async (id: string) => {
+    setIsDeletingBookmark(true);
+    try {
+      await deleteBookmark(id);
+      setDeleteBookmarkModal({ isOpen: false, bookmark: null });
+      toast.success("북마크가 삭제되었습니다.");
+    } catch {
+      toast.error("북마크 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsDeletingBookmark(false);
+    }
+  };
+
+  // 즐겨찾기 토글
+  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
+    try {
+      await toggleFavorite(id, isFavorite);
+      toast.success(
+        isFavorite
+          ? "즐겨찾기에 추가되었습니다."
+          : "즐겨찾기에서 제거되었습니다."
+      );
+    } catch {
+      toast.error("즐겨찾기 상태 변경 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 즐겨찾기 순서 변경
+  const handleReorderFavorites = async (newBookmarks: Bookmark[]) => {
+    try {
+      await reorderBookmarks(newBookmarks);
+      toast.success("즐겨찾기 순서가 변경되었습니다.");
+    } catch {
+      toast.error("즐겨찾기 순서 변경 중 오류가 발생했습니다.");
+    }
+  };
+
+  // 북마크 편집 모달 열기
+  const handleEdit = (bookmark: Bookmark) => {
+    setEditingBookmark(bookmark);
+  };
+
+  // 북마크 삭제 모달 열기
+  const handleDelete = (bookmark: Bookmark) => {
+    setDeleteBookmarkModal({ isOpen: true, bookmark });
+  };
+
+  // 컬렉션 추가
+  const handleAddCollection = async (
+    name: string,
+    description: string,
+    icon: string,
+    parentId?: string | null
+  ) => {
+    try {
+      await addCollection({
+        name,
+        description,
+        icon,
+        parentId: parentId ?? null,
+      });
+      setIsAddCollectionModalOpen(false);
+      toast.success("컬렉션이 추가되었습니다.");
+    } catch {
+      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            로그인이 필요합니다
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            북마크를 관리하려면 먼저 로그인해주세요.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* 모바일 Drawer */}
+      <Drawer
+        isOpen={isDrawerOpen}
+        isClosing={isDrawerClosing}
+        onClose={closeDrawer}
+        collections={collections}
+        selectedCollection={selectedCollection}
+        onCollectionChange={setSelectedCollection}
+        onAddCollection={handleAddCollection}
+        onDeleteCollectionRequest={() => {}}
+        onEditCollection={() => {}}
+        defaultPage={defaultPage}
+      />
+      <div className="p-4 lg:p-6">
+        <DashboardOverview
+          bookmarks={bookmarks}
+          collections={collections}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onAddBookmark={() => setIsAddModalOpen(true)}
+          onAddCollection={() => setIsAddCollectionModalOpen(true)}
+          onToggleFavorite={handleToggleFavorite}
+          onReorderFavorites={handleReorderFavorites}
+        />
+      </div>
+      <AddBookmarkModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={handleAddBookmark}
+        collections={collections}
+      />
+      <EditBookmarkModal
+        isOpen={!!editingBookmark}
+        onClose={() => setEditingBookmark(null)}
+        onUpdate={handleUpdateBookmark}
+        bookmark={editingBookmark}
+        collections={collections}
+      />
+      <DeleteBookmarkModal
+        isOpen={deleteBookmarkModal.isOpen}
+        onClose={() =>
+          setDeleteBookmarkModal({ isOpen: false, bookmark: null })
+        }
+        onDelete={() =>
+          deleteBookmarkModal.bookmark &&
+          handleDeleteBookmark(deleteBookmarkModal.bookmark.id)
+        }
+        bookmark={deleteBookmarkModal.bookmark}
+        isDeleting={isDeletingBookmark}
+      />
+      <AddCollectionModal
+        isOpen={isAddCollectionModalOpen}
+        onClose={() => setIsAddCollectionModalOpen(false)}
+        onAdd={handleAddCollection}
+      />
+    </div>
+  );
+};

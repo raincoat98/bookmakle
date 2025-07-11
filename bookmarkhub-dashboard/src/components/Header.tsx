@@ -1,23 +1,21 @@
 import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Menu, Sun, Moon, Briefcase, List, Settings } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 interface HeaderProps {
   onMenuClick?: () => void;
   showMenuButton?: boolean;
-  showDashboard?: boolean;
-  setShowDashboard?: (value: boolean) => void;
-  onSettingsClick?: () => void;
+  defaultPage?: string | null;
 }
 
 export const Header = ({
   onMenuClick,
   showMenuButton = false,
-  showDashboard,
-  setShowDashboard,
-  onSettingsClick,
+  defaultPage,
 }: HeaderProps) => {
   const { user, login, logout } = useAuth();
+  const location = useLocation();
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -36,45 +34,47 @@ export const Header = ({
             {showMenuButton && (
               <button
                 onClick={onMenuClick}
-                className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="block sm:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="메뉴 열기"
               >
                 <Menu className="w-6 h-6" />
               </button>
             )}
-            <img src="/favicon.svg" alt="북마클" className="w-6 h-6" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">
-              북마클
-            </h1>
+            <Link to="/" className="flex items-center space-x-2">
+              <img src="/favicon.svg" alt="북마클" className="w-6 h-6" />
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">
+                북마클
+              </h1>
+            </Link>
           </div>
 
-          {/* 대시보드/북마크 토글 버튼 */}
-          {typeof showDashboard === "boolean" && setShowDashboard && (
-            <div className="flex gap-2 mr-4">
-              <button
-                className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
-                  showDashboard
-                    ? "bg-brand-600 text-white shadow"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
-                }`}
-                onClick={() => setShowDashboard(true)}
-              >
-                <Briefcase className="w-4 h-4" />
-                대시보드 보기
-              </button>
-              <button
-                className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
-                  !showDashboard
-                    ? "bg-brand-600 text-white shadow"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
-                }`}
-                onClick={() => setShowDashboard(false)}
-              >
-                <List className="w-4 h-4" />
-                북마크 보기
-              </button>
-            </div>
-          )}
+          {/* 네비게이션 링크 */}
+          <div className="gap-2 mr-4 hidden sm:flex">
+            <Link
+              to="/dashboard"
+              className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
+                location.pathname === "/dashboard" ||
+                (location.pathname === "/" && defaultPage === "dashboard")
+                  ? "bg-brand-600 text-white shadow"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              대시보드
+            </Link>
+            <Link
+              to="/bookmarks"
+              className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
+                location.pathname === "/bookmarks" ||
+                (location.pathname === "/" && defaultPage === "bookmarks")
+                  ? "bg-brand-600 text-white shadow"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
+              }`}
+            >
+              <List className="w-4 h-4" />
+              북마크
+            </Link>
+          </div>
 
           {/* 사용자 정보 */}
           <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
@@ -109,15 +109,13 @@ export const Header = ({
             )}
 
             {/* 설정 버튼 */}
-            {onSettingsClick && (
-              <button
-                onClick={onSettingsClick}
-                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                aria-label="설정"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            )}
+            <Link
+              to="/settings"
+              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+              aria-label="설정"
+            >
+              <Settings className="w-5 h-5" />
+            </Link>
             {/* 테마 토글 버튼 */}
             <button
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
+import { useNavigate } from "react-router-dom";
 import {
   Settings as SettingsIcon,
   User,
@@ -20,6 +21,7 @@ import {
   List,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getUserDefaultPage, setUserDefaultPage } from "../firebase";
 
 interface ImportData {
   version: string;
@@ -37,6 +39,7 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
   const { user, logout } = useAuth();
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
   const { collections } = useCollections(user?.uid || "");
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("general");
   const [theme, setTheme] = useState(
@@ -54,6 +57,14 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      getUserDefaultPage(user.uid).then((page) => {
+        setDefaultPage(page || "dashboard");
+      });
+    }
+  }, [user?.uid]);
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
@@ -76,14 +87,23 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
     );
   };
 
-  const handleDefaultPageChange = (page: string) => {
+  const handleDefaultPageChange = async (page: string) => {
     setDefaultPage(page);
+    if (user?.uid) {
+      await setUserDefaultPage(user.uid, page);
+    }
     localStorage.setItem("defaultPage", page);
+    window.dispatchEvent(new Event("localStorageChange"));
     toast.success(
       `기본 페이지가 ${
         page === "dashboard" ? "대시보드" : "북마크 목록"
       }으로 설정되었습니다.`
     );
+    if (page === "bookmarks") {
+      navigate("/bookmarks");
+    } else {
+      navigate("/");
+    }
   };
 
   const handleExportData = () => {

@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA-biD6_Gy0sGWoy2qmcB-sXuW5strHApc",
@@ -18,5 +18,24 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
+
+export async function getUserDefaultPage(uid: string): Promise<string> {
+  const db = getFirestore();
+  const settingsRef = doc(db, "users", uid, "settings", "main");
+  const snap = await getDoc(settingsRef);
+  if (snap.exists() && snap.data().defaultPage) {
+    return snap.data().defaultPage;
+  }
+  return "dashboard";
+}
+
+export async function setUserDefaultPage(
+  uid: string,
+  value: string
+): Promise<void> {
+  const db = getFirestore();
+  const settingsRef = doc(db, "users", uid, "settings", "main");
+  await setDoc(settingsRef, { defaultPage: value }, { merge: true });
+}
 
 export default app;
