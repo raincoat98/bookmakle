@@ -28,7 +28,17 @@ export const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortedBookmarks, setSortedBookmarks] = useState<Bookmark[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // 사이드바 닫기 함수
+  const closeDrawer = () => {
+    setIsDrawerClosing(true);
+    setTimeout(() => {
+      setIsDrawerOpen(false);
+      setIsDrawerClosing(false);
+    }, 300); // 애니메이션 지속 시간과 동일
+  };
 
   // 북마크 삭제 모달 상태
   const [deleteBookmarkModal, setDeleteBookmarkModal] = useState<{
@@ -345,16 +355,22 @@ export const Dashboard = () => {
           />
         </div>
         {/* 모바일 Drawer */}
-        {isDrawerOpen && (
+        {(isDrawerOpen || isDrawerClosing) && (
           <div className="fixed inset-0 z-50 flex">
-            <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transform transition-all duration-300 ease-in-out translate-x-0 opacity-100 animate-slide-in-left shadow-xl">
+            <div
+              className={`w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transform transition-all duration-300 ease-in-out shadow-xl ${
+                isDrawerClosing
+                  ? "translate-x-[-100%] opacity-0"
+                  : "translate-x-0 opacity-100 animate-slide-in-left"
+              }`}
+            >
               <CollectionList
                 collections={collections}
                 loading={loading}
                 selectedCollection={selectedCollection}
                 onCollectionChange={(id) => {
                   setSelectedCollection(id);
-                  setIsDrawerOpen(false);
+                  closeDrawer();
                 }}
                 onAddCollection={handleAddCollection}
                 onUpdateCollection={updateCollection}
@@ -362,8 +378,12 @@ export const Dashboard = () => {
               />
             </div>
             <div
-              className="flex-1 bg-black bg-opacity-30 transition-opacity duration-300"
-              onClick={() => setIsDrawerOpen(false)}
+              className={`flex-1 bg-black bg-opacity-30 ${
+                isDrawerClosing
+                  ? "animate-fade-out-simple"
+                  : "animate-fade-in-simple"
+              }`}
+              onClick={closeDrawer}
             />
           </div>
         )}
