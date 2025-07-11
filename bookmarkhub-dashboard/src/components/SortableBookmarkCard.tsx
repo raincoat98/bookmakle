@@ -80,7 +80,7 @@ export const SortableBookmarkCard = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="absolute top-2 right-2 flex space-x-1 z-30">
+      <div className="absolute top-2 right-2 flex space-x-1 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           onClick={handleRefreshFavicon}
           onMouseDown={(e) => e.stopPropagation()}

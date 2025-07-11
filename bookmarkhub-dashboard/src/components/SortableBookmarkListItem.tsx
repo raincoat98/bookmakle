@@ -71,7 +71,7 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="absolute top-3 right-3 flex space-x-1 z-30">
+      <div className="absolute top-3 right-3 flex space-x-1 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           onClick={handleEdit}
           onMouseDown={(e) => e.stopPropagation()}
