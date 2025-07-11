@@ -289,7 +289,12 @@ export const CollectionList = ({
           <div className="flex items-center space-x-1 ml-2">
             {/* 수정 버튼 */}
             <button
-              onClick={() => onEditCollection(collection)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                onEditCollection(collection);
+              }}
               className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="수정"
             >
@@ -310,9 +315,12 @@ export const CollectionList = ({
 
             {/* 삭제 버튼 */}
             <button
-              onClick={() =>
-                onDeleteCollectionRequest(collection.id, collection.name)
-              }
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                onDeleteCollectionRequest(collection.id, collection.name);
+              }}
               className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="삭제"
             >
