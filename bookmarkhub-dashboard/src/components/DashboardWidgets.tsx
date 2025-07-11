@@ -144,7 +144,7 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
                       <img
                         src={bookmark.favicon}
                         alt={bookmark.title}
-                        className="w-12 h-12 rounded shadow-sm hover:scale-110 transition-transform cursor-pointer"
+                        className="w-6 h-6 rounded shadow-sm hover:scale-100 transition-transform cursor-pointer"
                         onClick={() => handleFaviconClick(bookmark.url)}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
@@ -152,7 +152,7 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
                       />
                     ) : (
                       <div
-                        className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded shadow-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+                        className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded shadow-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
                         onClick={() => handleFaviconClick(bookmark.url)}
                       >
                         <Globe className="w-6 h-6 text-gray-400" />
