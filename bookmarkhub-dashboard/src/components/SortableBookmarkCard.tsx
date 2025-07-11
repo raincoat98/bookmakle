@@ -193,14 +193,37 @@ export const SortableBookmarkCard = ({
             )}
           </div>
         </div>
+        {/* 모바일에서만 보이는 방문하기 버튼: 카드 내부, 내용 하단 */}
+        <div className="flex justify-end mt-2 sm:hidden">
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105 active:scale-95"
+          >
+            <span>방문하기</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
       </div>
-
-      {/* 클릭 영역 */}
+      {/* 클릭 영역: 데스크탑에서만 전체 이동 */}
       <a
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-10 hidden sm:block"
         aria-label={`${bookmark.title} 열기`}
       />
     </div>

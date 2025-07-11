@@ -1,3 +1,5 @@
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Bookmark } from "../types";
 
 interface SortableBookmarkListItemProps {
@@ -13,6 +15,20 @@ export const SortableBookmarkListItem = ({
   onEdit,
   onDelete,
 }: SortableBookmarkListItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bookmark.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit(bookmark);
@@ -24,9 +40,19 @@ export const SortableBookmarkListItem = ({
   };
 
   return (
-    <div className="group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all duration-200 overflow-hidden min-w-0">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.01] active:scale-95 transition-all duration-200 overflow-hidden min-w-0 ${
+        isDragging ? "opacity-50 shadow-lg" : ""
+      }`}
+    >
       {/* 드래그 핸들러 */}
-      <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing">
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-20"
+      >
         <svg
           className="w-4 h-4 text-gray-400"
           fill="currentColor"
@@ -37,7 +63,7 @@ export const SortableBookmarkListItem = ({
       </div>
 
       {/* 액션 버튼들 */}
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1 z-20">
         <button
           onClick={handleEdit}
           className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-transform duration-150 hover:scale-110 active:scale-95"
@@ -125,14 +151,39 @@ export const SortableBookmarkListItem = ({
             {bookmark.createdAt.toLocaleDateString()}
           </div>
         </div>
+
+        {/* 모바일에서만 보이는 방문하기 버튼 */}
+        <div className="flex justify-end mt-3 sm:hidden">
+          <a
+            href={bookmark.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105 active:scale-95"
+          >
+            <span>방문하기</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
+          </a>
+        </div>
       </div>
 
-      {/* 클릭 영역 */}
+      {/* 클릭 영역: 데스크탑에서만 전체 이동 */}
       <a
         href={bookmark.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-10 hidden sm:block"
         aria-label={`${bookmark.title} 열기`}
       />
     </div>

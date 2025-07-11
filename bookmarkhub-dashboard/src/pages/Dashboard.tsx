@@ -245,6 +245,10 @@ export const Dashboard = () => {
     await deleteCollection(collectionId);
   };
 
+  // 모바일에서 리스트뷰 고정
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+  const effectiveViewMode = isMobile ? "list" : viewMode;
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -333,7 +337,7 @@ export const Dashboard = () => {
               {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 {/* 뷰 모드 변경 버튼 */}
-                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-auto">
+                <div className="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-auto">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`p-2 rounded-md transition-colors min-w-[40px] ${
@@ -402,7 +406,7 @@ export const Dashboard = () => {
               onDelete={openDeleteBookmarkModal}
               onUpdateFavicon={handleUpdateFavicon}
               onReorder={handleReorderBookmarks}
-              viewMode={viewMode}
+              viewMode={effectiveViewMode}
             />
             {/* 태그 필터 UI */}
             {(() => {
