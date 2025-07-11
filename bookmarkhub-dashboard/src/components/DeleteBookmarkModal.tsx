@@ -22,7 +22,7 @@ export const DeleteBookmarkModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-200 animate-fade-in">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-200 animate-fade-in">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md scale-95 animate-fade-in-up min-w-0 transition-transform duration-200">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           북마크 삭제
