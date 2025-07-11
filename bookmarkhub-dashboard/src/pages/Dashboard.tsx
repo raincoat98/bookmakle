@@ -407,7 +407,7 @@ export const Dashboard = () => {
               cursor: "ew-resize",
               zIndex: 20,
             }}
-            className="absolute h-full bg-transparent hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors"
+            className="absolute h-full bg-transparent hover:bg-brand-200 dark:hover:bg-brand-900 transition-colors"
             onMouseDown={handleSidebarDrag}
           />
         </div>
@@ -461,7 +461,7 @@ export const Dashboard = () => {
                     placeholder="북마크 검색..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent min-w-0"
                   />
                   <svg
                     className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
@@ -487,7 +487,7 @@ export const Dashboard = () => {
                     onClick={() => setViewMode("grid")}
                     className={`p-2 rounded-md transition-colors min-w-[40px] ${
                       viewMode === "grid"
-                        ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                        ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                     }`}
                     title="그리드 뷰"
@@ -504,7 +504,7 @@ export const Dashboard = () => {
                     onClick={() => setViewMode("list")}
                     className={`p-2 rounded-md transition-colors min-w-[40px] ${
                       viewMode === "list"
-                        ? "bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm"
+                        ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
                         : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                     }`}
                     title="리스트 뷰"
@@ -522,7 +522,7 @@ export const Dashboard = () => {
                 {/* 북마크 추가 버튼 */}
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                  className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
                 >
                   <svg
                     className="w-5 h-5 mr-2"

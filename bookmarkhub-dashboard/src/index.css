@@ -24,7 +24,7 @@
 
 @layer components {
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-secondary {
@@ -99,10 +99,10 @@
 
   .tree-depth-2 {
     @apply bg-gray-100 dark:bg-gray-800 text-sm;
-    border-left-color: rgb(191 219 254); /* blue-200 */
+    border-left-color: rgb(233 213 255); /* brand-200 */
   }
 
   .dark .tree-depth-2 {
-    border-left-color: rgb(29 78 216); /* blue-700 */
+    border-left-color: rgb(147 51 234); /* brand-600 */
   }
 }

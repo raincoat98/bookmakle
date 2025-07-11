@@ -206,7 +206,7 @@ export const EditBookmarkModal = ({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               placeholder="북마크 제목을 입력하세요"
               required
               autoFocus
@@ -223,7 +223,7 @@ export const EditBookmarkModal = ({
               onChange={(e) =>
                 setFormData({ ...formData, url: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               placeholder="https://example.com"
               required
             />
@@ -260,7 +260,7 @@ export const EditBookmarkModal = ({
                   )}
                   {faviconLoading && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
                     </div>
                   )}
                 </div>
@@ -277,7 +277,7 @@ export const EditBookmarkModal = ({
                     type="url"
                     value={formData.favicon}
                     onChange={(e) => handleFaviconUrlChange(e.target.value)}
-                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                     placeholder="파비콘 URL"
                   />
                   <button
@@ -295,7 +295,7 @@ export const EditBookmarkModal = ({
                   <button
                     type="button"
                     onClick={handleRefreshFavicon}
-                    className="flex-1 px-3 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                    className="flex-1 px-3 py-2 text-sm bg-brand-500 text-white rounded hover:bg-brand-600 disabled:opacity-50"
                     disabled={faviconLoading || !formData.url}
                   >
                     {faviconLoading ? "가져오는 중..." : "재가져오기"}
@@ -387,7 +387,7 @@ export const EditBookmarkModal = ({
                 setFormData({ ...formData, description: e.target.value })
               }
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               placeholder="북마크에 대한 설명을 입력하세요 (선택사항)"
             />
           </div>
@@ -401,7 +401,7 @@ export const EditBookmarkModal = ({
               onChange={(e) =>
                 setFormData({ ...formData, collection: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             >
               <option value="">선택없음</option>
               {collections.map((collection) => (

@@ -95,7 +95,7 @@ export const BookmarkCard = ({
               )}
               {faviconLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
                 </div>
               )}
             </div>
@@ -106,7 +106,7 @@ export const BookmarkCard = ({
                 href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer block"
+                className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200 cursor-pointer block"
                 title={bookmark.title}
               >
                 {bookmark.title}
@@ -217,7 +217,7 @@ export const BookmarkCard = ({
           href={bookmark.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 hover:scale-105"
+          className="inline-flex items-center space-x-2 text-sm text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors duration-200 hover:scale-105"
         >
           <span>방문하기</span>
           <svg

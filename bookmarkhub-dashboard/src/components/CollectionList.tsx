@@ -217,7 +217,7 @@ export const CollectionList = ({
           key={collection.id}
           className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer relative tree-item border-l-4 ${
             selectedCollection === collection.id
-              ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-500 dark:border-blue-400"
+              ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 border-brand-500 dark:border-brand-400"
               : depth === 1
               ? "tree-depth-1 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               : depth === 2
@@ -295,7 +295,7 @@ export const CollectionList = ({
                 e.nativeEvent.stopImmediatePropagation();
                 onEditCollection(collection);
               }}
-              className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
               title="수정"
             >
               <svg
@@ -371,7 +371,7 @@ export const CollectionList = ({
             onClick={() => onCollectionChange("all")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
               selectedCollection === "all"
-                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
@@ -384,7 +384,7 @@ export const CollectionList = ({
             onClick={() => onCollectionChange("none")}
             className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
               selectedCollection === "none"
-                ? "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300"
+                ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
           >
@@ -404,7 +404,7 @@ export const CollectionList = ({
 
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-500"></div>
             </div>
           )}
         </nav>
@@ -442,7 +442,7 @@ export const CollectionList = ({
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
               placeholder="컬렉션 이름을 입력하세요"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
               autoFocus
             />
@@ -451,7 +451,7 @@ export const CollectionList = ({
               value={newCollectionDescription}
               onChange={(e) => setNewCollectionDescription(e.target.value)}
               placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
             />
             <div className="flex space-x-2">
@@ -534,7 +534,7 @@ export const CollectionList = ({
             <input
               type="text"
               placeholder="컬렉션 이름을 입력하세요"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-3"
               autoFocus
               value={newCollectionName}
               onChange={(e) => setNewCollectionName(e.target.value)}
@@ -550,7 +550,7 @@ export const CollectionList = ({
             <input
               type="text"
               placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-3"
               value={newCollectionDescription}
               onChange={(e) => setNewCollectionDescription(e.target.value)}
               onKeyPress={(e) =>
@@ -598,7 +598,7 @@ export const CollectionList = ({
                     newCollectionIcon
                   )
                 }
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                className="px-4 py-2 rounded bg-brand-600 text-white hover:bg-brand-700"
                 disabled={!newCollectionName.trim()}
               >
                 추가

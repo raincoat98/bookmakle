@@ -76,7 +76,7 @@ export const SortableBookmarkListItem = ({
       } hover:z-30 z-10`}
     >
       {/* 그라데이션 오버레이 */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
       {/* 드래그 핸들러 - 모바일에서 더 크게 */}
       <div
@@ -151,7 +151,7 @@ export const SortableBookmarkListItem = ({
           onMouseDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
           onTouchEnd={(e) => e.stopPropagation()}
-          className="p-2.5 sm:p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+          className="p-2.5 sm:p-2 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="수정"
         >
           <svg
@@ -199,7 +199,7 @@ export const SortableBookmarkListItem = ({
         <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 sm:space-x-5">
           {/* 파비콘 - 모바일에서 위쪽 */}
           <div className="flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
-            <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center shadow-sm">
+            <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm">
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
@@ -228,7 +228,7 @@ export const SortableBookmarkListItem = ({
                 href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg sm:text-lg font-semibold text-gray-900 dark:text-white truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200 cursor-pointer"
+                className="text-lg sm:text-lg font-semibold text-gray-900 dark:text-white truncate hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200 cursor-pointer"
                 title={bookmark.title}
               >
                 {bookmark.title}
@@ -240,7 +240,7 @@ export const SortableBookmarkListItem = ({
             {/* 컬렉션 정보 - 모바일에서 아래쪽 */}
             <div className="flex flex-wrap items-center gap-2 mb-1">
               {collection ? (
-                <span className="inline-flex items-center px-3 py-2 sm:px-3 sm:py-1.5 rounded-full text-sm sm:text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 shadow-sm">
+                <span className="inline-flex items-center px-3 py-2 sm:px-3 sm:py-1.5 rounded-full text-sm sm:text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300 shadow-sm">
                   {collection.icon} {collection.name}
                 </span>
               ) : (
@@ -265,7 +265,7 @@ export const SortableBookmarkListItem = ({
             href={bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px]"
+            className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px]"
           >
             <span>방문하기</span>
             <svg
