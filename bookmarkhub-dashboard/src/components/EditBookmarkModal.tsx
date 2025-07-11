@@ -163,9 +163,9 @@ export const EditBookmarkModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md max-h-[90vh] flex flex-col">
         {/* 헤더 */}
-        <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 lg:p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
               북마크 수정
@@ -192,7 +192,10 @@ export const EditBookmarkModal = ({
         </div>
 
         {/* 폼 */}
-        <form onSubmit={handleSubmit} className="p-4 lg:p-6 space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 lg:p-6 space-y-4 flex-1 overflow-y-auto min-h-0"
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               제목 *
