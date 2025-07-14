@@ -21,6 +21,7 @@ import {
   Plus,
   FolderPlus,
   Briefcase,
+  Menu,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -694,6 +695,14 @@ export const Dashboard = () => {
               {/* 북마크 리스트 상단 컨트롤 바 */}
               <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex flex-wrap items-stretch gap-2 w-full">
+                  {/* md 이하에서만 햄버거 메뉴 버튼 */}
+                  <button
+                    className="md:hidden mr-2 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-2"
+                    onClick={() => setIsDrawerOpen(true)}
+                    aria-label="사이드바 열기"
+                  >
+                    <Menu className="w-5 h-5" />
+                  </button>
                   {/* 검색 */}
                   <div className="flex-1 min-w-[200px]">
                     <div className="relative w-full">

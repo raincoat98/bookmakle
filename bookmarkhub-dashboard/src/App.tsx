@@ -20,11 +20,15 @@ import {
 } from "./utils/backup";
 import { useBookmarks } from "./hooks/useBookmarks";
 import { useCollections } from "./hooks/useCollections";
+import { useDrawer } from "./contexts/DrawerContext";
+import { Drawer } from "./components/Drawer";
 
 function App() {
   const { user, loading } = useAuth();
   const [defaultPage, setDefaultPage] = useState<string | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState("all");
+  const { isDrawerOpen, setIsDrawerOpen, isDrawerClosing, setIsDrawerClosing } =
+    useDrawer();
   const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 백업을 위한 데이터 가져오기
@@ -126,45 +130,35 @@ function App() {
     <Router>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header
-          defaultPage={defaultPage}
+          defaultPage={defaultPage || undefined}
           showMenuButton={true}
-          onMenuClick={() => setIsDrawerOpen(true)}
+          // onMenuClick 등은 각 페이지에서 Context로 관리
+        />
+        <Drawer
+          collections={collections}
+          selectedCollection={selectedCollection}
+          onCollectionChange={setSelectedCollection}
+          isOpen={isDrawerOpen}
+          isClosing={isDrawerClosing}
+          onClose={() => setIsDrawerOpen(false)}
+          onAddCollection={() => {}}
+          onDeleteCollectionRequest={() => {}}
+          onEditCollection={() => {}}
+          defaultPage={defaultPage || undefined}
         />
         <Routes>
           <Route
             path="/"
             element={
               defaultPage === "bookmarks" ? (
-                <BookmarksPage
-                  isDrawerOpen={isDrawerOpen}
-                  setIsDrawerOpen={setIsDrawerOpen}
-                />
+                <BookmarksPage />
               ) : (
-                <DashboardPage
-                  isDrawerOpen={isDrawerOpen}
-                  setIsDrawerOpen={setIsDrawerOpen}
-                />
+                <DashboardPage />
               )
             }
           />
-          <Route
-            path="/dashboard"
-            element={
-              <DashboardPage
-                isDrawerOpen={isDrawerOpen}
-                setIsDrawerOpen={setIsDrawerOpen}
-              />
-            }
-          />
-          <Route
-            path="/bookmarks"
-            element={
-              <BookmarksPage
-                isDrawerOpen={isDrawerOpen}
-                setIsDrawerOpen={setIsDrawerOpen}
-              />
-            }
-          />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

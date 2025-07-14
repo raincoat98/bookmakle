@@ -11,19 +11,10 @@ import { useCollections } from "../hooks/useCollections";
 import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import toast from "react-hot-toast";
 import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
-import { Drawer } from "../components/Drawer";
 import { CollectionList } from "../components/CollectionList";
 import { useRef } from "react";
 
-interface BookmarksPageProps {
-  isDrawerOpen: boolean;
-  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const BookmarksPage: React.FC<BookmarksPageProps> = ({
-  isDrawerOpen,
-  setIsDrawerOpen,
-}) => {
+export const BookmarksPage: React.FC = () => {
   const { user } = useAuth();
   const {
     bookmarks,
@@ -350,21 +341,6 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
   const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
   const effectiveViewMode = isMobile ? "list" : viewMode;
 
-  // Drawer 관련 상태
-  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
-
-  // localStorage에서 defaultPage 가져오기
-  const defaultPage = localStorage.getItem("defaultPage") || "dashboard";
-
-  // 사이드바 닫기 함수
-  const closeDrawer = () => {
-    setIsDrawerClosing(true);
-    setTimeout(() => {
-      setIsDrawerOpen(false);
-      setIsDrawerClosing(false);
-    }, 300);
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -382,27 +358,6 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* 모바일 Drawer */}
-      <Drawer
-        isOpen={isDrawerOpen}
-        isClosing={isDrawerClosing}
-        onClose={closeDrawer}
-        collections={collections}
-        selectedCollection={selectedCollection}
-        onCollectionChange={setSelectedCollection}
-        onAddCollection={handleAddCollection}
-        onDeleteCollectionRequest={(id, name) => {
-          setTargetCollectionId(id);
-          setTargetCollectionName(name);
-          setShowDeleteModal(true);
-        }}
-        onEditCollection={(collection) => {
-          setEditingCollection(collection);
-          setShowEditModal(true);
-        }}
-        defaultPage={defaultPage}
-      />
-
       {/* 메인 콘텐츠 */}
       <div className="flex h-[calc(100vh-64px)]">
         {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}

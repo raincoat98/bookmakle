@@ -2,15 +2,14 @@ import { useAuth } from "../hooks/useAuth";
 import { useState, useEffect } from "react";
 import { Menu, Sun, Moon, Briefcase, List, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useDrawer } from "../contexts/DrawerContext";
 
 interface HeaderProps {
-  onMenuClick?: () => void;
   showMenuButton?: boolean;
   defaultPage?: string | null;
 }
 
 export const Header = ({
-  onMenuClick,
   showMenuButton = false,
   defaultPage,
 }: HeaderProps) => {
@@ -19,6 +18,7 @@ export const Header = ({
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
+  const { setIsDrawerOpen } = useDrawer();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -33,7 +33,7 @@ export const Header = ({
           <div className="flex items-center space-x-2 sm:space-x-4">
             {showMenuButton && (
               <button
-                onClick={onMenuClick}
+                onClick={() => setIsDrawerOpen(true)}
                 className="block sm:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                 aria-label="메뉴 열기"
               >

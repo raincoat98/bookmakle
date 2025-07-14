@@ -9,17 +9,8 @@ import { AddBookmarkModal } from "../components/AddBookmarkModal";
 import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
-import { Drawer } from "../components/Drawer";
 
-interface DashboardPageProps {
-  isDrawerOpen: boolean;
-  setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const DashboardPage: React.FC<DashboardPageProps> = ({
-  isDrawerOpen,
-  setIsDrawerOpen,
-}) => {
+export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const {
     bookmarks,
@@ -42,21 +33,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [isAddCollectionModalOpen, setIsAddCollectionModalOpen] =
     useState(false);
 
-  // Drawer 관련 상태
-  const [isDrawerClosing, setIsDrawerClosing] = useState(false);
-  const [selectedCollection, setSelectedCollection] = useState("all");
-
   // localStorage에서 defaultPage 가져오기
   const defaultPage = localStorage.getItem("defaultPage") || "dashboard";
-
-  // 사이드바 닫기 함수
-  const closeDrawer = () => {
-    setIsDrawerClosing(true);
-    setTimeout(() => {
-      setIsDrawerOpen(false);
-      setIsDrawerClosing(false);
-    }, 300);
-  };
 
   // 북마크 추가
   const handleAddBookmark = async (data: BookmarkFormData) => {
@@ -169,19 +147,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* 모바일 Drawer */}
-      <Drawer
-        isOpen={isDrawerOpen}
-        isClosing={isDrawerClosing}
-        onClose={closeDrawer}
-        collections={collections}
-        selectedCollection={selectedCollection}
-        onCollectionChange={setSelectedCollection}
-        onAddCollection={handleAddCollection}
-        onDeleteCollectionRequest={() => {}}
-        onEditCollection={() => {}}
-        defaultPage={defaultPage}
-      />
       <div className="p-4 lg:p-6">
         <DashboardOverview
           bookmarks={bookmarks}
