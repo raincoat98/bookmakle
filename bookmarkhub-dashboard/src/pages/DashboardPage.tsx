@@ -33,9 +33,6 @@ export const DashboardPage: React.FC = () => {
   const [isAddCollectionModalOpen, setIsAddCollectionModalOpen] =
     useState(false);
 
-  // localStorage에서 defaultPage 가져오기
-  const defaultPage = localStorage.getItem("defaultPage") || "dashboard";
-
   // 북마크 추가
   const handleAddBookmark = async (data: BookmarkFormData) => {
     try {

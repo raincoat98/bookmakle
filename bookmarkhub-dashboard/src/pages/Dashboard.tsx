@@ -561,10 +561,7 @@ export const Dashboard = () => {
         />
       ) : (
         <>
-          <Header
-            onMenuClick={() => setIsDrawerOpen(true)}
-            showMenuButton={true}
-          />
+          <Header showMenuButton={true} />
 
           <div className="flex h-[calc(100vh-64px)]">
             {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}

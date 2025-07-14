@@ -27,13 +27,12 @@ function App() {
   const { user, loading } = useAuth();
   const [defaultPage, setDefaultPage] = useState<string | null>(null);
   const [selectedCollection, setSelectedCollection] = useState("all");
-  const { isDrawerOpen, setIsDrawerOpen, isDrawerClosing, setIsDrawerClosing } =
-    useDrawer();
+  const { isDrawerOpen, setIsDrawerOpen, isDrawerClosing } = useDrawer();
   const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 백업을 위한 데이터 가져오기
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
-  const { collections } = useCollections(user?.uid || "");
+  const { collections, addCollection } = useCollections(user?.uid || "");
 
   useEffect(() => {
     if (user?.uid) {
@@ -111,6 +110,21 @@ function App() {
     };
   }, [user?.uid]);
 
+  // Drawer에 전달할 컬렉션 추가 래퍼
+  const handleDrawerAddCollection = async (
+    name: string,
+    description: string,
+    icon: string,
+    parentId?: string | null
+  ) => {
+    await addCollection({
+      name,
+      description,
+      icon,
+      parentId: parentId ?? null,
+    });
+  };
+
   if (loading || (user && defaultPage === null)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -141,7 +155,7 @@ function App() {
           isOpen={isDrawerOpen}
           isClosing={isDrawerClosing}
           onClose={() => setIsDrawerOpen(false)}
-          onAddCollection={() => {}}
+          onAddCollection={handleDrawerAddCollection}
           onDeleteCollectionRequest={() => {}}
           onEditCollection={() => {}}
           defaultPage={defaultPage || undefined}
