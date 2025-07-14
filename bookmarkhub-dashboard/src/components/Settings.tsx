@@ -81,6 +81,8 @@ export const Settings: React.FC<SettingsProps> = ({
     timestamp: string | null;
   }>({ open: false, timestamp: null });
   const [backups, setBackups] = useState(() => getAllBackups());
+  // 상태 추가
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -384,15 +386,15 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   const handleDeleteAccount = () => {
-    if (
-      window.confirm(
-        "정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
-      )
-    ) {
-      // 계정 삭제 로직
-      toast.success("계정이 삭제되었습니다.");
-      logout();
-    }
+    setShowDeleteAccountModal(true);
+  };
+
+  // 모달 내 실제 삭제 함수
+  const handleConfirmDeleteAccount = () => {
+    // 계정 삭제 로직
+    toast.success("계정이 삭제되었습니다.");
+    setShowDeleteAccountModal(false);
+    logout();
   };
 
   const tabs = [
@@ -944,6 +946,33 @@ export const Settings: React.FC<SettingsProps> = ({
                 className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
               >
                 확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 계정 삭제 모달 */}
+      {showDeleteAccountModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              계정 삭제
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 mb-6">
+              정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDeleteAccountModal(false)}
+                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmDeleteAccount}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                삭제
               </button>
             </div>
           </div>
