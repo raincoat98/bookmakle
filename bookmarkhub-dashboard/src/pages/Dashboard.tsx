@@ -569,7 +569,7 @@ export const Dashboard = () => {
             {/* 사이드바: 데스크탑에서는 항상, 모바일에서는 Drawer */}
             <div
               ref={sidebarRef}
-              className="hidden sm:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
+              className="hidden md:flex bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex-col relative"
               style={{
                 width: sidebarWidth,
                 minWidth: MIN_WIDTH,
@@ -693,9 +693,9 @@ export const Dashboard = () => {
             <div className="flex-1 flex flex-col w-full min-w-0">
               {/* 북마크 리스트 상단 컨트롤 바 */}
               <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center justify-between w-full">
+                <div className="flex flex-wrap items-stretch gap-2 w-full">
                   {/* 검색 */}
-                  <div className="flex-1 min-w-0 w-full">
+                  <div className="flex-1 min-w-[200px]">
                     <div className="relative w-full">
                       <input
                         type="text"
@@ -709,9 +709,9 @@ export const Dashboard = () => {
                   </div>
 
                   {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
-                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                    {/* 북마크 뷰에서만 뷰 모드 버튼 */}
-                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-1 flex">
+                  <div className="flex flex-col w-full sm:flex-row sm:w-auto gap-2">
+                    {/* 북마크 뷰에서만 뷰 모드 버튼 - 모바일에서 숨김 */}
+                    <div className="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                       <button
                         onClick={() => setViewMode("grid")}
                         className={`p-2 rounded-md transition-colors min-w-[40px] ${
@@ -738,7 +738,7 @@ export const Dashboard = () => {
                     {/* 컬렉션 추가 버튼 */}
                     <button
                       onClick={() => setIsAddCollectionModalOpen(true)}
-                      className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto flex-shrink-0 whitespace-nowrap"
                     >
                       <FolderPlus className="w-5 h-5 mr-2" />
                       컬렉션 추가
@@ -746,7 +746,7 @@ export const Dashboard = () => {
                     {/* 북마크 추가 버튼 */}
                     <button
                       onClick={() => setIsAddModalOpen(true)}
-                      className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto"
+                      className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto flex-shrink-0 whitespace-nowrap"
                     >
                       <Plus className="w-5 h-5 mr-2" />
                       북마크 추가
