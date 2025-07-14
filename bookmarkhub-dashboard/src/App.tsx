@@ -11,13 +11,25 @@ import { LoginScreen } from "./components/LoginScreen";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
 import { Header } from "./components/Header";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getUserDefaultPage } from "./firebase";
+import {
+  shouldBackup,
+  performBackup,
+  loadBackupSettings,
+} from "./utils/backup";
+import { useBookmarks } from "./hooks/useBookmarks";
+import { useCollections } from "./hooks/useCollections";
 
 function App() {
   const { user, loading } = useAuth();
   const [defaultPage, setDefaultPage] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 백업을 위한 데이터 가져오기
+  const { bookmarks } = useBookmarks(user?.uid || "", "all");
+  const { collections } = useCollections(user?.uid || "");
 
   useEffect(() => {
     if (user?.uid) {
@@ -26,6 +38,49 @@ function App() {
         .catch(() => setDefaultPage("dashboard"));
     }
   }, [user?.uid]);
+
+  // 자동 백업 체크
+  useEffect(() => {
+    // 자동 백업 타이머 클리어
+    if (backupIntervalRef.current) {
+      clearInterval(backupIntervalRef.current);
+    }
+
+    const settings = loadBackupSettings();
+    if (
+      user?.uid &&
+      settings.enabled &&
+      bookmarks &&
+      collections &&
+      bookmarks.length > 0 &&
+      collections.length > 0
+    ) {
+      // 주기(ms) 계산
+      let intervalMs = 1000 * 60 * 60 * 24 * 7; // 기본: weekly
+      if (settings.frequency === "daily") intervalMs = 1000 * 60 * 60 * 24;
+      if (settings.frequency === "monthly")
+        intervalMs = 1000 * 60 * 60 * 24 * 30;
+
+      // 즉시 1회 실행
+      if (shouldBackup()) {
+        performBackup(bookmarks, collections, user.uid);
+      }
+
+      // 주기적으로 실행
+      backupIntervalRef.current = setInterval(() => {
+        if (shouldBackup()) {
+          performBackup(bookmarks, collections, user.uid);
+        }
+      }, intervalMs);
+    }
+
+    // 언마운트 시 타이머 해제
+    return () => {
+      if (backupIntervalRef.current) {
+        clearInterval(backupIntervalRef.current);
+      }
+    };
+  }, [user?.uid, bookmarks, collections]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {

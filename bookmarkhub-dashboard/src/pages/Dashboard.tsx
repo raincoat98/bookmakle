@@ -122,6 +122,43 @@ export const Dashboard = () => {
     }
   };
 
+  // 백업 복원 함수
+  const handleRestoreBackup = async (backupData: {
+    bookmarks: Bookmark[];
+    collections: Collection[];
+  }) => {
+    try {
+      // 기존 데이터 삭제 후 백업 데이터로 복원
+      if (backupData.bookmarks && Array.isArray(backupData.bookmarks)) {
+        for (const bookmark of backupData.bookmarks) {
+          await addBookmark({
+            title: bookmark.title || "",
+            url: bookmark.url || "",
+            description: bookmark.description || "",
+            favicon: bookmark.favicon || "",
+            collection: bookmark.collection || "",
+            tags: bookmark.tags || [],
+            isFavorite: bookmark.isFavorite || false,
+          });
+        }
+      }
+
+      if (backupData.collections && Array.isArray(backupData.collections)) {
+        for (const collection of backupData.collections) {
+          await addCollection({
+            name: collection.name || "",
+            description: collection.description || "",
+            icon: collection.icon || "📁",
+            parentId: collection.parentId || null,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Restore error:", error);
+      throw error;
+    }
+  };
+
   // 즐겨찾기 토글 함수 추가
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
     try {
@@ -519,6 +556,7 @@ export const Dashboard = () => {
         <Settings
           onBack={() => setShowSettings(false)}
           onImportData={handleImportData}
+          onRestoreBackup={handleRestoreBackup}
         />
       ) : (
         <>

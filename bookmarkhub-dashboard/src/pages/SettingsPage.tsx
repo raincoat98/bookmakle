@@ -3,11 +3,17 @@ import { Settings } from "../components/Settings";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
+import type { Bookmark, Collection } from "../types";
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
-  const { bookmarks, addBookmark } = useBookmarks(user?.uid || "", "all");
-  const { collections, addCollection } = useCollections(user?.uid || "");
+  const { bookmarks, addBookmark, deleteBookmark } = useBookmarks(
+    user?.uid || "",
+    "all"
+  );
+  const { collections, addCollection, deleteCollection } = useCollections(
+    user?.uid || ""
+  );
 
   // 데이터 가져오기 함수
   const handleImportData = async (importData: {
@@ -61,6 +67,55 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
+  // 데이터 복원 함수
+  const handleRestoreBackup = async (backupData: {
+    bookmarks: Bookmark[];
+    collections: Collection[];
+  }) => {
+    try {
+      // 기존 데이터 전체 삭제
+      for (const bookmark of bookmarks) {
+        if (bookmark.id) await deleteBookmark(bookmark.id);
+      }
+      for (const collection of collections) {
+        if (collection.id) await deleteCollection(collection.id);
+      }
+      // 백업 데이터로 복원
+      if (backupData.bookmarks && Array.isArray(backupData.bookmarks)) {
+        for (const bookmark of backupData.bookmarks) {
+          const exists = bookmarks.some((b) => b.url === bookmark.url);
+          if (!exists) {
+            await addBookmark({
+              title: bookmark.title,
+              url: bookmark.url,
+              description: bookmark.description ?? "",
+              favicon: bookmark.favicon,
+              collection: bookmark.collection ?? "",
+              tags: bookmark.tags ?? [],
+              isFavorite: bookmark.isFavorite ?? false,
+            });
+          }
+        }
+      }
+      if (backupData.collections && Array.isArray(backupData.collections)) {
+        for (const collection of backupData.collections) {
+          const exists = collections.some((c) => c.name === collection.name);
+          if (!exists) {
+            await addCollection({
+              name: collection.name,
+              description: collection.description ?? "",
+              icon: collection.icon ?? "📁",
+              parentId: collection.parentId ?? null,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Restore error:", error);
+      throw error;
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -80,6 +135,7 @@ export const SettingsPage: React.FC = () => {
     <Settings
       onBack={() => window.history.back()}
       onImportData={handleImportData}
+      onRestoreBackup={handleRestoreBackup}
     />
   );
 };

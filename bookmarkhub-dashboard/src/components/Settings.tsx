@@ -22,6 +22,17 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getUserDefaultPage, setUserDefaultPage } from "../firebase";
+import {
+  loadBackupSettings,
+  saveBackupSettings,
+  performBackup,
+  getAllBackups,
+  getBackupStatus,
+  deleteBackup,
+  type BackupSettings,
+  shouldBackup,
+} from "../utils/backup";
+import type { Bookmark, Collection } from "../types/index";
 
 interface ImportData {
   version: string;
@@ -33,9 +44,17 @@ interface ImportData {
 interface SettingsProps {
   onBack: () => void;
   onImportData?: (importData: ImportData) => Promise<void>;
+  onRestoreBackup?: (backupData: {
+    bookmarks: Bookmark[];
+    collections: Collection[];
+  }) => Promise<void>;
 }
 
-export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
+export const Settings: React.FC<SettingsProps> = ({
+  onBack,
+  onImportData,
+  onRestoreBackup,
+}) => {
   const { user, logout } = useAuth();
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
   const { collections } = useCollections(user?.uid || "");
@@ -46,12 +65,22 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
     () => localStorage.getItem("theme") || "light"
   );
   const [notifications, setNotifications] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(false);
+  const [backupSettings, setBackupSettings] = useState<BackupSettings>(() =>
+    loadBackupSettings()
+  );
+  const [backupStatus, setBackupStatus] = useState(() => getBackupStatus());
+  const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   const [defaultPage, setDefaultPage] = useState(
     () => localStorage.getItem("defaultPage") || "dashboard"
   );
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState<ImportData | null>(null);
+  const [restoreConfirm, setRestoreConfirm] = useState<{
+    open: boolean;
+    timestamp: string | null;
+  }>({ open: false, timestamp: null });
+  const [backups, setBackups] = useState(() => getAllBackups());
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -65,6 +94,72 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
       });
     }
   }, [user?.uid]);
+
+  useEffect(() => {
+    // 기존 타이머 해제
+    if (backupIntervalRef.current) {
+      clearInterval(backupIntervalRef.current);
+    }
+
+    if (
+      backupSettings.enabled &&
+      user?.uid &&
+      bookmarks &&
+      collections &&
+      bookmarks.length > 0 &&
+      collections.length > 0
+    ) {
+      // 주기(ms) 계산
+      // let intervalMs = 1000 * 60 * 60 * 24 * 7; // 기본: weekly
+      let intervalMs = 10000; // 테스트용 10초 간격
+      // if (backupSettings.frequency === "daily")
+      //   intervalMs = 1000 * 60 * 60 * 24;
+      // if (backupSettings.frequency === "monthly")
+      //   intervalMs = 1000 * 60 * 60 * 24 * 30;
+
+      // 즉시 1회 실행
+      if (shouldBackup()) {
+        const created = performBackup(bookmarks, collections, user.uid);
+        if (created) syncBackups();
+      }
+
+      // 주기적으로 실행
+      backupIntervalRef.current = setInterval(() => {
+        if (shouldBackup()) {
+          const created = performBackup(bookmarks, collections, user.uid);
+          if (created) syncBackups();
+        }
+      }, intervalMs);
+    }
+
+    // 언마운트 시 타이머 해제
+    return () => {
+      if (backupIntervalRef.current) {
+        clearInterval(backupIntervalRef.current);
+      }
+    };
+  }, [
+    backupSettings.enabled,
+    backupSettings.frequency,
+    user?.uid,
+    bookmarks,
+    collections,
+  ]);
+
+  useEffect(() => {
+    // 백업 탭 진입 시 잘못된 백업 자동 정리 및 상태 동기화
+    if (activeTab === "backup") {
+      const latest = getAllBackups();
+      setBackups(latest);
+      setBackupStatus(getBackupStatus());
+    }
+  }, [activeTab]);
+
+  // 백업 생성/삭제/복원 후 동기화 함수
+  const syncBackups = () => {
+    setBackups(getAllBackups());
+    setBackupStatus(getBackupStatus());
+  };
 
   const handleThemeChange = (newTheme: string) => {
     setTheme(newTheme);
@@ -81,10 +176,107 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
   };
 
   const handleAutoBackupToggle = () => {
-    setAutoBackup(!autoBackup);
+    const newSettings = { ...backupSettings, enabled: !backupSettings.enabled };
+    setBackupSettings(newSettings);
+    saveBackupSettings(newSettings);
+    setBackupStatus(getBackupStatus());
     toast.success(
-      `자동 백업이 ${!autoBackup ? "활성화" : "비활성화"}되었습니다.`
+      `자동 백업이 ${
+        !backupSettings.enabled ? "활성화" : "비활성화"
+      }되었습니다.`
     );
+
+    // 백업이 활성화되면 무조건 1회 백업 실행 및 동기화
+    if (!backupSettings.enabled && user?.uid) {
+      const created = performBackup(bookmarks, collections, user.uid);
+      if (created) syncBackups();
+    }
+  };
+
+  // 자동 백업 주기 변경 핸들러 활성화
+  const handleBackupFrequencyChange = (
+    frequency: "daily" | "weekly" | "monthly"
+  ) => {
+    const newSettings = { ...backupSettings, frequency };
+    setBackupSettings(newSettings);
+    saveBackupSettings(newSettings);
+    setBackupStatus(getBackupStatus());
+    toast.success(
+      `백업 주기가 ${
+        frequency === "daily"
+          ? "매일"
+          : frequency === "weekly"
+          ? "매주"
+          : "매월"
+      }로 변경되었습니다.`
+    );
+  };
+
+  const handleManualBackup = () => {
+    if (
+      user?.uid &&
+      bookmarks &&
+      collections &&
+      (bookmarks.length > 0 || collections.length > 0)
+    ) {
+      const created = performBackup(bookmarks, collections, user.uid);
+      if (created) {
+        syncBackups();
+        toast.success("새 백업이 생성되었습니다.");
+      } else {
+        toast.error("백업할 데이터가 없습니다.");
+      }
+    }
+  };
+
+  const handleBackupRestore = async (timestamp: string) => {
+    setRestoreConfirm({ open: true, timestamp });
+  };
+
+  // 복원, 삭제, 수동 백업 등에서 syncBackups 호출
+  const handleConfirmRestore = async () => {
+    if (!restoreConfirm.timestamp) return;
+    try {
+      const latest = getAllBackups();
+      // 디버깅: 복원 시점 백업 목록, 복원 대상 timestamp, 실제 localStorage 키 출력
+      console.log("복원 시점 백업 목록:", latest);
+      console.log("복원 대상 timestamp:", restoreConfirm.timestamp);
+      const allKeys = Object.keys(localStorage).filter((k) =>
+        k.startsWith("bookmarkhub_backup_")
+      );
+      console.log("localStorage의 bookmarkhub_backup_ 키:", allKeys);
+      const backupData = latest.find(
+        (b) => b.timestamp === restoreConfirm.timestamp
+      )?.data;
+      if (backupData && onRestoreBackup) {
+        await onRestoreBackup(backupData);
+        toast.success("백업이 성공적으로 복원되었습니다.");
+      } else if (!onRestoreBackup) {
+        console.error("onRestoreBackup prop이 전달되지 않았습니다.");
+        toast.error("복원 핸들러가 없습니다. 관리자에게 문의하세요.");
+      } else {
+        toast.error("이미 삭제된 백업입니다.");
+        syncBackups();
+      }
+    } catch (error) {
+      console.error("Restore error:", error);
+      toast.error("백업 복원 중 오류가 발생했습니다.");
+    } finally {
+      setRestoreConfirm({ open: false, timestamp: null });
+      syncBackups();
+    }
+  };
+
+  const handleCancelRestore = () => {
+    setRestoreConfirm({ open: false, timestamp: null });
+  };
+
+  const handleBackupDelete = (timestamp: string) => {
+    if (window.confirm("이 백업을 삭제하시겠습니까?")) {
+      deleteBackup(timestamp);
+      syncBackups();
+      toast.success("백업이 삭제되었습니다.");
+    }
   };
 
   const handleDefaultPageChange = async (page: string) => {
@@ -205,6 +397,7 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
 
   const tabs = [
     { id: "general", label: "일반", icon: SettingsIcon },
+    { id: "backup", label: "백업", icon: Download },
     { id: "account", label: "계정", icon: User },
     { id: "appearance", label: "외관", icon: Palette },
     { id: "notifications", label: "알림", icon: Bell },
@@ -271,29 +464,6 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
                 </div>
               </button>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-900 dark:text-white">
-                자동 백업
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                북마크 데이터를 자동으로 백업합니다
-              </p>
-            </div>
-            <button
-              onClick={handleAutoBackupToggle}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                autoBackup ? "bg-brand-600" : "bg-gray-200 dark:bg-gray-700"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  autoBackup ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
           </div>
         </div>
       </div>
@@ -498,10 +668,139 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
     </div>
   );
 
+  const renderBackupSettings = () => {
+    console.log("backupSettings.enabled:", backupSettings.enabled);
+    return (
+      <div className="space-y-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            백업 관리
+          </h3>
+          <div className="space-y-4">
+            {/* 자동 백업 토글 UI 추가 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  자동 백업
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  주기적으로 북마크와 컬렉션을 자동으로 백업합니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAutoBackupToggle}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500 ${
+                  backupSettings.enabled
+                    ? "bg-brand-600"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+                aria-pressed={backupSettings.enabled}
+                aria-label="자동 백업 토글"
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                    backupSettings.enabled ? "translate-x-5" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+            {/* 자동 백업 주기 선택 UI: 활성화 상태에서만 표시 */}
+            {backupSettings.enabled && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    자동 백업 주기
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    자동 백업이 실행되는 간격을 선택하세요.
+                  </p>
+                </div>
+                <select
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  value={backupSettings.frequency}
+                  onChange={(e) =>
+                    handleBackupFrequencyChange(
+                      e.target.value as "daily" | "weekly" | "monthly"
+                    )
+                  }
+                >
+                  <option value="daily">매일</option>
+                  <option value="weekly">매주</option>
+                  <option value="monthly">매월</option>
+                </select>
+              </div>
+            )}
+            {/* 기존 백업 상태/수동 백업 버튼 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  백업 상태
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  총 {backupStatus.backupCount}개 백업, {backupStatus.totalSize}
+                  MB 사용
+                </p>
+              </div>
+              <button
+                onClick={handleManualBackup}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+              >
+                새 백업 생성
+              </button>
+            </div>
+
+            {backups.length > 0 && (
+              <div className="space-y-3">
+                <p className="font-medium text-gray-900 dark:text-white">
+                  백업 목록
+                </p>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {backups.map(({ timestamp, data }) => (
+                    <div
+                      key={timestamp}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {new Date(timestamp).toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          북마크 {data.bookmarks?.length || 0}개, 컬렉션{" "}
+                          {data.collections?.length || 0}개
+                        </p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleBackupRestore(timestamp)}
+                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          복원
+                        </button>
+                        <button
+                          onClick={() => handleBackupDelete(timestamp)}
+                          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "general":
         return renderGeneralSettings();
+      case "backup":
+        return renderBackupSettings();
       case "account":
         return renderAccountSettings();
       case "appearance":
@@ -618,6 +917,33 @@ export const Settings: React.FC<SettingsProps> = ({ onBack, onImportData }) => {
                 className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
               >
                 가져오기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 백업 복원 커스텀 confirm 모달 */}
+      {restoreConfirm.open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              백업 복원 확인
+            </h3>
+            <p className="text-gray-700 dark:text-gray-200 mb-6">
+              이 백업으로 데이터를 복원하시겠습니까? 현재 데이터는 덮어써집니다.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancelRestore}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleConfirmRestore}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+              >
+                확인
               </button>
             </div>
           </div>
