@@ -14,6 +14,8 @@ import {
   Globe,
   Settings,
 } from "lucide-react";
+import { BibleVerseWidget } from "./QuoteWidget";
+import { WeatherWidget } from "./WeatherWidget";
 
 interface StatsCardProps {
   title: string;
@@ -462,7 +464,7 @@ interface DashboardOverviewProps {
   onReorderFavorites: (newBookmarks: Bookmark[]) => void;
 }
 
-// 시계 위젯
+// 통합 시계 위젯 (시계, 명언, 날씨 포함)
 export const ClockWidget: React.FC = () => {
   const [now, setNow] = useState(new Date());
 
@@ -484,11 +486,29 @@ export const ClockWidget: React.FC = () => {
   });
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center mb-6">
-      <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 tracking-widest mb-1">
-        {timeStr}
+    <div className="space-y-4 mb-6">
+      {/* 첫 번째 행: 시계와 날씨 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* 시계 */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex flex-col items-center">
+          <div className="text-3xl font-bold text-brand-600 dark:text-brand-400 tracking-widest mb-1">
+            {timeStr}
+          </div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+            {dateStr}
+          </div>
+        </div>
+
+        {/* 날씨 */}
+        <div className="lg:col-span-2">
+          <WeatherWidget />
+        </div>
       </div>
-      <div className="text-sm text-gray-500 dark:text-gray-400">{dateStr}</div>
+
+      {/* 두 번째 행: 오늘의 성경말씀 */}
+      <div>
+        <BibleVerseWidget />
+      </div>
     </div>
   );
 };
