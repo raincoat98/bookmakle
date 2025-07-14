@@ -419,7 +419,7 @@ export const BookmarksPage: React.FC = () => {
               </div>
 
               {/* 뷰 모드 변경 및 북마크 추가 버튼 */}
-              <div className="flex flex-col w-full sm:flex-row sm:w-auto gap-2">
+              <div className="flex flex-row w-full sm:w-auto gap-2">
                 {/* 뷰 모드 버튼 - 모바일에서 숨김 */}
                 <div className="hidden sm:flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                   <button
@@ -448,7 +448,7 @@ export const BookmarksPage: React.FC = () => {
                 {/* 컬렉션 추가 버튼 */}
                 <button
                   onClick={() => setIsAddCollectionModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto flex-shrink-0 whitespace-nowrap"
+                  className="flex-1 sm:flex-none w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 whitespace-nowrap"
                 >
                   <FolderPlus className="w-5 h-5 mr-2" />
                   컬렉션 추가
@@ -456,7 +456,7 @@ export const BookmarksPage: React.FC = () => {
                 {/* 북마크 추가 버튼 */}
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 w-full sm:w-auto flex-shrink-0 whitespace-nowrap"
+                  className="flex-1 sm:flex-none w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 whitespace-nowrap"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   북마크 추가
