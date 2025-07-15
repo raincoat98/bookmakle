@@ -80,7 +80,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                 <BookOpen className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
               </div>
               <h1 className="text-lg lg:text-xl font-bold gradient-text">
-                북마크 허브
+                북마클
               </h1>
             </div>
             <button
@@ -138,7 +138,7 @@ export const Drawer: React.FC<DrawerProps> = ({
           {/* 푸터 */}
           <div className="p-3 lg:p-4 border-t border-gray-200/50 dark:border-gray-700/50">
             <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              © 2024 북마크 허브
+              © 2024 북마클
             </div>
           </div>
         </div>
