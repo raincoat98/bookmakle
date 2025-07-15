@@ -102,7 +102,22 @@
               placeholder="이 페이지에 대한 메모를 작성하세요..."
             ></textarea>
           </div>
+          <!-- 빠른 실행 모드 체크박스 -->
           <div class="mb-3">
+            <label class="flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                id="quickModeCheckbox"
+                class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+              />
+              <span class="ml-2 text-sm text-gray-700">⚡ 빠른 실행 모드</span>
+              <span class="ml-1 text-xs text-gray-500"
+                >(아이콘 클릭시 바로 저장)</span
+              >
+            </label>
+          </div>
+
+          <div class="mb-3" id="collectionSection">
             <label class="block text-xs text-gray-500 mb-1"
               >컬렉션 (선택사항)</label
             >

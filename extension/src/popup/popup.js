@@ -10,11 +10,103 @@ document.addEventListener("DOMContentLoaded", async function () {
   const mainContent = document.getElementById("mainContent");
   const tagInput = document.getElementById("tagInput");
   const tagList = document.getElementById("tagList");
+  const quickModeCheckbox = document.getElementById("quickModeCheckbox");
+  const collectionSection = document.getElementById("collectionSection");
 
   let user = null;
   let currentTab = null;
   let collections = [];
   let tags = [];
+  let isQuickMode = false;
+
+  // 빠른 실행 모드 토글 함수
+  function toggleQuickMode() {
+    isQuickMode = quickModeCheckbox.checked;
+
+    // 빠른 실행 모드 상태 저장
+    chrome.storage.local.set({ quickMode: isQuickMode });
+
+    // UI 업데이트
+    updateQuickModeUI();
+
+    // 빠른 실행 모드 활성화 시 팝업 자동 닫기
+    if (isQuickMode) {
+      showToast(
+        "⚡ 빠른 실행 모드 활성화! 이제 아이콘을 클릭하면 바로 저장됩니다."
+      );
+
+      // 1초 후 팝업 닫기
+      setTimeout(() => {
+        window.close();
+      }, 1500);
+    }
+  }
+
+  // 빠른 실행 모드 UI 업데이트
+  function updateQuickModeUI(showToastMessage = false) {
+    if (isQuickMode) {
+      // 빠른 실행 모드 시 컬렉션, 태그 섹션 숨기기
+      collectionSection.style.display = "none";
+      tagInput.parentElement.style.display = "none";
+      memoInput.parentElement.style.display = "none";
+      saveBookmarkButton.style.display = "none";
+
+      if (showToastMessage) {
+        showToast("⚡ 빠른 실행 모드 활성화! 아이콘 클릭 시 바로 저장됩니다.");
+      }
+    } else {
+      // 일반 모드 시 모든 섹션 표시
+      collectionSection.style.display = "block";
+      tagInput.parentElement.style.display = "block";
+      memoInput.parentElement.style.display = "block";
+      saveBookmarkButton.style.display = "block";
+    }
+  }
+
+  // 빠른 저장 함수
+  async function saveBookmarkQuickly() {
+    if (!user || !currentTab) return;
+
+    try {
+      const url = currentTab.url;
+      const title = currentTab.title;
+
+      const bookmarkData = {
+        title: title,
+        description: "",
+        url: url,
+        pageTitle: title,
+        userId: user.uid,
+        collection: "", // 컬렉션 없음 (0번째)
+        tags: [],
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log("=== 빠른 저장 ===", bookmarkData);
+
+      // 백그라운드 스크립트로 북마크 저장 요청
+      chrome.runtime.sendMessage(
+        { action: "saveBookmark", bookmark: bookmarkData },
+        function (response) {
+          if (response && response.success) {
+            showToast("⚡ 북마크가 빠르게 저장되었습니다!");
+            // 빠른 모드 해제
+            quickModeCheckbox.checked = false;
+            toggleQuickMode();
+          } else {
+            console.error("빠른 저장 실패:", response?.error);
+            showToast(
+              "저장에 실패했습니다: " + (response?.error || "알 수 없는 오류"),
+              "error"
+            );
+          }
+        }
+      );
+    } catch (error) {
+      console.error("빠른 저장 중 오류:", error);
+      showToast("저장 중 오류가 발생했습니다.", "error");
+    }
+  }
 
   // toast 메시지 함수
   function showToast(message, type = "success") {
@@ -218,13 +310,23 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
   });
 
-  // 저장된 사용자 정보 불러오기
-  chrome.storage.local.get(["user"], function (result) {
+  // 빠른 실행 모드 체크박스 이벤트 리스너
+  quickModeCheckbox.addEventListener("change", toggleQuickMode);
+
+  // 저장된 사용자 정보 및 빠른 실행 모드 상태 불러오기
+  chrome.storage.local.get(["user", "quickMode"], function (result) {
     if (result.user) {
       user = result.user;
       updateUI(user);
     } else {
       updateUI(null); // 로그인 안 한 상태도 명확히 처리!
+    }
+
+    // 빠른 실행 모드 상태 복원
+    if (result.quickMode !== undefined) {
+      isQuickMode = result.quickMode;
+      quickModeCheckbox.checked = isQuickMode;
+      updateQuickModeUI(false); // 초기화 시에는 토스트 메시지 표시하지 않음
     }
   });
 

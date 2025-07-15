@@ -472,19 +472,205 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// 아이콘 클릭 이벤트 처리 (빠른 실행 모드)
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log("Extension icon clicked");
+
+  try {
+    // 빠른 실행 모드 상태와 사용자 정보 확인
+    const result = await chrome.storage.local.get(["quickMode", "user"]);
+
+    if (result.quickMode && result.user) {
+      console.log("빠른 실행 모드로 북마크 저장 시작");
+
+      const bookmarkData = {
+        title: tab.title,
+        description: "",
+        url: tab.url,
+        pageTitle: tab.title,
+        userId: result.user.uid,
+        collection: "", // 컬렉션 없음 (0번째)
+        tags: [],
+        createdAt: new Date().toISOString(),
+      };
+
+      // 북마크 저장
+      try {
+        await saveBookmarkToFirebase(bookmarkData);
+        console.log("빠른 실행으로 북마크 저장 성공");
+
+        // 성공 알림 (배지 표시)
+        chrome.action.setBadgeText({ text: "✓" });
+        chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
+
+        // 2초 후 배지 지우기
+        setTimeout(() => {
+          chrome.action.setBadgeText({ text: "" });
+        }, 2000);
+      } catch (error) {
+        console.error("빠른 실행 북마크 저장 실패:", error);
+
+        // 실패 알림 (배지 표시)
+        chrome.action.setBadgeText({ text: "✗" });
+        chrome.action.setBadgeBackgroundColor({ color: "#ef4444" });
+
+        // 2초 후 배지 지우기
+        setTimeout(() => {
+          chrome.action.setBadgeText({ text: "" });
+        }, 2000);
+      }
+    } else {
+      // 빠른 실행 모드가 아니거나 로그인하지 않은 경우 팝업 열기
+      console.log("일반 모드 - 팝업 열기");
+      chrome.action.setPopup({ popup: "popup.html" });
+
+      // 팝업을 다시 열도록 요청
+      // 사용자가 다시 클릭해야 하므로 안내 메시지 표시
+      chrome.action.setBadgeText({ text: "📋" });
+      chrome.action.setBadgeBackgroundColor({ color: "#6366f1" });
+
+      // 3초 후 배지 지우기
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: "" });
+      }, 3000);
+    }
+  } catch (error) {
+    console.error("아이콘 클릭 처리 중 오류:", error);
+  }
+});
+
 // 컨텍스트 메뉴 등록
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
+  // 빠른 실행 모드 상태 확인
+  const result = await chrome.storage.local.get(["quickMode"]);
+  const isQuickMode = result.quickMode || false;
+
+  chrome.contextMenus.create({
+    id: "toggle-quick-mode",
+    title: isQuickMode
+      ? "⚡ 빠른 실행 모드 비활성화"
+      : "⚡ 빠른 실행 모드 활성화",
+    contexts: ["action"],
+  });
+
+  chrome.contextMenus.create({
+    id: "separator",
+    type: "separator",
+    contexts: ["action"],
+  });
+
   chrome.contextMenus.create({
     id: "open-dashboard",
-    title: "대시보드 열기",
-    contexts: ["all", "action"],
+    title: "📊 대시보드 열기",
+    contexts: ["action"],
   });
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "open-dashboard") {
     chrome.tabs.create({ url: "https://bookmarkhub-5ea6c-dashboard.web.app/" });
+  } else if (info.menuItemId === "toggle-quick-mode") {
+    await toggleQuickMode();
   }
 });
+
+// 빠른 실행 모드 토글 함수
+async function toggleQuickMode() {
+  try {
+    // 현재 빠른 실행 모드 상태 가져오기
+    const result = await chrome.storage.local.get(["quickMode"]);
+    const currentQuickMode = result.quickMode || false;
+    const newQuickMode = !currentQuickMode;
+
+    // 새로운 상태 저장
+    await chrome.storage.local.set({ quickMode: newQuickMode });
+
+    // 컨텍스트 메뉴 제목 업데이트
+    await updateContextMenuTitle(newQuickMode);
+
+    // 팝업 설정 업데이트
+    if (newQuickMode) {
+      chrome.action.setPopup({ popup: "" });
+      // 성공 배지 표시
+      chrome.action.setBadgeText({ text: "⚡" });
+      chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
+    } else {
+      chrome.action.setPopup({ popup: "popup.html" });
+      // 일반 모드 배지 표시
+      chrome.action.setBadgeText({ text: "📋" });
+      chrome.action.setBadgeBackgroundColor({ color: "#6366f1" });
+    }
+
+    // 2초 후 배지 지우기
+    setTimeout(() => {
+      chrome.action.setBadgeText({ text: "" });
+    }, 2000);
+
+    console.log(
+      `빠른 실행 모드가 ${newQuickMode ? "활성화" : "비활성화"}되었습니다.`
+    );
+  } catch (error) {
+    console.error("빠른 실행 모드 토글 중 오류:", error);
+  }
+}
+
+// 컨텍스트 메뉴 제목 업데이트 함수
+async function updateContextMenuTitle(isQuickMode) {
+  try {
+    await chrome.contextMenus.update("toggle-quick-mode", {
+      title: isQuickMode
+        ? "⚡ 빠른 실행 모드 비활성화"
+        : "⚡ 빠른 실행 모드 활성화",
+    });
+  } catch (error) {
+    console.error("컨텍스트 메뉴 제목 업데이트 중 오류:", error);
+  }
+}
+
+// 초기화 시 빠른 실행 모드 상태에 따라 팝업 설정
+async function initializeExtension() {
+  try {
+    const result = await chrome.storage.local.get(["quickMode"]);
+    const isQuickMode = result.quickMode || false;
+
+    if (isQuickMode) {
+      // 빠른 실행 모드가 활성화되어 있으면 팝업 제거
+      chrome.action.setPopup({ popup: "" });
+    } else {
+      // 빠른 실행 모드가 비활성화되어 있으면 팝업 설정
+      chrome.action.setPopup({ popup: "popup.html" });
+    }
+
+    // 컨텍스트 메뉴 제목 업데이트 (약간의 지연 후)
+    setTimeout(async () => {
+      await updateContextMenuTitle(isQuickMode);
+    }, 100);
+  } catch (error) {
+    console.error("확장 프로그램 초기화 중 오류:", error);
+  }
+}
+
+// storage 변경 이벤트 리스너 - 빠른 실행 모드 상태 변경 감지
+chrome.storage.onChanged.addListener(async (changes, areaName) => {
+  if (areaName === "local" && changes.quickMode) {
+    console.log("빠른 실행 모드 상태 변경:", changes.quickMode.newValue);
+    const newQuickMode = changes.quickMode.newValue;
+
+    // 팝업 설정 업데이트
+    if (newQuickMode) {
+      // 빠른 실행 모드 활성화 시 팝업 제거
+      chrome.action.setPopup({ popup: "" });
+    } else {
+      // 빠른 실행 모드 비활성화 시 팝업 설정
+      chrome.action.setPopup({ popup: "popup.html" });
+    }
+
+    // 컨텍스트 메뉴 제목 업데이트
+    await updateContextMenuTitle(newQuickMode);
+  }
+});
+
+// 확장 프로그램 초기화
+initializeExtension();
 
 console.log("Background script loaded");

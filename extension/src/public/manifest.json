@@ -23,7 +23,7 @@
     "type": "module"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_title": "북마클 - 빠른 북마크 저장"
   },
   "web_accessible_resources": [
     {
