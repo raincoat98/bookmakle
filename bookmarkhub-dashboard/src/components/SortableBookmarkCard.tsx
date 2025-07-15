@@ -1,6 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Bookmark, Collection } from "../types";
+import { renderCollectionIcon } from "../utils/iconRenderer";
 
 interface SortableBookmarkCardProps {
   bookmark: Bookmark;
@@ -293,8 +294,9 @@ export const SortableBookmarkCard = ({
             {/* 컬렉션 정보 - 모바일에서 아래쪽 */}
             <div className="flex flex-wrap items-center gap-2 mb-1">
               {collection ? (
-                <span className="inline-flex items-center px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300">
-                  {collection.icon} {collection.name}
+                <span className="inline-flex items-center gap-1 px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-brand-100 text-brand-800 dark:bg-brand-900/30 dark:text-brand-300">
+                  {renderCollectionIcon(collection.icon, "w-4 h-4")}{" "}
+                  {collection.name}
                 </span>
               ) : (
                 <span className="inline-flex items-center px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">

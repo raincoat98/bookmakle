@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Collection } from "../types";
+import { renderCollectionIcon } from "../utils/iconRenderer";
 
 interface CollectionListProps {
   collections: Collection[];
@@ -123,7 +124,7 @@ export const CollectionList = ({
             )}
             {!hasChild && depth > 0 && <span className="tree-leaf">└</span>}
           </div>
-          <span className="text-lg">{collection.icon}</span>
+          {renderCollectionIcon(collection.icon, "w-5 h-5")}
           <div className="flex-1">
             <span
               className="font-medium block text-left"

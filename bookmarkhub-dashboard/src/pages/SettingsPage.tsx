@@ -56,7 +56,7 @@ export const SettingsPage: React.FC = () => {
             await addCollection({
               name: (collection.name as string) || "",
               description: (collection.description as string) || "",
-              icon: (collection.icon as string) || "📁",
+              icon: (collection.icon as string) || "Folder",
               parentId: (collection.parentId as string) || null,
             });
           }
@@ -105,7 +105,7 @@ export const SettingsPage: React.FC = () => {
             await addCollection({
               name: collection.name,
               description: collection.description ?? "",
-              icon: collection.icon ?? "📁",
+              icon: collection.icon ?? "Folder",
               parentId: collection.parentId ?? null,
             });
           }
