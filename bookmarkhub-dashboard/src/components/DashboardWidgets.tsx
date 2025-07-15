@@ -458,11 +458,11 @@ const CollectionDistribution: React.FC<CollectionDistributionProps> = ({
   const unassignedCount = bookmarks.filter((b) => !b.collection).length;
 
   return (
-    <div className="card-glass p-6">
+    <div className="card-glass p-6 h-full flex flex-col">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
         컬렉션별 분포
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-4 flex-1">
         {collectionStats.map((collection) => {
           const percentage =
             totalBookmarks > 0 ? (collection.count / totalBookmarks) * 100 : 0;
@@ -553,6 +553,106 @@ const QuickActions: React.FC<QuickActionsProps> = ({
             </p>
           </div>
         </button>
+      </div>
+    </div>
+  );
+};
+
+// 최근 추가 북마크 위젯
+const RecentBookmarks: React.FC<{
+  bookmarks: Bookmark[];
+  collections: Collection[];
+  onEdit: (bookmark: Bookmark) => void;
+  onDelete: (id: string) => void;
+}> = ({ bookmarks, collections, onEdit, onDelete }) => {
+  const recentBookmarks = bookmarks
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5);
+
+  const getCollectionName = (collectionId: string | null) => {
+    if (!collectionId) return "미분류";
+    const collection = collections.find((c) => c.id === collectionId);
+    return collection?.name || "미분류";
+  };
+
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return "오늘";
+    } else if (diffDays === 1) {
+      return "어제";
+    } else if (diffDays < 7) {
+      return `${diffDays}일 전`;
+    } else {
+      return date.toLocaleDateString("ko-KR", {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  };
+
+  return (
+    <div className="card-glass p-6 h-full flex flex-col">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+        <Sparkles className="w-5 h-5 text-blue-500 mr-3" />
+        최근 추가 북마크
+      </h3>
+      <div className="space-y-3 flex-1 flex flex-col">
+        {recentBookmarks.length > 0 ? (
+          <div className="space-y-3 flex-1">
+            {recentBookmarks.map((bookmark) => (
+              <div
+                key={bookmark.id}
+                className="group flex items-center justify-between p-3 rounded-xl border border-white/30 dark:border-gray-600/30 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
+              >
+                <div className="flex items-center space-x-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                      {bookmark.title}
+                    </h4>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                      <span>{getCollectionName(bookmark.collection)}</span>
+                      <span>•</span>
+                      <span>{formatDate(bookmark.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => onEdit(bookmark)}
+                    className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors"
+                    title="편집"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(bookmark.id)}
+                    className="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors"
+                    title="삭제"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 flex-1 flex flex-col items-center justify-center">
+            <Sparkles className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400 text-sm">
+              최근 추가된 북마크가 없습니다
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -676,6 +776,20 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     resetWidgetOrder,
   } = useWidgetOrder(userId);
 
+  // 그룹 내 순서 상태 관리
+  const [groupOrder, setGroupOrder] = useState(
+    () => localStorage.getItem(`group-order-${userId}`) || "collection-recent"
+  );
+
+  const toggleGroupOrder = () => {
+    const newOrder =
+      groupOrder === "collection-recent"
+        ? "recent-collection"
+        : "collection-recent";
+    setGroupOrder(newOrder);
+    localStorage.setItem(`group-order-${userId}`, newOrder);
+  };
+
   // 드래그 앤 드롭 센서 설정
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -730,6 +844,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             collections={collections}
           />
         );
+      case "recent-bookmarks":
+        return (
+          <RecentBookmarks
+            bookmarks={bookmarks}
+            collections={collections}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        );
       case "quick-actions":
         return (
           <QuickActions
@@ -780,21 +903,144 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         onDragEnd={handleWidgetDragEnd}
       >
         <SortableContext
-          items={widgets.map((widget) => widget.id)}
+          items={widgets
+            .filter((widget) => widget.id !== "recent-bookmarks") // recent-bookmarks는 제외
+            .map((widget) => widget.id)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-8">
-            {widgets.map((widget) => (
-              <SortableWidget
-                key={widget.id}
-                id={widget.id}
-                enabled={widget.enabled}
-                isEditMode={isEditMode}
-                onToggle={() => toggleWidget(widget.id)}
-              >
-                {renderWidget(widget)}
-              </SortableWidget>
-            ))}
+            {widgets.map((widget) => {
+              // collection-distribution과 recent-bookmarks를 함께 처리
+              if (widget.id === "collection-distribution") {
+                const recentBookmarksWidget = widgets.find(
+                  (w) => w.id === "recent-bookmarks"
+                );
+                const bothEnabled =
+                  widget.enabled && recentBookmarksWidget?.enabled;
+                const onlyCollectionEnabled =
+                  widget.enabled && !recentBookmarksWidget?.enabled;
+                const onlyRecentEnabled =
+                  !widget.enabled && recentBookmarksWidget?.enabled;
+
+                return (
+                  <SortableWidget
+                    key={widget.id}
+                    id={widget.id}
+                    enabled={
+                      widget.enabled || recentBookmarksWidget?.enabled || false
+                    }
+                    isEditMode={isEditMode}
+                    onToggle={() => toggleWidget(widget.id)}
+                  >
+                    <div className="space-y-8">
+                      {isEditMode && bothEnabled && (
+                        <div className="flex justify-center mb-4">
+                          <button
+                            onClick={toggleGroupOrder}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                            title="그룹 내 위젯 순서 바꾸기"
+                          >
+                            <Move className="w-4 h-4" />
+                            <span>순서 바꾸기</span>
+                          </button>
+                        </div>
+                      )}
+                      {(bothEnabled ||
+                        onlyCollectionEnabled ||
+                        onlyRecentEnabled) && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {(() => {
+                            const isReversed =
+                              groupOrder === "recent-collection";
+
+                            const collectionWidget = widget.enabled ? (
+                              <div
+                                key="collection-distribution"
+                                className={`relative h-full ${
+                                  isEditMode
+                                    ? "border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg p-2"
+                                    : ""
+                                }`}
+                              >
+                                {isEditMode && (
+                                  <div className="absolute top-2 right-2 z-10 flex space-x-2">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleWidget(widget.id);
+                                      }}
+                                      className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                      title="컬렉션별 분포 숨기기"
+                                    >
+                                      <EyeOff className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                    </button>
+                                  </div>
+                                )}
+                                {renderWidget(widget)}
+                              </div>
+                            ) : null;
+
+                            const recentWidget =
+                              recentBookmarksWidget?.enabled ? (
+                                <div
+                                  key="recent-bookmarks"
+                                  className={`relative h-full ${
+                                    isEditMode
+                                      ? "border-2 border-dashed border-green-300 dark:border-green-600 rounded-lg p-2"
+                                      : ""
+                                  }`}
+                                >
+                                  {isEditMode && (
+                                    <div className="absolute top-2 right-2 z-10 flex space-x-2">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleWidget(
+                                            recentBookmarksWidget.id
+                                          );
+                                        }}
+                                        className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                        title="최근 추가 북마크 숨기기"
+                                      >
+                                        <EyeOff className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                      </button>
+                                    </div>
+                                  )}
+                                  {renderWidget(recentBookmarksWidget)}
+                                </div>
+                              ) : null;
+
+                            return isReversed
+                              ? [recentWidget, collectionWidget].filter(Boolean)
+                              : [collectionWidget, recentWidget].filter(
+                                  Boolean
+                                );
+                          })()}
+                        </div>
+                      )}
+                    </div>
+                  </SortableWidget>
+                );
+              }
+
+              // recent-bookmarks는 위에서 처리했으므로 건너뛰기
+              if (widget.id === "recent-bookmarks") {
+                return null;
+              }
+
+              // 다른 위젯들은 개별적으로 처리
+              return (
+                <SortableWidget
+                  key={widget.id}
+                  id={widget.id}
+                  enabled={widget.enabled}
+                  isEditMode={isEditMode}
+                  onToggle={() => toggleWidget(widget.id)}
+                >
+                  {renderWidget(widget)}
+                </SortableWidget>
+              );
+            })}
           </div>
         </SortableContext>
       </DndContext>
