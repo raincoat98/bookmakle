@@ -121,15 +121,15 @@ export const SortableBookmarkCard = ({
         className="absolute top-2 right-2 flex flex-wrap gap-1 z-30 w-full max-w-full overflow-x-auto justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
         style={{ pointerEvents: "auto" }}
       >
-        {/* 상하 이동 버튼들 - 모바일 친화적 디자인 */}
+        {/* 상하 이동 버튼들 - 모바일에서만 표시 */}
         <button
           onClick={handleMoveUp}
           disabled={isFirst}
-          className="p-1 lg:p-1 min-w-[32px] min-h-[32px] lg:min-w-[28px] lg:min-h-[28px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
+          className="block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden p-1 min-w-[32px] min-h-[32px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
           title="위로 이동"
         >
           <svg
-            className="w-4 h-4 lg:w-3.5 lg:h-3.5"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -145,11 +145,11 @@ export const SortableBookmarkCard = ({
         <button
           onClick={handleMoveDown}
           disabled={isLast}
-          className="p-1 lg:p-1 min-w-[32px] min-h-[32px] lg:min-w-[28px] lg:min-h-[28px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
+          className="block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden p-1 min-w-[32px] min-h-[32px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
           title="아래로 이동"
         >
           <svg
-            className="w-4 h-4 lg:w-3.5 lg:h-3.5"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
