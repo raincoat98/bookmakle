@@ -10,6 +10,11 @@ import {
   FolderPlus,
   Edit,
   Trash2,
+  Move,
+  Settings,
+  RotateCcw,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import type { Bookmark, Collection } from "../types";
 import bibleVerses from "../data/bibleVerses.json";
@@ -27,9 +32,12 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   rectSortingStrategy,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useWidgetOrder } from "../hooks/useWidgetOrder";
+import type { WidgetId, WidgetConfig } from "../hooks/useWidgetOrder";
 
 interface StatsCardProps {
   title: string;
@@ -66,7 +74,85 @@ interface DashboardOverviewProps {
   onAddBookmark: () => void;
   onAddCollection: () => void;
   onReorder?: (newBookmarks: Bookmark[]) => void;
+  userId: string;
 }
+
+// 정렬 가능한 위젯 컴포넌트
+const SortableWidget: React.FC<{
+  id: WidgetId;
+  children: React.ReactNode;
+  isEditMode: boolean;
+  enabled: boolean;
+  onToggle: () => void;
+}> = ({ id, children, isEditMode, enabled, onToggle }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: id,
+    disabled: !isEditMode,
+    transition: {
+      duration: 150,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  if (!enabled) {
+    return null;
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative group ${isDragging ? "opacity-50 z-50" : ""} ${
+        isEditMode ? "cursor-move" : ""
+      }`}
+      {...attributes}
+      {...listeners}
+    >
+      {isEditMode && (
+        <div className="absolute top-2 right-2 z-10 flex space-x-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            title={enabled ? "위젯 숨기기" : "위젯 보이기"}
+          >
+            {enabled ? (
+              <EyeOff className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <Eye className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+          <div className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <Move className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+          </div>
+        </div>
+      )}
+      <div
+        className={`${
+          isEditMode
+            ? "border-2 border-dashed border-blue-300 dark:border-blue-600 rounded-lg p-2"
+            : ""
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const StatsCard: React.FC<StatsCardProps> = ({
   title,
@@ -472,6 +558,55 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   );
 };
 
+// 통계 위젯 컴포넌트
+const StatsWidget: React.FC<{
+  bookmarks: Bookmark[];
+  collections: Collection[];
+}> = ({ bookmarks, collections }) => {
+  const totalBookmarks = bookmarks.length;
+  const totalCollections = collections.length;
+  const unassignedBookmarks = bookmarks.filter((b) => !b.collection).length;
+  const recentBookmarks = bookmarks
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+    .slice(0, 5);
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
+      <StatsCard
+        title="전체 북마크"
+        value={totalBookmarks}
+        icon={<BookOpen className="w-6 h-6" />}
+        color="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+        description="총 북마크 수"
+      />
+      <StatsCard
+        title="컬렉션"
+        value={totalCollections}
+        icon={<Folder className="w-6 h-6" />}
+        color="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+        description="총 컬렉션 수"
+      />
+      <StatsCard
+        title="미분류 북마크"
+        value={unassignedBookmarks}
+        icon={<FileText className="w-6 h-6" />}
+        color="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+        description="컬렉션 없는 북마크"
+      />
+      <StatsCard
+        title="최근 추가"
+        value={recentBookmarks.length}
+        icon={<Sparkles className="w-6 h-6" />}
+        color="bg-gradient-to-r from-green-500 to-green-600 text-white"
+        description="최근 5개 북마크"
+      />
+    </div>
+  );
+};
+
 // 통합 시계 위젯 (시계, 명언, 날씨 포함)
 export const ClockWidget: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -530,74 +665,153 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onAddBookmark,
   onAddCollection,
   onReorder,
+  userId,
 }) => {
-  const totalBookmarks = bookmarks.length;
-  const totalCollections = collections.length;
-  const unassignedBookmarks = bookmarks.filter((b) => !b.collection).length;
-  const recentBookmarks = bookmarks
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    .slice(0, 5);
+  const {
+    widgets,
+    isEditMode,
+    setIsEditMode,
+    reorderWidgets,
+    toggleWidget,
+    resetWidgetOrder,
+  } = useWidgetOrder(userId);
+
+  // 드래그 앤 드롭 센서 설정
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // 위젯 드래그 종료 핸들러
+  const handleWidgetDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) {
+      return;
+    }
+
+    if (active.id !== over.id) {
+      const oldIndex = widgets.findIndex((item) => item.id === active.id);
+      const newIndex = widgets.findIndex((item) => item.id === over.id);
+      const newWidgets = arrayMove(widgets, oldIndex, newIndex);
+      reorderWidgets(newWidgets);
+    }
+  };
+
+  // 위젯 렌더링 함수
+  const renderWidget = (widget: WidgetConfig) => {
+    const { id } = widget;
+
+    switch (id) {
+      case "clock":
+        return <ClockWidget />;
+      case "stats":
+        return <StatsWidget bookmarks={bookmarks} collections={collections} />;
+      case "favorite-bookmarks":
+        return (
+          <FavoriteBookmarks
+            bookmarks={bookmarks}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onToggleFavorite={onToggleFavorite}
+            onReorder={onReorder}
+          />
+        );
+      case "collection-distribution":
+        return (
+          <CollectionDistribution
+            bookmarks={bookmarks}
+            collections={collections}
+          />
+        );
+      case "quick-actions":
+        return (
+          <QuickActions
+            onAddBookmark={onAddBookmark}
+            onAddCollection={onAddCollection}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="space-y-8">
-      {/* 시계 위젯 */}
-      <ClockWidget />
-
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-        <StatsCard
-          title="전체 북마크"
-          value={totalBookmarks}
-          icon={<BookOpen className="w-6 h-6" />}
-          color="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-          description="총 북마크 수"
-        />
-        <StatsCard
-          title="컬렉션"
-          value={totalCollections}
-          icon={<Folder className="w-6 h-6" />}
-          color="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
-          description="총 컬렉션 수"
-        />
-        <StatsCard
-          title="미분류 북마크"
-          value={unassignedBookmarks}
-          icon={<FileText className="w-6 h-6" />}
-          color="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-          description="컬렉션 없는 북마크"
-        />
-        <StatsCard
-          title="최근 추가"
-          value={recentBookmarks.length}
-          icon={<Sparkles className="w-6 h-6" />}
-          color="bg-gradient-to-r from-green-500 to-green-600 text-white"
-          description="최근 5개 북마크"
-        />
+      {/* 위젯 편집 컨트롤 */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          대시보드
+        </h2>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setIsEditMode(!isEditMode)}
+            className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
+              isEditMode
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>{isEditMode ? "편집 완료" : "위젯 편집"}</span>
+          </button>
+          {isEditMode && (
+            <button
+              onClick={resetWidgetOrder}
+              className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center space-x-2 transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>초기화</span>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 위젯 그리드 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <FavoriteBookmarks
-          bookmarks={bookmarks}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onToggleFavorite={onToggleFavorite}
-          onReorder={onReorder}
-        />
-        <CollectionDistribution
-          bookmarks={bookmarks}
-          collections={collections}
-        />
-      </div>
+      {/* 위젯 컨테이너 */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleWidgetDragEnd}
+      >
+        <SortableContext
+          items={widgets.map((widget) => widget.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-8">
+            {widgets.map((widget) => (
+              <SortableWidget
+                key={widget.id}
+                id={widget.id}
+                enabled={widget.enabled}
+                isEditMode={isEditMode}
+                onToggle={() => toggleWidget(widget.id)}
+              >
+                {renderWidget(widget)}
+              </SortableWidget>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
 
-      {/* 빠른 작업 */}
-      <QuickActions
-        onAddBookmark={onAddBookmark}
-        onAddCollection={onAddCollection}
-      />
+      {/* 편집 모드 도움말 */}
+      {isEditMode && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
+            <Settings className="w-5 h-5" />
+            <h3 className="font-medium">위젯 편집 모드</h3>
+          </div>
+          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+            위젯을 드래그하여 순서를 변경하고, 눈 모양 아이콘을 클릭하여 위젯을
+            숨기거나 표시할 수 있습니다.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

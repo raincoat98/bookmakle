@@ -214,6 +214,7 @@ export const DashboardPage: React.FC = () => {
             onAddCollection={() => setIsAddCollectionModalOpen(true)}
             onToggleFavorite={handleToggleFavorite}
             onReorder={handleReorderBookmarks}
+            userId={user?.uid || ""}
           />
         </div>
         <AddBookmarkModal
