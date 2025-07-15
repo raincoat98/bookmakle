@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Globe, Folder } from "lucide-react";
 import type { Collection } from "../types";
+import { getFaviconUrl, findFaviconFromWebsite } from "../utils/favicon";
 
 interface AddBookmarkModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface AddBookmarkModalProps {
     collection: string;
     tags: string[];
     isFavorite: boolean;
+    favicon?: string;
   }) => void;
   collections: Collection[];
 }
@@ -26,7 +28,9 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
   const [selectedCollection, setSelectedCollection] = useState("");
+  const [favicon, setFavicon] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [faviconLoading, setFaviconLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,8 +38,39 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
       setUrl("");
       setDescription("");
       setSelectedCollection("");
+      setFavicon("");
     }
   }, [isOpen]);
+
+  // URL이 변경될 때 파비콘 자동 가져오기
+  useEffect(() => {
+    const fetchFavicon = async () => {
+      if (url.trim()) {
+        setFaviconLoading(true);
+        try {
+          // 먼저 기본 파비콘 URL 생성
+          const defaultFavicon = getFaviconUrl(url);
+          setFavicon(defaultFavicon);
+
+          // 웹사이트에서 실제 파비콘 찾기 시도
+          const actualFavicon = await findFaviconFromWebsite(url);
+          setFavicon(actualFavicon);
+        } catch (error) {
+          console.error("파비콘 가져오기 실패:", error);
+          // 실패해도 기본 파비콘은 유지
+          const defaultFavicon = getFaviconUrl(url);
+          setFavicon(defaultFavicon);
+        } finally {
+          setFaviconLoading(false);
+        }
+      } else {
+        setFavicon("");
+      }
+    };
+
+    const timeoutId = setTimeout(fetchFavicon, 1000); // 1초 후 실행
+    return () => clearTimeout(timeoutId);
+  }, [url]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +85,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
         collection: selectedCollection,
         tags: [],
         isFavorite: false,
+        favicon: favicon || undefined,
       });
       onClose();
     } catch (error) {
@@ -121,6 +157,37 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                   required
                 />
               </div>
+              {/* 파비콘 미리보기 */}
+              {url.trim() && (
+                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="relative">
+                    {favicon ? (
+                      <img
+                        src={favicon}
+                        alt="파비콘"
+                        className="w-8 h-8 rounded"
+                        onError={(e) => {
+                          e.currentTarget.src = "/favicon.svg";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                        <Globe className="w-5 h-5 text-gray-400" />
+                      </div>
+                    )}
+                    {faviconLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">
+                    {faviconLoading
+                      ? "파비콘 가져오는 중..."
+                      : "파비콘 미리보기"}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* 제목 입력 */}

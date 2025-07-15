@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Bookmark, BookmarkFormData } from "../types";
-import { getFaviconUrl } from "../utils/favicon";
+import { getFaviconUrl, refreshFavicon } from "../utils/favicon";
 
 export const useBookmarks = (
   userId: string,
@@ -293,6 +293,24 @@ export const useBookmarks = (
     });
   };
 
+  // 파비콘 새로고침 함수 추가
+  const updateBookmarkFavicon = async (bookmarkId: string, url: string) => {
+    if (!userId) throw new Error("사용자가 로그인되지 않았습니다.");
+
+    try {
+      const newFavicon = await refreshFavicon(url);
+      const bookmarkRef = doc(db, "bookmarks", bookmarkId);
+      await updateDoc(bookmarkRef, {
+        favicon: newFavicon,
+        updatedAt: new Date(),
+      });
+      return newFavicon;
+    } catch (error) {
+      console.error("파비콘 새로고침 실패:", error);
+      throw error;
+    }
+  };
+
   return {
     bookmarks,
     loading,
@@ -301,6 +319,7 @@ export const useBookmarks = (
     deleteBookmark,
     reorderBookmarks,
     toggleFavorite, // 즐겨찾기 토글 함수 추가
+    updateBookmarkFavicon, // 파비콘 새로고침 함수 추가
     migrateFavicons,
     migrateIsFavorite, // isFavorite 마이그레이션 함수 추가
   };

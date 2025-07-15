@@ -22,6 +22,7 @@ export const BookmarksPage: React.FC = () => {
     deleteBookmark,
     reorderBookmarks,
     toggleFavorite,
+    updateBookmarkFavicon, // 파비콘 새로고침 함수 추가
   } = useBookmarks(user?.uid || "", "all");
   const { collections, addCollection, updateCollection, deleteCollection } =
     useCollections(user?.uid || "");
@@ -274,6 +275,19 @@ export const BookmarksPage: React.FC = () => {
     }
   };
 
+  // 파비콘 새로고침 핸들러 추가
+  const handleRefreshFavicon = async (bookmarkId: string, url: string) => {
+    try {
+      const newFavicon = await updateBookmarkFavicon(bookmarkId, url);
+      toast.success("파비콘이 새로고침되었습니다.");
+      return newFavicon;
+    } catch (error) {
+      console.error("Error refreshing favicon:", error);
+      toast.error("파비콘 새로고침 중 오류가 발생했습니다.");
+      throw error;
+    }
+  };
+
   const handleDeleteCollection = async (collectionId: string) => {
     setDeletingCollectionId(collectionId);
     try {
@@ -460,6 +474,7 @@ export const BookmarksPage: React.FC = () => {
             }}
             onToggleFavorite={handleToggleFavorite}
             onReorder={handleReorderBookmarks}
+            onRefreshFavicon={handleRefreshFavicon} // 파비콘 새로고침 함수 전달
             collections={collections}
             searchTerm={searchTerm}
             viewMode={viewMode}

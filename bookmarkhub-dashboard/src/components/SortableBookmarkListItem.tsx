@@ -13,6 +13,8 @@ interface SortableBookmarkListItemProps {
   isFirst?: boolean;
   isLast?: boolean;
   onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
+  onRefreshFavicon?: (bookmark: Bookmark) => Promise<void>; // 파비콘 새로고침 함수 추가
+  faviconLoading?: boolean; // 파비콘 로딩 상태 추가
 }
 
 export const SortableBookmarkListItem = ({
@@ -25,6 +27,8 @@ export const SortableBookmarkListItem = ({
   isFirst = false,
   isLast = false,
   onToggleFavorite, // 즐겨찾기 토글 함수 추가
+  onRefreshFavicon, // 파비콘 새로고침 함수 추가
+  faviconLoading = false, // 파비콘 로딩 상태 추가
 }: SortableBookmarkListItemProps) => {
   const {
     attributes,
@@ -66,6 +70,15 @@ export const SortableBookmarkListItem = ({
     e.stopPropagation();
     e.nativeEvent.stopImmediatePropagation();
     onMoveDown?.(bookmark);
+  };
+
+  const handleRefreshFavicon = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.nativeEvent.stopImmediatePropagation();
+    if (onRefreshFavicon) {
+      await onRefreshFavicon(bookmark);
+    }
   };
 
   const collection = collections.find((col) => col.id === bookmark.collection);
@@ -237,24 +250,79 @@ export const SortableBookmarkListItem = ({
         <div className="flex flex-col sm:flex-row sm:items-center gap-y-3 sm:space-x-5">
           {/* 파비콘 - 모바일에서 위쪽 */}
           <div className="flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
-            <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm">
+            <div className="relative w-12 h-12 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm">
               {bookmark.favicon ? (
-                <img
-                  src={bookmark.favicon}
-                  alt="파비콘"
-                  className="w-8 h-8 sm:w-8 sm:h-8 rounded-lg"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-              ) : (
-                <svg
-                  className="w-6 h-6 sm:w-6 sm:h-6 text-gray-500 dark:text-gray-400"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
+                <div
+                  className="relative w-8 h-8 sm:w-8 sm:h-8 rounded-lg overflow-hidden hover:scale-110 transition-all duration-200 cursor-pointer [&:hover_>_.overlay]:opacity-100"
+                  onClick={handleRefreshFavicon}
+                  title="파비콘 새로고침"
                 >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
+                  <img
+                    src={bookmark.favicon}
+                    alt="파비콘"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                  {/* 호버 오버레이 - 새로고침 아이콘 */}
+                  {onRefreshFavicon && (
+                    <div className="overlay absolute inset-0 bg-black/60 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 transition-all duration-200 pointer-events-none">
+                      <svg
+                        className="w-4 h-4 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div
+                  className="relative w-6 h-6 sm:w-6 sm:h-6 hover:scale-110 transition-all duration-200 cursor-pointer [&:hover_>_.overlay]:opacity-100"
+                  onClick={handleRefreshFavicon}
+                  title="파비콘 새로고침"
+                >
+                  <svg
+                    className="w-full h-full text-gray-500 dark:text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                  </svg>
+                  {/* 호버 오버레이 - 새로고침 아이콘 */}
+                  {onRefreshFavicon && (
+                    <div className="overlay absolute inset-0 bg-black/60 backdrop-blur-sm rounded-lg flex items-center justify-center opacity-0 transition-all duration-200 pointer-events-none">
+                      <svg
+                        className="w-3 h-3 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 로딩 오버레이 */}
+              {faviconLoading && (
+                <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-brand-500 border-t-transparent"></div>
+                </div>
               )}
             </div>
           </div>

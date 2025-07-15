@@ -1,6 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import type { Bookmark, Collection } from "../types";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
+import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 import {
   DndContext,
   closestCenter,
@@ -25,6 +26,7 @@ interface BookmarkListProps {
   onDelete: (bookmark: Bookmark) => void;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
   onReorder: (newBookmarks: Bookmark[]) => void;
+  onRefreshFavicon?: (bookmarkId: string, url: string) => Promise<string>; // 파비콘 새로고침 함수 추가
   collections?: Collection[];
   searchTerm: string;
   viewMode: "grid" | "list";
@@ -36,10 +38,15 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   onDelete,
   onToggleFavorite,
   onReorder,
+  onRefreshFavicon, // 파비콘 새로고침 함수 추가
   collections = [],
   searchTerm,
   viewMode,
 }) => {
+  const [faviconLoadingStates, setFaviconLoadingStates] = useState<
+    Record<string, boolean>
+  >({});
+
   // 필터링된 북마크
   const filteredBookmarks = useMemo(() => {
     let filtered = bookmarks;
@@ -129,6 +136,20 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     }
   };
 
+  // 파비콘 새로고침 핸들러
+  const handleRefreshFavicon = async (bookmark: Bookmark) => {
+    if (!onRefreshFavicon) return;
+
+    setFaviconLoadingStates((prev) => ({ ...prev, [bookmark.id]: true }));
+    try {
+      await onRefreshFavicon(bookmark.id, bookmark.url);
+    } catch (error) {
+      console.error("파비콘 새로고침 실패:", error);
+    } finally {
+      setFaviconLoadingStates((prev) => ({ ...prev, [bookmark.id]: false }));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* 북마크 그리드/리스트 */}
@@ -159,22 +180,43 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                   : "space-y-4"
               }
             >
-              {filteredBookmarks.map((bookmark, idx) => (
-                <SortableBookmarkCard
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onRefreshFavicon={async () => {}}
-                  faviconLoading={false}
-                  collections={collections}
-                  onToggleFavorite={onToggleFavorite}
-                  onMoveUp={handleMoveUp}
-                  onMoveDown={handleMoveDown}
-                  isFirst={idx === 0}
-                  isLast={idx === filteredBookmarks.length - 1}
-                />
-              ))}
+              {filteredBookmarks.map((bookmark, idx) =>
+                viewMode === "grid" ? (
+                  <SortableBookmarkCard
+                    key={bookmark.id}
+                    bookmark={bookmark}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onRefreshFavicon={
+                      onRefreshFavicon ? handleRefreshFavicon : async () => {}
+                    }
+                    faviconLoading={faviconLoadingStates[bookmark.id] || false}
+                    collections={collections}
+                    onToggleFavorite={onToggleFavorite}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    isFirst={idx === 0}
+                    isLast={idx === filteredBookmarks.length - 1}
+                  />
+                ) : (
+                  <SortableBookmarkListItem
+                    key={bookmark.id}
+                    bookmark={bookmark}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onRefreshFavicon={
+                      onRefreshFavicon ? handleRefreshFavicon : undefined
+                    }
+                    faviconLoading={faviconLoadingStates[bookmark.id] || false}
+                    collections={collections}
+                    onToggleFavorite={onToggleFavorite}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
+                    isFirst={idx === 0}
+                    isLast={idx === filteredBookmarks.length - 1}
+                  />
+                )
+              )}
             </div>
           </SortableContext>
         </DndContext>

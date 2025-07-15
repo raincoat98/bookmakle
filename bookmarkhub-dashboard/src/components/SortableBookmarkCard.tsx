@@ -162,27 +162,6 @@ export const SortableBookmarkCard = ({
             />
           </svg>
         </button>
-        {/* 파비콘 재가져오기 버튼 */}
-        <button
-          onClick={handleRefreshFavicon}
-          disabled={faviconLoading}
-          className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 disabled:opacity-50 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-          title="파비콘 재가져오기"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
-        </button>
         {/* 즐겨찾기 버튼 */}
         <button
           onClick={(e) => {
@@ -248,28 +227,51 @@ export const SortableBookmarkCard = ({
         <div className="flex flex-col sm:flex-row sm:items-start gap-y-3 sm:space-x-4 pointer-events-auto">
           {/* 파비콘 - 모바일에서 위쪽 */}
           <div className="relative flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
-            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm">
+            <div
+              className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm group/favicon cursor-pointer hover:bg-gradient-to-br hover:from-brand-200 hover:to-accent-200 dark:hover:from-brand-800/50 dark:hover:to-accent-800/50 transition-all duration-200"
+              onClick={handleRefreshFavicon}
+              title="클릭하여 파비콘 새로고침"
+            >
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
                   alt="파비콘"
-                  className="w-8 h-8 sm:w-6 sm:h-6 rounded-lg"
+                  className="w-8 h-8 sm:w-6 sm:h-6 rounded-lg group-hover/favicon:opacity-70 transition-opacity duration-200"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
                 />
               ) : (
                 <svg
-                  className="w-6 h-6 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400"
+                  className="w-6 h-6 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 group-hover/favicon:text-brand-500 dark:group-hover/favicon:text-brand-400 transition-colors duration-200"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                 </svg>
               )}
+
+              {/* 호버 시 새로고침 아이콘 표시 */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/favicon:opacity-100 transition-opacity duration-200 bg-black/20 dark:bg-white/10 rounded-lg backdrop-blur-sm">
+                <svg
+                  className="w-4 h-4 sm:w-3 sm:h-3 text-white dark:text-gray-200"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </div>
             </div>
+
+            {/* 로딩 상태 표시 */}
             {faviconLoading && (
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-800/80 rounded-lg backdrop-blur-sm">
                 <div className="animate-spin rounded-full h-6 w-6 sm:h-5 sm:w-5 border-2 border-brand-500 border-t-transparent"></div>
               </div>
             )}
