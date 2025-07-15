@@ -1,24 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import type { Collection } from "../types";
-import toast from "react-hot-toast";
-import EmojiPicker from "emoji-picker-react";
 
 interface CollectionListProps {
   collections: Collection[];
   loading: boolean;
   selectedCollection: string;
   onCollectionChange: (collectionId: string) => void;
-  onAddCollection: (
-    name: string,
-    description: string,
-    icon: string,
-    parentId?: string
-  ) => Promise<void>;
   onDeleteCollectionRequest: (
     collectionId: string,
     collectionName: string
   ) => void;
   onEditCollection: (collection: Collection) => void;
+  onOpenAddCollectionModal: () => void;
+  onOpenAddSubCollectionModal: (parentId: string) => void;
 }
 
 export const CollectionList = ({
@@ -26,52 +20,11 @@ export const CollectionList = ({
   loading,
   selectedCollection,
   onCollectionChange,
-  onAddCollection,
   onDeleteCollectionRequest,
   onEditCollection,
+  onOpenAddCollectionModal,
+  onOpenAddSubCollectionModal,
 }: CollectionListProps) => {
-  const [isAddingCollection, setIsAddingCollection] = useState(false);
-  const [newCollectionName, setNewCollectionName] = useState("");
-  const [newCollectionDescription, setNewCollectionDescription] = useState("");
-  const [newCollectionIcon, setNewCollectionIcon] = useState("📁");
-  const [newCollectionParentId, setNewCollectionParentId] = useState<
-    string | null
-  >(null);
-  const [isCollectionSubmitting, setIsCollectionSubmitting] = useState(false);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showSubEmojiPicker, setShowSubEmojiPicker] = useState(false);
-  const emojiPickerRef = useRef<HTMLDivElement>(null);
-  const subEmojiPickerRef = useRef<HTMLDivElement>(null);
-
-  // 컬렉션 수정 모달 상태
-  // const [showEditModal, setShowEditModal] = useState(false);
-  // const [editingCollection, setEditingCollection] = useState<Collection | null>(
-  //   null
-  // );
-
-  // 외부 클릭 감지
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target as Node)
-      ) {
-        setShowEmojiPicker(false);
-      }
-      if (
-        subEmojiPickerRef.current &&
-        !subEmojiPickerRef.current.contains(event.target as Node)
-      ) {
-        setShowSubEmojiPicker(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   // 오픈된(열린) 컬렉션 id 목록
   const [openIds, setOpenIds] = useState<string[]>([]);
 
@@ -91,109 +44,13 @@ export const CollectionList = ({
     );
   };
 
-  // 하위 컬렉션 추가 모달 상태
-  const [isAddSubModalOpen, setIsAddSubModalOpen] = useState(false);
-  const [subParentId, setSubParentId] = useState<string | null>(null);
-
-  const handleAddCollection = async () => {
-    if (!newCollectionName.trim() || isCollectionSubmitting) return;
-    setIsCollectionSubmitting(true);
-    try {
-      await onAddCollection(
-        newCollectionName.trim(),
-        newCollectionDescription.trim(),
-        newCollectionIcon,
-        newCollectionParentId ?? undefined
-      );
-      setNewCollectionName("");
-      setNewCollectionDescription("");
-      setNewCollectionIcon("📁");
-      setNewCollectionParentId(null);
-      setIsAddingCollection(false);
-    } catch (error) {
-      console.error("Error adding collection:", error);
-      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
-    } finally {
-      setIsCollectionSubmitting(false);
-    }
-  };
-
-  // 컬렉션 수정 모달 열기
-  // const openEditModal = (collection: Collection) => {
-  //   setEditingCollection(collection);
-  //   setShowEditModal(true);
-  // };
-
-  // 컬렉션 수정 모달 닫기
-  // const closeEditModal = () => {
-  //   setShowEditModal(false);
-  //   setEditingCollection(null);
-  // };
-
-  // 컬렉션 수정 처리
-  // const handleUpdateCollection = async (
-  //   collectionId: string,
-  //   collectionData: CollectionFormData
-  // ) => {
-  //   try {
-  //     await onUpdateCollection(collectionId, collectionData);
-  //     closeEditModal();
-  //     toast.success("컬렉션이 수정되었습니다!");
-  //   } catch (error) {
-  //     console.error("Error updating collection:", error);
-  //     toast.error("컬렉션 수정 중 오류가 발생했습니다.");
-  //   }
-  // };
-
   // 우클릭 컨텍스트 메뉴 이벤트
   const handleCollectionContextMenu = (
     e: React.MouseEvent,
     collectionId: string
   ) => {
     e.preventDefault();
-    setSubParentId(collectionId);
-    setIsAddSubModalOpen(true);
-  };
-
-  // parentId의 깊이 계산 함수
-  function getCollectionDepth(id: string | null): number {
-    let depth = 0;
-    let current = collections.find((col) => col.id === id);
-    while (current && current.parentId) {
-      depth++;
-      const parent = collections.find((col) => col.id === current!.parentId);
-      if (!parent) break;
-      current = parent;
-    }
-    return depth;
-  }
-
-  // 하위 컬렉션 추가 핸들러
-  const handleAddSubCollection = async (
-    name: string,
-    description: string,
-    icon: string
-  ) => {
-    // parentId의 깊이가 2 이상이면 추가 불가
-    if (getCollectionDepth(subParentId) >= 2) {
-      toast.error("2단계 이상 하위 컬렉션은 추가할 수 없습니다.");
-      setIsAddSubModalOpen(false);
-      setSubParentId(null);
-      return;
-    }
-    await onAddCollection(name, description, icon, subParentId ?? undefined);
-    setIsAddSubModalOpen(false);
-    setSubParentId(null);
-  };
-
-  const handleEmojiSelect = (emojiObject: { emoji: string }) => {
-    setNewCollectionIcon(emojiObject.emoji);
-    setShowEmojiPicker(false);
-  };
-
-  const handleSubEmojiSelect = (emojiObject: { emoji: string }) => {
-    setNewCollectionIcon(emojiObject.emoji);
-    setShowSubEmojiPicker(false);
+    onOpenAddSubCollectionModal(collectionId);
   };
 
   // 트리 구조로 컬렉션을 렌더링하는 재귀 함수
@@ -408,213 +265,28 @@ export const CollectionList = ({
         </nav>
       </div>
 
-      {/* 새 컬렉션 추가 섹션 */}
+      {/* 새 컬렉션 추가 버튼 */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        {isAddingCollection ? (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                아이콘 선택
-              </label>
-              <div className="relative" ref={emojiPickerRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="flex items-center justify-center w-10 h-10 rounded-lg text-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  {newCollectionIcon}
-                </button>
-                {showEmojiPicker && (
-                  <div className="absolute z-10 bottom-full mb-2">
-                    <EmojiPicker
-                      onEmojiClick={handleEmojiSelect}
-                      width={300}
-                      height={400}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <input
-              type="text"
-              value={newCollectionName}
-              onChange={(e) => setNewCollectionName(e.target.value)}
-              placeholder="컬렉션 이름을 입력하세요"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-              onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
-              autoFocus
-            />
-            <input
-              type="text"
-              value={newCollectionDescription}
-              onChange={(e) => setNewCollectionDescription(e.target.value)}
-              placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-              onKeyPress={(e) => e.key === "Enter" && handleAddCollection()}
-            />
-            <div className="flex space-x-2">
-              <button
-                onClick={handleAddCollection}
-                className="flex-1 btn-primary py-3 text-sm font-medium"
-                disabled={isCollectionSubmitting || !newCollectionName.trim()}
-              >
-                {isCollectionSubmitting ? (
-                  <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin h-4 w-4 mr-2"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                      />
-                    </svg>
-                    추가 중...
-                  </span>
-                ) : (
-                  "추가"
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setIsAddingCollection(false);
-                  setNewCollectionName("");
-                  setNewCollectionDescription("");
-                  setNewCollectionIcon("📁");
-                }}
-                className="flex-1 btn-secondary py-3 text-sm font-medium"
-                disabled={isCollectionSubmitting}
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setIsAddingCollection(true)}
-            className="w-full flex items-center justify-center space-x-2 btn-primary py-3 font-medium"
+        <button
+          onClick={onOpenAddCollectionModal}
+          className="w-full flex items-center justify-center space-x-2 btn-primary py-3 font-medium"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-              />
-            </svg>
-            <span>새 컬렉션</span>
-          </button>
-        )}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <span>새 컬렉션</span>
+        </button>
       </div>
-
-      {/* 하위 컬렉션 추가 모달 */}
-      {isAddSubModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              하위 컬렉션 추가
-            </h3>
-            <input
-              type="text"
-              placeholder="컬렉션 이름을 입력하세요"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-3"
-              autoFocus
-              value={newCollectionName}
-              onChange={(e) => setNewCollectionName(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" &&
-                handleAddSubCollection(
-                  newCollectionName,
-                  newCollectionDescription,
-                  newCollectionIcon
-                )
-              }
-            />
-            <input
-              type="text"
-              placeholder="컬렉션 설명을 입력하세요 (선택 사항)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent mb-3"
-              value={newCollectionDescription}
-              onChange={(e) => setNewCollectionDescription(e.target.value)}
-              onKeyPress={(e) =>
-                e.key === "Enter" &&
-                handleAddSubCollection(
-                  newCollectionName,
-                  newCollectionDescription,
-                  newCollectionIcon
-                )
-              }
-            />
-            <div className="relative mb-4" ref={subEmojiPickerRef}>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                아이콘 선택
-              </label>
-              <button
-                type="button"
-                onClick={() => setShowSubEmojiPicker(!showSubEmojiPicker)}
-                className="flex items-center justify-center w-10 h-10 rounded-lg text-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {newCollectionIcon}
-              </button>
-              {showSubEmojiPicker && (
-                <div className="absolute z-[70] bottom-full mb-2">
-                  <EmojiPicker
-                    onEmojiClick={handleSubEmojiSelect}
-                    width={300}
-                    height={400}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setIsAddSubModalOpen(false)}
-                className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
-              >
-                취소
-              </button>
-              <button
-                onClick={() =>
-                  handleAddSubCollection(
-                    newCollectionName,
-                    newCollectionDescription,
-                    newCollectionIcon
-                  )
-                }
-                className="px-4 py-2 rounded bg-brand-600 text-white hover:bg-brand-700"
-                disabled={!newCollectionName.trim()}
-              >
-                추가
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 삭제 확인 모달 */}
-      {/* 컬렉션 수정 모달 */}
-      {/* <EditCollectionModal
-        isOpen={showEditModal}
-        onClose={closeEditModal}
-        onUpdate={handleUpdateCollection}
-        collection={editingCollection}
-        collections={collections}
-      /> */}
     </div>
   );
 };

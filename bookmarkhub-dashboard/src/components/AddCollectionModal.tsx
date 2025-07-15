@@ -1,20 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import EmojiPicker from "emoji-picker-react";
 
 interface AddCollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (name: string, description: string, icon: string) => Promise<void>;
+  onAdd: (
+    name: string,
+    description: string,
+    icon: string,
+    parentId?: string
+  ) => Promise<void>;
+  parentId?: string | null;
 }
 
 export const AddCollectionModal = ({
   isOpen,
   onClose,
   onAdd,
+  parentId = null,
 }: AddCollectionModalProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("📁");
   const [loading, setLoading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -23,21 +50,27 @@ export const AddCollectionModal = ({
     if (!name.trim()) return;
     setLoading(true);
     try {
-      await onAdd(name.trim(), description.trim(), icon);
+      await onAdd(name.trim(), description.trim(), icon, parentId || undefined);
       setName("");
       setDescription("");
       setIcon("📁");
+      setShowEmojiPicker(false);
       onClose();
     } finally {
       setLoading(false);
     }
   };
 
+  const handleEmojiSelect = (emojiObject: { emoji: string }) => {
+    setIcon(emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          컬렉션 추가
+          {parentId ? "하위 컬렉션 추가" : "컬렉션 추가"}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -58,13 +91,41 @@ export const AddCollectionModal = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               아이콘
             </label>
-            <input
-              type="text"
-              value={icon}
-              onChange={(e) => setIcon(e.target.value)}
-              className="w-16 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-2xl text-center"
-              maxLength={2}
-            />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent flex items-center justify-between"
+              >
+                <span className="text-2xl">{icon}</span>
+                <span className="text-gray-500">선택</span>
+              </button>
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className="absolute z-[80] mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-80 overflow-hidden"
+                  style={{
+                    width: "350px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    top: "100%",
+                  }}
+                >
+                  <div className="max-h-80 overflow-y-auto">
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiSelect}
+                      width="100%"
+                      height="320px"
+                      searchDisabled={false}
+                      skinTonesDisabled={false}
+                      previewConfig={{
+                        showPreview: false,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

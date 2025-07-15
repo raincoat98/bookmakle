@@ -1,133 +1,122 @@
 import { useAuth } from "../hooks/useAuth";
-import { useState, useEffect } from "react";
-import { Menu, Sun, Moon, Briefcase, List, Settings } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Menu, Sun, Moon, Settings, User, LogOut, Globe } from "lucide-react";
 import { useDrawer } from "../contexts/DrawerContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 interface HeaderProps {
   showMenuButton?: boolean;
-  defaultPage?: string | null;
 }
 
-export const Header = ({
-  showMenuButton = false,
-  defaultPage,
-}: HeaderProps) => {
-  const { user, login, logout } = useAuth();
-  const location = useLocation();
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
-  );
+export const Header = ({ showMenuButton = false }: HeaderProps) => {
+  const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const { setIsDrawerOpen } = useDrawer();
 
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
+  const toggleTheme = () => {
+    if (theme === "light") {
+      setTheme("dark");
+    } else if (theme === "dark") {
+      setTheme("auto");
+    } else {
+      setTheme("light");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    }
+  };
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* 로고와 햄버거 메뉴 */}
-          <div className="flex items-center space-x-2 sm:space-x-4">
+    <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-glass">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* 왼쪽: 로고 및 메뉴 버튼 */}
+          <div className="flex items-center space-x-4">
             {showMenuButton && (
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="block sm:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                aria-label="메뉴 열기"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm lg:hidden"
               >
                 <Menu className="w-6 h-6" />
               </button>
             )}
-            <Link to="/" className="flex items-center space-x-2">
-              <img src="/favicon.svg" alt="북마클" className="w-6 h-6" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white hidden sm:block">
-                북마클
-              </h1>
-            </Link>
-          </div>
 
-          {/* 네비게이션 링크 */}
-          <div className="gap-2 mr-4 hidden sm:flex">
-            <Link
-              to="/dashboard"
-              className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
-                location.pathname === "/dashboard" ||
-                (location.pathname === "/" && defaultPage === "dashboard")
-                  ? "bg-brand-600 text-white shadow"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
-              }`}
-            >
-              <Briefcase className="w-4 h-4" />
-              대시보드
-            </Link>
-            <Link
-              to="/bookmarks"
-              className={`px-3 py-1 rounded font-medium text-sm transition-colors flex items-center gap-1 ${
-                location.pathname === "/bookmarks" ||
-                (location.pathname === "/" && defaultPage === "bookmarks")
-                  ? "bg-brand-600 text-white shadow"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-brand-100 dark:hover:bg-brand-900"
-              }`}
-            >
-              <List className="w-4 h-4" />
-              북마크
-            </Link>
-          </div>
-
-          {/* 사용자 정보 */}
-          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-4">
-            {user ? (
-              <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
-                <span className="hidden sm:block text-sm text-gray-700 dark:text-gray-300 truncate max-w-[80px]">
-                  {user.displayName}
-                </span>
-                {user.photoURL && (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName || "User"}
-                    className="h-8 w-8 rounded-full"
-                  />
-                )}
-                <button
-                  onClick={logout}
-                  className="btn-secondary text-sm px-2 sm:px-4"
-                  aria-label="로그아웃"
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-soft">
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  로그아웃
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+              <h1 className="text-xl font-bold gradient-text">북마크 허브</h1>
+            </Link>
+          </div>
+
+          {/* 오른쪽: 사용자 메뉴 및 테마 토글 */}
+          <div className="flex items-center space-x-2">
+            {/* 테마 토글 */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
+              aria-label="테마 변경"
+              title={`현재: ${
+                theme === "light"
+                  ? "라이트"
+                  : theme === "dark"
+                  ? "다크"
+                  : "자동"
+              } 모드`}
+            >
+              {theme === "light" ? (
+                <Moon className="w-5 h-5" />
+              ) : theme === "dark" ? (
+                <Globe className="w-5 h-5" />
+              ) : (
+                <Sun className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* 사용자 메뉴 */}
+            {user && (
+              <div className="relative">
+                <button className="flex items-center space-x-2 p-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm">
+                  <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-full flex items-center justify-center shadow-soft">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium">
+                    {user.email}
+                  </span>
                 </button>
               </div>
-            ) : (
-              <button
-                onClick={login}
-                className="btn-primary text-sm px-2 sm:px-4"
-              >
-                <span className="hidden sm:inline">Google로 로그인</span>
-                <span className="sm:hidden">로그인</span>
-              </button>
             )}
 
-            {/* 설정 버튼 */}
+            {/* 설정 링크 */}
             <Link
               to="/settings"
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
               aria-label="설정"
             >
               <Settings className="w-5 h-5" />
             </Link>
-            {/* 테마 토글 버튼 */}
-            <button
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-              aria-label="테마 변경"
-            >
-              {theme === "light" ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
+
+            {/* 로그아웃 버튼 */}
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
+                aria-label="로그아웃"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

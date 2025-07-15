@@ -10,7 +10,6 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { LoginScreen } from "./components/LoginScreen";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
-import { Header } from "./components/Header";
 import { useEffect, useState, useRef } from "react";
 import { getUserDefaultPage } from "./firebase";
 import {
@@ -20,19 +19,16 @@ import {
 } from "./utils/backup";
 import { useBookmarks } from "./hooks/useBookmarks";
 import { useCollections } from "./hooks/useCollections";
-import { useDrawer } from "./contexts/DrawerContext";
-import { Drawer } from "./components/Drawer";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 function App() {
   const { user, loading } = useAuth();
   const [defaultPage, setDefaultPage] = useState<string | null>(null);
-  const [selectedCollection, setSelectedCollection] = useState("all");
-  const { isDrawerOpen, setIsDrawerOpen, isDrawerClosing } = useDrawer();
   const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 백업을 위한 데이터 가져오기
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
-  const { collections, addCollection } = useCollections(user?.uid || "");
+  const { collections } = useCollections(user?.uid || "");
 
   useEffect(() => {
     if (user?.uid) {
@@ -110,21 +106,6 @@ function App() {
     };
   }, [user?.uid]);
 
-  // Drawer에 전달할 컬렉션 추가 래퍼
-  const handleDrawerAddCollection = async (
-    name: string,
-    description: string,
-    icon: string,
-    parentId?: string | null
-  ) => {
-    await addCollection({
-      name,
-      description,
-      icon,
-      parentId: parentId ?? null,
-    });
-  };
-
   if (loading || (user && defaultPage === null)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -141,25 +122,8 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header
-          defaultPage={defaultPage || undefined}
-          showMenuButton={true}
-          // onMenuClick 등은 각 페이지에서 Context로 관리
-        />
-        <Drawer
-          collections={collections}
-          selectedCollection={selectedCollection}
-          onCollectionChange={setSelectedCollection}
-          isOpen={isDrawerOpen}
-          isClosing={isDrawerClosing}
-          onClose={() => setIsDrawerOpen(false)}
-          onAddCollection={handleDrawerAddCollection}
-          onDeleteCollectionRequest={() => {}}
-          onEditCollection={() => {}}
-          defaultPage={defaultPage || undefined}
-        />
+    <ThemeProvider>
+      <Router>
         <Routes>
           <Route
             path="/"
@@ -176,18 +140,18 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </div>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: "#363636",
-            color: "#fff",
-          },
-        }}
-      />
-    </Router>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: "#363636",
+              color: "#fff",
+            },
+          }}
+        />
+      </Router>
+    </ThemeProvider>
   );
 }
 

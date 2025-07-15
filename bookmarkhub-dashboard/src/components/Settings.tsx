@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   Settings as SettingsIcon,
   User,
@@ -58,12 +59,10 @@ export const Settings: React.FC<SettingsProps> = ({
   const { user, logout } = useAuth();
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
   const { collections } = useCollections(user?.uid || "");
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("general");
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
-  );
   const [notifications, setNotifications] = useState(true);
   const [backupSettings, setBackupSettings] = useState<BackupSettings>(() =>
     loadBackupSettings()
@@ -83,11 +82,6 @@ export const Settings: React.FC<SettingsProps> = ({
   const [backups, setBackups] = useState(() => getAllBackups());
   // 상태 추가
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     if (user?.uid) {
@@ -112,8 +106,8 @@ export const Settings: React.FC<SettingsProps> = ({
       collections.length > 0
     ) {
       // 주기(ms) 계산
-      // let intervalMs = 1000 * 60 * 60 * 24 * 7; // 기본: weekly
-      let intervalMs = 10000; // 테스트용 10초 간격
+      // const intervalMs = 1000 * 60 * 60 * 24 * 7; // 기본: weekly
+      const intervalMs = 10000; // 테스트용 10초 간격
       // if (backupSettings.frequency === "daily")
       //   intervalMs = 1000 * 60 * 60 * 24;
       // if (backupSettings.frequency === "monthly")
@@ -163,11 +157,11 @@ export const Settings: React.FC<SettingsProps> = ({
     setBackupStatus(getBackupStatus());
   };
 
-  const handleThemeChange = (newTheme: string) => {
+  const handleThemeChange = (newTheme: "light" | "dark" | "auto") => {
     setTheme(newTheme);
-    toast.success(
-      `테마가 ${newTheme === "dark" ? "다크" : "라이트"} 모드로 변경되었습니다.`
-    );
+    const themeText =
+      newTheme === "dark" ? "다크" : newTheme === "auto" ? "자동" : "라이트";
+    toast.success(`테마가 ${themeText} 모드로 변경되었습니다.`);
   };
 
   const handleNotificationToggle = () => {

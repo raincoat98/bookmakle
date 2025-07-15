@@ -1,94 +1,54 @@
-import { useState, useRef, useEffect } from "react";
-import { toast } from "react-hot-toast";
+import { useState } from "react";
 import type { Bookmark } from "../types";
-import { refreshFavicon } from "../utils/favicon";
+import { Edit, Trash2, MoreVertical, ExternalLink } from "lucide-react";
 
 interface BookmarkCardProps {
   bookmark: Bookmark;
   onEdit: (bookmark: Bookmark) => void;
-  onDelete: (bookmark: Bookmark) => void;
-  onUpdateFavicon: (id: string, favicon: string) => void;
-  onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
+  onDelete: (id: string) => void;
+  onToggleFavorite: (id: string, isFavorite: boolean) => void;
+  onToggleMenu?: (id: string) => void;
+  isMenuOpen?: boolean;
 }
 
 export const BookmarkCard = ({
   bookmark,
   onEdit,
   onDelete,
-  onUpdateFavicon,
   onToggleFavorite,
+  onToggleMenu,
+  isMenuOpen = false,
 }: BookmarkCardProps) => {
   const [faviconLoading, setFaviconLoading] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // 메뉴 외부 클릭 시 닫기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target as Node) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target as Node)
-      ) {
-        setShowMenu(false);
-      }
-    };
-
-    if (showMenu) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [showMenu]);
-
-  const handleRefreshFavicon = async () => {
-    setFaviconLoading(true);
-    try {
-      const newFavicon = await refreshFavicon(bookmark.url);
-      onUpdateFavicon(bookmark.id, newFavicon);
-    } catch (error) {
-      console.error("파비콘 재가져오기 실패:", error);
-      toast.error("파비콘 재가져오기에 실패했습니다.");
-    } finally {
-      setFaviconLoading(false);
-    }
+  const handleFaviconError = () => {
+    setFaviconLoading(false);
   };
 
-  const handleEdit = () => {
-    setShowMenu(false);
-    onEdit(bookmark);
-  };
-
-  const handleDelete = () => {
-    setShowMenu(false);
-    onDelete(bookmark);
+  const handleFaviconLoad = () => {
+    setFaviconLoading(false);
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-200 min-w-0 overflow-hidden">
-      <div className="p-4">
+    <div className="card-glass hover-lift group">
+      <div className="p-6">
         {/* 헤더 */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center space-x-4 flex-1 min-w-0">
             {/* 파비콘 */}
             <div className="relative flex-shrink-0">
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
                   alt="파비콘"
-                  className="w-6 h-6 rounded"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
+                  className="w-8 h-8 rounded-xl shadow-soft"
+                  onError={handleFaviconError}
+                  onLoad={handleFaviconLoad}
                 />
               ) : (
-                <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-soft">
                   <svg
-                    className="w-4 h-4 text-gray-400"
+                    className="w-5 h-5 text-white"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -98,42 +58,42 @@ export const BookmarkCard = ({
               )}
               {faviconLoading && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                  <div className="spinner w-5 h-5"></div>
                 </div>
               )}
             </div>
 
-            {/* 제목 */}
+            {/* 제목과 URL */}
             <div className="flex-1 min-w-0">
               <a
                 href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-gray-900 dark:text-white truncate hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200 cursor-pointer block"
+                className="text-base font-semibold text-gray-900 dark:text-white truncate hover:gradient-text transition-all duration-200 cursor-pointer block"
                 title={bookmark.title}
               >
                 {bookmark.title}
               </a>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">
                 {bookmark.url}
               </p>
             </div>
           </div>
 
-          {/* 메뉴 버튼 */}
-          <div className="relative flex-shrink-0 flex items-center space-x-1">
+          {/* 액션 버튼들 */}
+          <div className="relative flex-shrink-0 flex items-center space-x-2">
             {/* 즐겨찾기 버튼 */}
             <button
               onClick={() =>
                 onToggleFavorite(bookmark.id, !bookmark.isFavorite)
               }
-              className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded transition-all duration-150 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[32px] min-h-[32px] flex items-center justify-center"
+              className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
               aria-label={
                 bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
               }
             >
               <svg
-                className={`w-4 h-4 ${
+                className={`w-5 h-5 ${
                   bookmark.isFavorite
                     ? "text-red-500 dark:text-red-400 fill-current"
                     : "text-gray-400"
@@ -151,121 +111,61 @@ export const BookmarkCard = ({
               </svg>
             </button>
 
-            <button
-              ref={buttonRef}
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-all duration-150 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-700 min-w-[32px] min-h-[32px] flex items-center justify-center"
-              aria-label="메뉴 열기"
+            {/* 외부 링크 버튼 */}
+            <a
+              href={bookmark.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+              aria-label="새 탭에서 열기"
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
-              </svg>
-            </button>
+              <ExternalLink className="w-5 h-5" />
+            </a>
 
-            {/* 드롭다운 메뉴 */}
-            {showMenu && (
-              <div
-                ref={menuRef}
-                className="absolute right-0 top-10 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 animate-fade-in transition-all duration-200 opacity-100"
+            {/* 메뉴 버튼 */}
+            {onToggleMenu && (
+              <button
+                onClick={() => onToggleMenu(bookmark.id)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm min-w-[40px] min-h-[40px] flex items-center justify-center"
+                aria-label="메뉴"
               >
-                <div className="py-1">
-                  <button
-                    onClick={handleEdit}
-                    className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 transition-all duration-150 hover:scale-105 min-h-[44px]"
-                  >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                      />
-                    </svg>
-                    <span>수정</span>
-                  </button>
-
-                  <button
-                    onClick={handleRefreshFavicon}
-                    disabled={faviconLoading}
-                    className="w-full px-4 py-3 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-3 disabled:opacity-50 transition-all duration-150 hover:scale-105 min-h-[44px]"
-                  >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                      />
-                    </svg>
-                    <span>
-                      {faviconLoading ? "가져오는 중..." : "파비콘 재가져오기"}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={handleDelete}
-                    className="w-full px-4 py-3 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-3 transition-all duration-150 hover:scale-105 min-h-[44px]"
-                  >
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    <span>삭제</span>
-                  </button>
-                </div>
-              </div>
+                <MoreVertical className="w-5 h-5" />
+              </button>
             )}
           </div>
         </div>
 
-        {/* 설명 */}
-        {bookmark.description && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2 transition-colors duration-200">
-            {bookmark.description}
-          </p>
+        {/* 메뉴 드롭다운 */}
+        {isMenuOpen && onToggleMenu && (
+          <div className="absolute top-full right-0 mt-2 w-48 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-glass border border-white/20 dark:border-gray-700/20 z-50 animate-slide-up">
+            <div className="p-2 space-y-1">
+              <button
+                onClick={() => onEdit(bookmark)}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-xl transition-colors duration-200"
+              >
+                <Edit className="w-4 h-4" />
+                <span>편집</span>
+              </button>
+              <button
+                onClick={() => onDelete(bookmark.id)}
+                className="w-full flex items-center space-x-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors duration-200"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>삭제</span>
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* 링크 버튼 */}
-        <a
-          href={bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center space-x-2 text-sm text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 transition-colors duration-200 hover:scale-105"
-        >
-          <span>방문하기</span>
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-            />
-          </svg>
-        </a>
+        {/* 메타데이터 */}
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+          <span>
+            생성일: {new Date(bookmark.createdAt).toLocaleDateString()}
+          </span>
+          {bookmark.collection && (
+            <span className="badge">{bookmark.collection}</span>
+          )}
+        </div>
       </div>
     </div>
   );

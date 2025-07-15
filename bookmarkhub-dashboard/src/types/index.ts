@@ -24,7 +24,7 @@ export interface Bookmark {
 export interface BookmarkFormData {
   title: string;
   url: string;
-  description: string;
+  description?: string;
   favicon?: string;
   collection: string;
   tags: string[]; // 태그 필드 추가

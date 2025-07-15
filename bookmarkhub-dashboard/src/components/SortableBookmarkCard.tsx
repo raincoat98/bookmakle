@@ -36,7 +36,18 @@ export const SortableBookmarkCard = ({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: bookmark.id });
+  } = useSortable({
+    id: bookmark.id,
+    data: {
+      bookmark: bookmark,
+    },
+  });
+
+  console.log("SortableBookmarkCard render:", bookmark.id, {
+    attributes,
+    listeners,
+    isDragging,
+  }); // 디버깅 로그
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,92 +95,81 @@ export const SortableBookmarkCard = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 overflow-hidden min-w-0 backdrop-blur-sm ${
+      className={`group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 w-full min-w-0 max-w-full box-border overflow-hidden backdrop-blur-sm ${
         isDragging ? "opacity-50 shadow-2xl" : ""
       }`}
     >
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      {/* 드래그 핸들러 - 모바일에서 더 크게 */}
+      {/* 드래그 핸들러 - 데스크톱에서만 호버 시 표시 */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-2 left-2 sm:top-3 sm:left-3 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-2 sm:p-1.5 shadow-sm min-w-[36px] min-h-[36px] flex items-center justify-center"
+        className="absolute top-2 left-2 sm:top-3 sm:left-3 hidden sm:block opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-1.5 shadow-sm min-w-[36px] min-h-[36px] flex items-center justify-center"
       >
         <svg
-          className="w-5 h-5 sm:w-4 sm:h-4 text-gray-500"
+          className="w-6 h-6 sm:w-5 sm:h-5 text-gray-700 dark:text-gray-200"
           fill="currentColor"
           viewBox="0 0 24 24"
         >
           <path d="M8 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM8 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM20 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM20 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM20 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
         </svg>
       </div>
-
-      {/* 액션 버튼들 - 모바일에서 항상 보이도록 수정 */}
-      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex space-x-1.5 sm:space-x-1.5 z-30 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 max-w-[200px] sm:max-w-none overflow-x-auto sm:overflow-visible">
-        {/* 상하 이동 버튼들 */}
-        {onMoveUp && !isFirst && (
-          <button
-            onClick={handleMoveUp}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-            title="위로 이동"
+      {/* 액션 버튼들 - 모바일에서 항상 보이도록, 데스크톱에서는 hover 시 보이도록 */}
+      <div
+        className="absolute top-2 right-2 flex flex-wrap gap-1 z-30 w-full max-w-full overflow-x-auto justify-end opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 pointer-events-auto"
+        style={{ pointerEvents: "auto" }}
+      >
+        {/* 상하 이동 버튼들 - 모바일 친화적 디자인 */}
+        <button
+          onClick={handleMoveUp}
+          disabled={isFirst}
+          className="p-1 lg:p-1 min-w-[32px] min-h-[32px] lg:min-w-[28px] lg:min-h-[28px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
+          title="위로 이동"
+        >
+          <svg
+            className="w-4 h-4 lg:w-3.5 lg:h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-4 h-4 sm:w-4 sm:h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-          </button>
-        )}
-        {onMoveDown && !isLast && (
-          <button
-            onClick={handleMoveDown}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-            title="아래로 이동"
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 15l7-7 7 7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={handleMoveDown}
+          disabled={isLast}
+          className="p-1 lg:p-1 min-w-[32px] min-h-[32px] lg:min-w-[28px] lg:min-h-[28px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
+          title="아래로 이동"
+        >
+          <svg
+            className="w-4 h-4 lg:w-3.5 lg:h-3.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-4 h-4 sm:w-4 sm:h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-        )}
-
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
         {/* 파비콘 재가져오기 버튼 */}
         <button
           onClick={handleRefreshFavicon}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
           disabled={faviconLoading}
-          className="p-2.5 sm:p-2 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 disabled:opacity-50 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+          className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 disabled:opacity-50 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="파비콘 재가져오기"
         >
           <svg
-            className="w-4 h-4 sm:w-4 sm:h-4"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -182,7 +182,6 @@ export const SortableBookmarkCard = ({
             />
           </svg>
         </button>
-
         {/* 즐겨찾기 버튼 */}
         <button
           onClick={(e) => {
@@ -191,46 +190,25 @@ export const SortableBookmarkCard = ({
             e.nativeEvent.stopImmediatePropagation();
             onToggleFavorite(bookmark.id, !bookmark.isFavorite);
           }}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-          className={`p-2.5 sm:p-2 rounded-lg transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 ${
+          className={`p-2 min-w-[32px] min-h-[32px] rounded-lg transition-all duration-200 flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 ${
             bookmark.isFavorite
               ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
               : "text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
           }`}
-          title={bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+          title="즐겨찾기"
         >
-          <svg
-            className={`w-4 h-4 sm:w-4 sm:h-4 ${
-              bookmark.isFavorite
-                ? "text-red-500 dark:text-red-400"
-                : "text-gray-500"
-            }`}
-            fill={bookmark.isFavorite ? "currentColor" : "none"}
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
           </svg>
         </button>
-
         {/* 수정 버튼 */}
         <button
           onClick={handleEdit}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-          className="p-2.5 sm:p-2 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+          className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="수정"
         >
           <svg
-            className="w-4 h-4 sm:w-4 sm:h-4"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -239,22 +217,18 @@ export const SortableBookmarkCard = ({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h6"
             />
           </svg>
         </button>
-
         {/* 삭제 버튼 */}
         <button
           onClick={handleDelete}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
-          onTouchEnd={(e) => e.stopPropagation()}
-          className="p-2.5 sm:p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] sm:min-w-[36px] sm:min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
+          className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
           title="삭제"
         >
           <svg
-            className="w-4 h-4 sm:w-4 sm:h-4"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -263,15 +237,14 @@ export const SortableBookmarkCard = ({
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              d="M6 18L18 6M6 6l12 12"
             />
           </svg>
         </button>
       </div>
-
       {/* 카드 내용 - 모바일에서 수직 배치 */}
-      <div className="p-4 sm:p-5 pt-12 sm:pt-14 relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-y-3 sm:space-x-4">
+      <div className="p-4 sm:p-5 pt-20 sm:pt-16 relative z-10 pointer-events-none">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-y-3 sm:space-x-4 pointer-events-auto">
           {/* 파비콘 - 모바일에서 위쪽 */}
           <div className="relative flex-shrink-0 flex justify-center sm:block mb-2 sm:mb-0">
             <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm">

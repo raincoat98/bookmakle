@@ -95,13 +95,32 @@ export const useBookmarks = (
 
         // 클라이언트에서 정렬
         filteredBookmarks.sort((a, b) => {
-          if (a.order === 0 && b.order === 0) {
-            return b.createdAt.getTime() - a.createdAt.getTime();
+          // order 필드가 있는 경우 우선적으로 사용
+          if (a.order !== undefined && b.order !== undefined) {
+            // order가 0이 아닌 경우에만 order로 정렬
+            if (a.order !== 0 || b.order !== 0) {
+              console.log(
+                `Sorting by order: ${a.title}(${a.order}) vs ${b.title}(${b.order})`
+              ); // 디버깅 로그
+              return a.order - b.order;
+            }
           }
-          return a.order - b.order;
+          // order가 없거나 둘 다 0인 경우 생성일 기준으로 정렬
+          console.log(`Sorting by date: ${a.title} vs ${b.title}`); // 디버깅 로그
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
         });
 
         console.log("처리된 북마크:", filteredBookmarks.length, "개");
+        console.log(
+          "정렬된 북마크 순서:",
+          filteredBookmarks.map((b) => ({
+            title: b.title,
+            order: b.order,
+            isFavorite: b.isFavorite,
+          }))
+        ); // 디버깅 로그
         setBookmarks(filteredBookmarks);
         setLoading(false);
       },
@@ -241,14 +260,26 @@ export const useBookmarks = (
   const reorderBookmarks = async (newBookmarks: Bookmark[]) => {
     if (!userId) return;
 
+    console.log(
+      "reorderBookmarks called with:",
+      newBookmarks.length,
+      "bookmarks"
+    ); // 디버깅 로그
+    console.log(
+      "New order:",
+      newBookmarks.map((b) => ({ id: b.id, title: b.title, order: b.order }))
+    ); // 디버깅 로그
+
     const batch = writeBatch(db);
 
     newBookmarks.forEach((bookmark, index) => {
       const bookmarkRef = doc(db, "bookmarks", bookmark.id);
       batch.update(bookmarkRef, { order: index });
+      console.log(`Updating ${bookmark.title} with order: ${index}`); // 디버깅 로그
     });
 
     await batch.commit();
+    console.log("reorderBookmarks completed successfully"); // 디버깅 로그
   };
 
   // 즐겨찾기 토글 함수 추가

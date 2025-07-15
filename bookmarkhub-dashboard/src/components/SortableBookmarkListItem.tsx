@@ -80,11 +80,11 @@ export const SortableBookmarkListItem = ({
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-r from-brand-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      {/* 드래그 핸들러 - 모바일에서 더 크게 */}
+      {/* 드래그 핸들러 - 데스크톱에서만 호버 시 표시 */}
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-3 left-3 sm:top-4 sm:left-4 opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-2 sm:p-1.5 shadow-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
+        className="absolute top-3 left-3 sm:top-4 sm:left-4 hidden sm:block opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-grab active:cursor-grabbing z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-1.5 shadow-sm min-w-[36px] min-h-[36px] flex items-center justify-center"
       >
         <svg
           className="w-5 h-5 sm:w-4 sm:h-4 text-gray-500"
@@ -97,55 +97,53 @@ export const SortableBookmarkListItem = ({
 
       {/* 액션 버튼들 - 모바일에서 항상 보이도록 수정 */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 flex space-x-1.5 sm:space-x-1.5 z-30 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 max-w-[200px] sm:max-w-none overflow-x-auto sm:overflow-visible">
-        {/* 상하 이동 버튼들 */}
-        {onMoveUp && !isFirst && (
-          <button
-            onClick={handleMoveUp}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-            title="위로 이동"
+        {/* 상하 이동 버튼들 - 모바일에서만 표시 */}
+        <button
+          onClick={handleMoveUp}
+          disabled={isFirst}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          className="sm:hidden p-2.5 text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          title="위로 이동"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-4 h-4 sm:w-4 sm:h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-          </button>
-        )}
-        {onMoveDown && !isLast && (
-          <button
-            onClick={handleMoveDown}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
-            onTouchEnd={(e) => e.stopPropagation()}
-            className="sm:hidden p-2.5 sm:p-2 text-gray-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-            title="아래로 이동"
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 15l7-7 7 7"
+            />
+          </svg>
+        </button>
+        <button
+          onClick={handleMoveDown}
+          disabled={isLast}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+          className="sm:hidden p-2.5 text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+          title="아래로 이동"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            <svg
-              className="w-4 h-4 sm:w-4 sm:h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </button>
-        )}
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </button>
 
         {/* 수정 버튼 */}
         <button

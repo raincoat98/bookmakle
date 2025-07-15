@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import type { Bookmark, Collection } from "../types";
+import { Drawer } from "../components/Drawer";
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -132,10 +133,12 @@ export const SettingsPage: React.FC = () => {
   }
 
   return (
-    <Settings
-      onBack={() => window.history.back()}
-      onImportData={handleImportData}
-      onRestoreBackup={handleRestoreBackup}
-    />
+    <Drawer>
+      <Settings
+        onBack={() => window.history.back()}
+        onImportData={handleImportData}
+        onRestoreBackup={handleRestoreBackup}
+      />
+    </Drawer>
   );
 };

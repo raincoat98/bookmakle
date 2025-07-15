@@ -9,6 +9,7 @@ import { AddBookmarkModal } from "../components/AddBookmarkModal";
 import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
+import { Drawer } from "../components/Drawer";
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -86,16 +87,6 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  // 즐겨찾기 순서 변경
-  const handleReorderFavorites = async (newBookmarks: Bookmark[]) => {
-    try {
-      await reorderBookmarks(newBookmarks);
-      toast.success("즐겨찾기 순서가 변경되었습니다.");
-    } catch {
-      toast.error("즐겨찾기 순서 변경 중 오류가 발생했습니다.");
-    }
-  };
-
   // 북마크 편집 모달 열기
   const handleEdit = (bookmark: Bookmark) => {
     setEditingBookmark(bookmark);
@@ -127,6 +118,69 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  // 북마크 순서 변경
+  const handleReorderBookmarks = async (newFavoriteBookmarks: Bookmark[]) => {
+    console.log(
+      "Dashboard handleReorderBookmarks called with:",
+      newFavoriteBookmarks.length,
+      "favorite bookmarks"
+    ); // 디버깅 로그
+
+    try {
+      // 전체 북마크 배열에서 즐겨찾기 북마크들의 순서를 업데이트
+      const updatedBookmarks = [...bookmarks];
+
+      // 즐겨찾기 북마크들을 맨 앞으로 이동하고 순서 설정
+      newFavoriteBookmarks.forEach((favoriteBookmark, index) => {
+        const bookmarkIndex = updatedBookmarks.findIndex(
+          (b) => b.id === favoriteBookmark.id
+        );
+        if (bookmarkIndex !== -1) {
+          // 즐겨찾기 북마크를 맨 앞으로 이동 (order: 0부터 시작)
+          updatedBookmarks[bookmarkIndex] = {
+            ...updatedBookmarks[bookmarkIndex],
+            order: index,
+          };
+        }
+      });
+
+      // 즐겨찾기가 아닌 북마크들의 order를 뒤로 설정
+      const nonFavoriteBookmarks = updatedBookmarks.filter(
+        (b) => !b.isFavorite
+      );
+      nonFavoriteBookmarks.forEach((bookmark, index) => {
+        const bookmarkIndex = updatedBookmarks.findIndex(
+          (b) => b.id === bookmark.id
+        );
+        if (bookmarkIndex !== -1) {
+          updatedBookmarks[bookmarkIndex] = {
+            ...updatedBookmarks[bookmarkIndex],
+            order: newFavoriteBookmarks.length + index,
+          };
+        }
+      });
+
+      console.log(
+        "Updated bookmarks:",
+        updatedBookmarks.map((b) => ({
+          id: b.id,
+          title: b.title,
+          order: b.order,
+          isFavorite: b.isFavorite,
+        }))
+      ); // 디버깅 로그
+
+      // Firestore에 순서 업데이트
+      await reorderBookmarks(updatedBookmarks);
+
+      console.log("Dashboard bookmarks reordered successfully"); // 디버깅 로그
+      toast.success("북마크 순서가 변경되었습니다.");
+    } catch (error) {
+      console.error("Error reordering bookmarks:", error);
+      toast.error("북마크 순서 변경 중 오류가 발생했습니다.");
+    }
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -143,49 +197,56 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="p-4 lg:p-6">
-        <DashboardOverview
-          bookmarks={bookmarks}
+    <Drawer>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="p-4 lg:p-6">
+          <DashboardOverview
+            bookmarks={bookmarks}
+            collections={collections}
+            onEdit={handleEdit}
+            onDelete={(id: string) => {
+              const bookmark = bookmarks.find((b) => b.id === id);
+              if (bookmark) {
+                handleDelete(bookmark);
+              }
+            }}
+            onAddBookmark={() => setIsAddModalOpen(true)}
+            onAddCollection={() => setIsAddCollectionModalOpen(true)}
+            onToggleFavorite={handleToggleFavorite}
+            onReorder={handleReorderBookmarks}
+          />
+        </div>
+        <AddBookmarkModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAdd={handleAddBookmark}
           collections={collections}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onAddBookmark={() => setIsAddModalOpen(true)}
-          onAddCollection={() => setIsAddCollectionModalOpen(true)}
-          onToggleFavorite={handleToggleFavorite}
-          onReorderFavorites={handleReorderFavorites}
+        />
+        <EditBookmarkModal
+          isOpen={!!editingBookmark}
+          onClose={() => setEditingBookmark(null)}
+          onUpdate={handleUpdateBookmark}
+          bookmark={editingBookmark}
+          collections={collections}
+        />
+        <DeleteBookmarkModal
+          isOpen={deleteBookmarkModal.isOpen}
+          onClose={() =>
+            setDeleteBookmarkModal({ isOpen: false, bookmark: null })
+          }
+          onDelete={() =>
+            deleteBookmarkModal.bookmark &&
+            handleDeleteBookmark(deleteBookmarkModal.bookmark.id)
+          }
+          bookmark={deleteBookmarkModal.bookmark}
+          isDeleting={isDeletingBookmark}
+        />
+        <AddCollectionModal
+          isOpen={isAddCollectionModalOpen}
+          onClose={() => setIsAddCollectionModalOpen(false)}
+          onAdd={handleAddCollection}
         />
       </div>
-      <AddBookmarkModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAdd={handleAddBookmark}
-        collections={collections}
-      />
-      <EditBookmarkModal
-        isOpen={!!editingBookmark}
-        onClose={() => setEditingBookmark(null)}
-        onUpdate={handleUpdateBookmark}
-        bookmark={editingBookmark}
-        collections={collections}
-      />
-      <DeleteBookmarkModal
-        isOpen={deleteBookmarkModal.isOpen}
-        onClose={() =>
-          setDeleteBookmarkModal({ isOpen: false, bookmark: null })
-        }
-        onDelete={() =>
-          deleteBookmarkModal.bookmark &&
-          handleDeleteBookmark(deleteBookmarkModal.bookmark.id)
-        }
-        bookmark={deleteBookmarkModal.bookmark}
-        isDeleting={isDeletingBookmark}
-      />
-      <AddCollectionModal
-        isOpen={isAddCollectionModalOpen}
-        onClose={() => setIsAddCollectionModalOpen(false)}
-        onAdd={handleAddCollection}
-      />
-    </div>
+    </Drawer>
   );
 };

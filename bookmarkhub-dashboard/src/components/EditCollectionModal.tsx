@@ -152,9 +152,26 @@ export const EditCollectionModal = ({
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef}
-                  className="absolute z-[70] mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg"
+                  className="absolute z-[80] mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-80 overflow-hidden"
+                  style={{
+                    width: "350px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    top: "100%",
+                  }}
                 >
-                  <EmojiPicker onEmojiClick={handleEmojiSelect} />
+                  <div className="max-h-80 overflow-y-auto">
+                    <EmojiPicker
+                      onEmojiClick={handleEmojiSelect}
+                      width="100%"
+                      height="320px"
+                      searchDisabled={false}
+                      skinTonesDisabled={false}
+                      previewConfig={{
+                        showPreview: false,
+                      }}
+                    />
+                  </div>
                 </div>
               )}
             </div>
