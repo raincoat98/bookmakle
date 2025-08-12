@@ -174,7 +174,7 @@ export const DashboardPage: React.FC = () => {
       await reorderBookmarks(updatedBookmarks);
 
       console.log("Dashboard bookmarks reordered successfully"); // 디버깅 로그
-      toast.success("북마크 순서가 변경되었습니다.");
+      // toast.success("북마크 순서가 변경되었습니다."); // 중복 토스트 제거
     } catch (error) {
       console.error("Error reordering bookmarks:", error);
       toast.error("북마크 순서 변경 중 오류가 발생했습니다.");

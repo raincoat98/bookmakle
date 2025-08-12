@@ -19,6 +19,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { BookOpen } from "lucide-react";
+import { toast } from "react-hot-toast";
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -46,6 +47,12 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   const [faviconLoadingStates, setFaviconLoadingStates] = useState<
     Record<string, boolean>
   >({});
+
+  // 이동 중인 북마크 상태 추가
+  const [movingBookmarkId, setMovingBookmarkId] = useState<string | null>(null);
+  const [moveDirection, setMoveDirection] = useState<"up" | "down" | null>(
+    null
+  );
 
   // 필터링된 북마크
   const filteredBookmarks = useMemo(() => {
@@ -107,32 +114,66 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     }
   };
 
-  // 순서 변경 함수들
-  const handleMoveUp = (bookmark: Bookmark) => {
+  // 순서 변경 함수들 - 애니메이션 효과 추가
+  const handleMoveUp = async (bookmark: Bookmark) => {
     const currentIndex = filteredBookmarks.findIndex(
       (b) => b.id === bookmark.id
     );
     if (currentIndex > 0) {
-      const newOrder = arrayMove(
-        filteredBookmarks,
-        currentIndex,
-        currentIndex - 1
-      );
-      onReorder(newOrder);
+      // 이동 시작 상태 설정
+      setMovingBookmarkId(bookmark.id);
+      setMoveDirection("up");
+
+      // 약간의 지연 후 실제 이동 수행 (애니메이션 효과)
+      setTimeout(() => {
+        const newOrder = arrayMove(
+          filteredBookmarks,
+          currentIndex,
+          currentIndex - 1
+        );
+        onReorder(newOrder);
+
+        // 이동 완료 후 상태 초기화 및 토스트
+        setTimeout(() => {
+          setMovingBookmarkId(null);
+          setMoveDirection(null);
+          toast.success(`"${bookmark.title}" 위로 이동 완료! 🔝`, {
+            duration: 2000,
+            icon: "📌",
+          });
+        }, 300);
+      }, 100);
     }
   };
 
-  const handleMoveDown = (bookmark: Bookmark) => {
+  const handleMoveDown = async (bookmark: Bookmark) => {
     const currentIndex = filteredBookmarks.findIndex(
       (b) => b.id === bookmark.id
     );
     if (currentIndex < filteredBookmarks.length - 1) {
-      const newOrder = arrayMove(
-        filteredBookmarks,
-        currentIndex,
-        currentIndex + 1
-      );
-      onReorder(newOrder);
+      // 이동 시작 상태 설정
+      setMovingBookmarkId(bookmark.id);
+      setMoveDirection("down");
+
+      // 약간의 지연 후 실제 이동 수행 (애니메이션 효과)
+      setTimeout(() => {
+        const newOrder = arrayMove(
+          filteredBookmarks,
+          currentIndex,
+          currentIndex + 1
+        );
+        onReorder(newOrder);
+
+        // 이동 완료 후 상태 초기화 및 토스트
+        setTimeout(() => {
+          setMovingBookmarkId(null);
+          setMoveDirection(null);
+          toast.success(`"${bookmark.title}" 아래로 이동 완료! 🔽`, {
+            duration: 2000,
+            icon: "📌",
+          });
+        }, 300);
+      }, 100);
     }
   };
 
@@ -197,6 +238,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                     onMoveDown={handleMoveDown}
                     isFirst={idx === 0}
                     isLast={idx === filteredBookmarks.length - 1}
+                    isMoving={movingBookmarkId === bookmark.id}
+                    moveDirection={moveDirection}
                   />
                 ) : (
                   <SortableBookmarkListItem
@@ -214,6 +257,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                     onMoveDown={handleMoveDown}
                     isFirst={idx === 0}
                     isLast={idx === filteredBookmarks.length - 1}
+                    isMoving={movingBookmarkId === bookmark.id}
+                    moveDirection={moveDirection}
                   />
                 )
               )}

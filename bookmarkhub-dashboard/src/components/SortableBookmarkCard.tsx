@@ -14,7 +14,9 @@ interface SortableBookmarkCardProps {
   onMoveDown?: (bookmark: Bookmark) => void;
   isFirst?: boolean;
   isLast?: boolean;
-  onToggleFavorite: (id: string, isFavorite: boolean) => void; // 즐겨찾기 토글 함수 추가
+  onToggleFavorite: (id: string, isFavorite: boolean) => void;
+  isMoving?: boolean; // 이동 중인지 여부
+  moveDirection?: "up" | "down" | null; // 이동 방향
 }
 
 export const SortableBookmarkCard = ({
@@ -28,7 +30,9 @@ export const SortableBookmarkCard = ({
   onMoveDown,
   isFirst = false,
   isLast = false,
-  onToggleFavorite, // 즐겨찾기 토글 함수 추가
+  onToggleFavorite,
+  isMoving = false, // 이동 중인지 여부
+  moveDirection = null, // 이동 방향
 }: SortableBookmarkCardProps) => {
   const {
     attributes,
@@ -98,8 +102,47 @@ export const SortableBookmarkCard = ({
       style={style}
       className={`group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl border border-gray-200/50 dark:border-gray-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 w-full min-w-0 max-w-full box-border overflow-hidden backdrop-blur-sm ${
         isDragging ? "opacity-50 shadow-2xl" : ""
+      } ${
+        isMoving
+          ? `animate-pulse shadow-2xl ring-4 ${
+              moveDirection === "up"
+                ? "ring-green-300 dark:ring-green-600 -translate-y-2"
+                : "ring-blue-300 dark:ring-blue-600 translate-y-2"
+            }`
+          : ""
       }`}
     >
+      {/* 이동 방향 인디케이터 */}
+      {isMoving && (
+        <div
+          className={`absolute top-2 left-1/2 transform -translate-x-1/2 z-50 ${
+            moveDirection === "up" ? "animate-bounce" : ""
+          }`}
+        >
+          <div
+            className={`w-8 h-8 rounded-full flex items-center justify-center ${
+              moveDirection === "up"
+                ? "bg-green-500 text-white"
+                : "bg-blue-500 text-white"
+            } shadow-lg`}
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d={moveDirection === "up" ? "M5 15l7-7 7 7" : "M19 9l-7 7-7-7"}
+              />
+            </svg>
+          </div>
+        </div>
+      )}
+
       {/* 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-br from-brand-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       {/* 드래그 핸들러 - 데스크톱에서만 호버 시 표시 */}
