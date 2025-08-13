@@ -4,7 +4,6 @@ import {
   Folder,
   FileText,
   Sparkles,
-  Heart,
   Globe,
   Plus,
   FolderPlus,
@@ -32,7 +31,6 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
@@ -48,13 +46,14 @@ interface StatsCardProps {
   description?: string;
 }
 
-interface FavoriteBookmarksProps {
-  bookmarks: Bookmark[];
-  onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
-  onToggleFavorite: (id: string, isFavorite: boolean) => void;
-  onReorder?: (newBookmarks: Bookmark[]) => void;
-}
+// 북마크 리스트 숨김으로 인해 사용하지 않음
+// interface FavoriteBookmarksProps {
+//   bookmarks: Bookmark[];
+//   onEdit: (bookmark: Bookmark) => void;
+//   onDelete: (id: string) => void;
+//   onToggleFavorite: (id: string, isFavorite: boolean) => void;
+//   onReorder?: (newBookmarks: Bookmark[]) => void;
+// }
 
 interface CollectionDistributionProps {
   bookmarks: Bookmark[];
@@ -211,238 +210,240 @@ const StatsCard: React.FC<StatsCardProps> = ({
 };
 
 // 정렬 가능한 즐겨찾기 북마크 카드 컴포넌트
-const SortableFavoriteBookmark: React.FC<{
-  bookmark: Bookmark;
-  onEdit: (bookmark: Bookmark) => void;
-  onDelete: (id: string) => void;
-  onToggleFavorite: (id: string, isFavorite: boolean) => void;
-}> = ({ bookmark, onEdit, onDelete, onToggleFavorite }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: bookmark.id,
-    transition: {
-      duration: 150,
-      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-    },
-  });
+// 북마크 리스트 숨김으로 인해 사용하지 않음
+// const SortableFavoriteBookmark: React.FC<{
+//   bookmark: Bookmark;
+//   onEdit: (bookmark: Bookmark) => void;
+//   onDelete: (id: string) => void;
+//   onToggleFavorite: (id: string, isFavorite: boolean) => void;
+// }> = ({ bookmark, onEdit, onDelete, onToggleFavorite }) => {
+//   const {
+//     attributes,
+//     listeners,
+//     setNodeRef,
+//     transform,
+//     transition,
+//     isDragging,
+//   } = useSortable({
+//     id: bookmark.id,
+//     transition: {
+//       duration: 150,
+//       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+//     },
+//   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+//   const style = {
+//     transform: CSS.Transform.toString(transform),
+//     transition,
+//   };
 
-  const handleFaviconClick = (url: string) => {
-    window.open(url, "_blank");
-  };
+//   const handleFaviconClick = (url: string) => {
+//     window.open(url, "_blank");
+//   };
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      {...listeners}
-      className={`group cursor-move animate-slide-up select-none ${
-        isDragging ? "opacity-50 z-50" : ""
-      }`}
-      title={`${bookmark.title} - 드래그하여 순서 변경`}
-    >
-      <div className="relative bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-2xl shadow-soft border border-white/30 dark:border-gray-600/30 p-4 hover:shadow-soft-lg transition-all duration-300 hover:scale-105">
-        <div className="flex flex-col items-center space-y-3">
-          <div className="relative">
-            {bookmark.favicon ? (
-              <img
-                src={bookmark.favicon}
-                alt={bookmark.title}
-                className="w-8 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform cursor-pointer"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleFaviconClick(bookmark.url);
-                }}
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
-              />
-            ) : (
-              <div
-                className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg shadow-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleFaviconClick(bookmark.url);
-                }}
-              >
-                <Globe className="w-4 h-4 text-white" />
-              </div>
-            )}
+//   return (
+//     <div
+//       ref={setNodeRef}
+//       style={style}
+//       {...attributes}
+//       {...listeners}
+//       className={`group cursor-move animate-slide-up select-none ${
+//         isDragging ? "opacity-50 z-50" : ""
+//       }`}
+//       title={`${bookmark.title} - 드래그하여 순서 변경`}
+//     >
+//       <div className="relative bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-2xl shadow-soft border border-white/30 dark:border-gray-600/30 p-4 hover:shadow-soft-lg transition-all duration-300 hover:scale-105">
+//         <div className="flex flex-col items-center space-y-3">
+//           <div className="relative">
+//             {bookmark.favicon ? (
+//               <img
+//                 src={bookmark.favicon}
+//                 alt={bookmark.title}
+//                 className="w-8 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform cursor-pointer"
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   handleFaviconClick(bookmark.url);
+//                 }}
+//                 onError={(e) => {
+//                   e.currentTarget.style.display = "none";
+//                 }}
+//               />
+//             ) : (
+//               <div
+//                 className="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-lg shadow-sm flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   handleFaviconClick(bookmark.url);
+//                 }}
+//               >
+//                 <Globe className="w-4 h-4 text-white" />
+//               </div>
+//             )}
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(bookmark.id, false);
-              }}
-              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-soft"
-              title="즐겨찾기 해제"
-            >
-              <Heart className="w-3 h-3 fill-current" />
-            </button>
-          </div>
+//             <button
+//               onClick={(e) => {
+//                 e.stopPropagation();
+//                 onToggleFavorite(bookmark.id, false);
+//               }}
+//               className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-soft"
+//               title="즐겨찾기 해제"
+//             >
+//               <Heart className="w-3 h-3 fill-current" />
+//             </button>
+//           </div>
 
-          <div className="text-center space-y-1">
-            <p className="text-xs font-medium text-gray-900 dark:text-white truncate w-full">
-              {bookmark.title}
-            </p>
-            <div className="flex space-x-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(bookmark);
-                }}
-                className="p-1 text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 rounded-lg transition-colors duration-200 hover:bg-white/50 dark:hover:bg-gray-600/50"
-                title="편집"
-              >
-                <Edit className="w-3 h-3" />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(bookmark.id);
-                }}
-                className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors duration-200 hover:bg-white/50 dark:hover:bg-gray-600/50"
-                title="삭제"
-              >
-                <Trash2 className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+//           <div className="text-center space-y-1">
+//             <p className="text-xs font-medium text-gray-900 dark:text-white truncate w-full">
+//               {bookmark.title}
+//             </p>
+//             <div className="flex space-x-1">
+//               <button
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   onEdit(bookmark);
+//                 }}
+//                 className="p-1 text-gray-400 hover:text-brand-500 dark:hover:text-brand-400 rounded-lg transition-colors duration-200 hover:bg-white/50 dark:hover:bg-gray-600/50"
+//                 title="편집"
+//               >
+//                 <Edit className="w-3 h-3" />
+//               </button>
+//               <button
+//                 onClick={(e) => {
+//                   e.stopPropagation();
+//                   onDelete(bookmark.id);
+//                 }}
+//                 className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg transition-colors duration-200 hover:bg-white/50 dark:hover:bg-gray-600/50"
+//                 title="삭제"
+//               >
+//                 <Trash2 className="w-3 h-3" />
+//               </button>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
-const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
-  bookmarks,
-  onEdit,
-  onDelete,
-  onToggleFavorite,
-  onReorder,
-}) => {
-  const initialFavoriteBookmarks = bookmarks
-    .filter((b) => b.isFavorite)
-    .slice(0, 8);
-  const [favoriteBookmarks, setFavoriteBookmarks] = useState(
-    initialFavoriteBookmarks
-  );
+// 북마크 리스트 숨김으로 인해 사용하지 않음
+// const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
+//   bookmarks,
+//   onEdit,
+//   onDelete,
+//   onToggleFavorite,
+//   onReorder,
+// }) => {
+//   const initialFavoriteBookmarks = bookmarks
+//     .filter((b) => b.isFavorite)
+//     .slice(0, 8);
+//   const [favoriteBookmarks, setFavoriteBookmarks] = useState(
+//     initialFavoriteBookmarks
+//   );
 
-  // bookmarks prop이 변경되면 로컬 상태 업데이트
-  useEffect(() => {
-    const newFavoriteBookmarks = bookmarks
-      .filter((b) => b.isFavorite)
-      .slice(0, 8);
-    setFavoriteBookmarks(newFavoriteBookmarks);
-  }, [bookmarks]);
+//   // bookmarks prop이 변경되면 로컬 상태 업데이트
+//   useEffect(() => {
+//     const newFavoriteBookmarks = bookmarks
+//       .filter((b) => b.isFavorite)
+//       .slice(0, 8);
+//     setFavoriteBookmarks(newFavoriteBookmarks);
+//   }, [bookmarks]);
 
-  // 드래그 앤 드롭 센서 설정
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 1, // 바로 드래그 시작
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+//   // 드래그 앤 드롭 센서 설정
+//   const sensors = useSensors(
+//     useSensor(PointerSensor, {
+//       activationConstraint: {
+//         distance: 1, // 바로 드래그 시작
+//       },
+//     }),
+//     useSensor(KeyboardSensor, {
+//       coordinateGetter: sortableKeyboardCoordinates,
+//     })
+//   );
 
-  // 드래그 종료 핸들러
-  const handleDragEnd = (event: DragEndEvent) => {
-    console.log("Dashboard drag end event:", event); // 디버깅 로그
-    const { active, over } = event;
+//   // 드래그 종료 핸들러
+//   const handleDragEnd = (event: DragEndEvent) => {
+//     console.log("Dashboard drag end event:", event); // 디버깅 로그
+//     const { active, over } = event;
 
-    if (!over) {
-      console.log("No drop target found"); // 드롭 타겟이 없는 경우
-      return;
-    }
+//     if (!over) {
+//       console.log("No drop target found"); // 드롭 타겟이 없는 경우
+//       return;
+//     }
 
-    if (active.id !== over.id) {
-      const oldIndex = favoriteBookmarks.findIndex(
-        (item) => item.id === active.id
-      );
-      const newIndex = favoriteBookmarks.findIndex(
-        (item) => item.id === over.id
-      );
+//     if (active.id !== over.id) {
+//       const oldIndex = favoriteBookmarks.findIndex(
+//         (item) => item.id === active.id
+//       );
+//       const newIndex = favoriteBookmarks.findIndex(
+//         (item) => item.id === over.id
+//       );
 
-      console.log("Moving from index", oldIndex, "to", newIndex); // 디버깅 로그
-      console.log("Active bookmark:", favoriteBookmarks[oldIndex]?.title); // 이동하는 북마크
-      console.log("Over bookmark:", favoriteBookmarks[newIndex]?.title); // 대상 북마크
+//       console.log("Moving from index", oldIndex, "to", newIndex); // 디버깅 로그
+//       console.log("Active bookmark:", favoriteBookmarks[oldIndex]?.title); // 이동하는 북마크
+//       console.log("Over bookmark:", favoriteBookmarks[newIndex]?.title); // 대상 북마크
 
-      const newBookmarks = arrayMove(favoriteBookmarks, oldIndex, newIndex);
-      console.log("New bookmarks array length:", newBookmarks.length); // 새로운 배열 길이
-      console.log(
-        "New bookmarks order:",
-        newBookmarks.map((b) => ({ id: b.id, title: b.title }))
-      ); // 새로운 순서
+//       const newBookmarks = arrayMove(favoriteBookmarks, oldIndex, newIndex);
+//       console.log("New bookmarks array length:", newBookmarks.length); // 새로운 배열 길이
+//       console.log(
+//         "New bookmarks order:",
+//         newBookmarks.map((b) => ({ id: b.id, title: b.title }))
+//       ); // 새로운 순서
 
-      // 로컬 상태 즉시 업데이트
-      setFavoriteBookmarks(newBookmarks);
+//       // 로컬 상태 즉시 업데이트
+//       setFavoriteBookmarks(newBookmarks);
 
-      // 부모 컴포넌트에 알림
-      if (onReorder) {
-        console.log("Calling onReorder with new bookmarks"); // 디버깅 로그
-        onReorder(newBookmarks);
-      } else {
-        console.log("onReorder is not provided"); // 디버깅 로그
-      }
-    } else {
-      console.log("Same position, no reorder needed"); // 같은 위치인 경우
-    }
-  };
+//       // 부모 컴포넌트에 알림
+//       if (onReorder) {
+//         console.log("Calling onReorder with new bookmarks"); // 디버깅 로그
+//         onReorder(newBookmarks);
+//       } else {
+//         console.log("onReorder is not provided"); // 디버깅 로그
+//       }
+//     } else {
+//       console.log("Same position, no reorder needed"); // 같은 위치인 경우
+//     }
+//   };
 
-  return (
-    <div className="card-glass p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Heart className="w-5 h-5 text-red-500 mr-3" />
-        즐겨찾기 북마크
-      </h3>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={favoriteBookmarks.map((bookmark) => bookmark.id)}
-          strategy={rectSortingStrategy}
-        >
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {favoriteBookmarks.length > 0 ? (
-              favoriteBookmarks.map((bookmark) => (
-                <SortableFavoriteBookmark
-                  key={bookmark.id}
-                  bookmark={bookmark}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onToggleFavorite={onToggleFavorite}
-                />
-              ))
-            ) : (
-              <div className="col-span-full text-center py-8">
-                <Heart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  즐겨찾기한 북마크가 없습니다
-                </p>
-              </div>
-            )}
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
-  );
-};
+//   return (
+//     <div className="card-glass p-6">
+//       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+//         <Heart className="w-5 h-5 text-red-500 mr-3" />
+//         즐겨찾기 북마크
+//       </h3>
+//       <DndContext
+//         sensors={sensors}
+//         collisionDetection={closestCenter}
+//         onDragEnd={handleDragEnd}
+//       >
+//         <SortableContext
+//           items={favoriteBookmarks.map((bookmark) => bookmark.id)}
+//           strategy={rectSortingStrategy}
+//         >
+//           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+//             {favoriteBookmarks.length > 0 ? (
+//               favoriteBookmarks.map((bookmark) => (
+//                 <SortableFavoriteBookmark
+//                   key={bookmark.id}
+//                   bookmark={bookmark}
+//                   onEdit={onEdit}
+//                   onDelete={onDelete}
+//                   onToggleFavorite={onToggleFavorite}
+//                 />
+//               ))
+//             ) : (
+//               <div className="col-span-full text-center py-8">
+//                 <Heart className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+//                 <p className="text-gray-500 dark:text-gray-400 text-sm">
+//                   즐겨찾기한 북마크가 없습니다
+//                 </p>
+//               </div>
+//             )}
+//           </div>
+//         </SortableContext>
+//       </DndContext>
+//     </div>
+//   );
+// };
 
 const CollectionDistribution: React.FC<CollectionDistributionProps> = ({
   bookmarks,
@@ -762,10 +763,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   collections,
   onEdit,
   onDelete,
-  onToggleFavorite,
   onAddBookmark,
   onAddCollection,
-  onReorder,
   userId,
 }) => {
   const {
@@ -829,15 +828,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       case "stats":
         return <StatsWidget bookmarks={bookmarks} collections={collections} />;
       case "favorite-bookmarks":
-        return (
-          <FavoriteBookmarks
-            bookmarks={bookmarks}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onToggleFavorite={onToggleFavorite}
-            onReorder={onReorder}
-          />
-        );
+        // 북마크 리스트 숨김
+        return null;
       case "collection-distribution":
         return (
           <CollectionDistribution
