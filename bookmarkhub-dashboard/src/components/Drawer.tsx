@@ -126,7 +126,10 @@ export const Drawer: React.FC<DrawerProps> = ({
                 collections={collections}
                 loading={collectionsLoading}
                 selectedCollection={selectedCollection}
-                onCollectionChange={onCollectionChange}
+                onCollectionChange={(collectionId) => {
+                  onCollectionChange(collectionId);
+                  setIsDrawerOpen(false);
+                }}
                 onDeleteCollectionRequest={onDeleteCollectionRequest}
                 onEditCollection={onEditCollection}
                 onOpenAddCollectionModal={onOpenAddCollectionModal}

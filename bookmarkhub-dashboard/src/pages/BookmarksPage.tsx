@@ -15,6 +15,10 @@ import { Drawer } from "../components/Drawer";
 
 export const BookmarksPage: React.FC = () => {
   const { user } = useAuth();
+
+  // 상태 관리
+  const [selectedCollection, setSelectedCollection] = useState("all");
+
   const {
     bookmarks,
     addBookmark,
@@ -23,14 +27,13 @@ export const BookmarksPage: React.FC = () => {
     reorderBookmarks,
     toggleFavorite,
     updateBookmarkFavicon, // 파비콘 새로고침 함수 추가
-  } = useBookmarks(user?.uid || "", "all");
+  } = useBookmarks(user?.uid || "", selectedCollection);
   const { collections, addCollection, updateCollection, deleteCollection } =
     useCollections(user?.uid || "");
 
-  // 상태 관리
+  // 나머지 상태 관리
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBookmark, setEditingBookmark] = useState<Bookmark | null>(null);
-  const [selectedCollection, setSelectedCollection] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);

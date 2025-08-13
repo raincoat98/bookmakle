@@ -91,7 +91,6 @@ export const CollectionList = ({
           onClick={() => {
             if (hasChild) {
               handleToggle(collection.id);
-              if (!isOpen) return;
             }
             onCollectionChange(collection.id);
           }}
