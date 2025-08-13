@@ -4,6 +4,21 @@ export interface User {
   email: string | null;
   photoURL: string | null;
   emailVerified: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+  provider?: string;
+}
+
+// Firestore에 저장되는 사용자 데이터 타입
+export interface FirestoreUser {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
+  emailVerified: boolean;
+  createdAt: any; // serverTimestamp
+  updatedAt: any; // serverTimestamp
+  provider: string;
 }
 
 export interface Bookmark {
