@@ -157,35 +157,55 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                   required
                 />
               </div>
-              {/* 파비콘 미리보기 */}
+              {/* 파비콘 미리보기 및 직접 입력 */}
               {url.trim() && (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="relative">
-                    {favicon ? (
-                      <img
-                        src={favicon}
-                        alt="파비콘"
-                        className="w-8 h-8 rounded"
-                        onError={(e) => {
-                          e.currentTarget.src = "/favicon.svg";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-                        <Globe className="w-5 h-5 text-gray-400" />
-                      </div>
-                    )}
-                    {faviconLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
-                      </div>
-                    )}
+                <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative">
+                      {favicon ? (
+                        <img
+                          src={favicon}
+                          alt="파비콘"
+                          className="w-8 h-8 rounded"
+                          onError={(e) => {
+                            e.currentTarget.src = "/favicon.svg";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                          <Globe className="w-5 h-5 text-gray-400" />
+                        </div>
+                      )}
+                      {faviconLoading && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {faviconLoading
+                        ? "파비콘 가져오는 중..."
+                        : "파비콘 미리보기"}
+                    </span>
                   </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-300">
-                    {faviconLoading
-                      ? "파비콘 가져오는 중..."
-                      : "파비콘 미리보기"}
-                  </span>
+
+                  {/* 직접 파비콘 URL 입력 */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
+                      직접 파비콘 URL 입력 (선택사항)
+                    </label>
+                    <input
+                      type="url"
+                      value={favicon}
+                      onChange={(e) => setFavicon(e.target.value)}
+                      placeholder="https://example.com/favicon.png"
+                      className="w-full px-3 py-2 text-xs bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      예:
+                      https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

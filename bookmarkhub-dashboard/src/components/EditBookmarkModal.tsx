@@ -6,6 +6,7 @@ import {
   findFaviconFromWebsite,
   refreshFavicon,
   getFaviconPreviewUrl,
+  checkFaviconStatus,
 } from "../utils/favicon";
 
 interface EditBookmarkModalProps {
@@ -154,9 +155,36 @@ export const EditBookmarkModal = ({
 
     setFaviconLoading(true);
     try {
-      // 완전히 삭제: const status = await checkFaviconStatus(formData.favicon);
+      // 파비콘 URL 유효성 검사
+      const status = await checkFaviconStatus(formData.favicon);
+      if (status.valid) {
+        // 파비콘 적용 성공 - 이미 formData.favicon에 설정되어 있음
+        console.log("파비콘 적용 성공:", formData.favicon);
+        toast.success("파비콘이 성공적으로 적용되었습니다!");
+
+        // 즉시 북마크 업데이트하여 Firebase에 저장
+        if (bookmark) {
+          await onUpdate(bookmark.id, formData);
+        }
+      } else {
+        console.warn("파비콘 URL이 유효하지 않습니다:", status.error);
+        // 경고를 표시하지만 파비콘은 그대로 적용 (사용자가 직접 입력한 URL이므로)
+        toast.error("파비콘 URL을 확인할 수 없지만 적용됩니다.");
+
+        // 파비콘을 적용하고 Firebase에 저장
+        if (bookmark) {
+          await onUpdate(bookmark.id, formData);
+        }
+      }
     } catch (error) {
       console.error("파비콘 URL 검증 실패:", error);
+      // 에러가 발생해도 파비콘은 적용 (사용자가 직접 입력한 URL이므로)
+      toast.error("파비콘 URL을 확인할 수 없지만 적용됩니다.");
+
+      // 파비콘을 적용하고 Firebase에 저장
+      if (bookmark) {
+        await onUpdate(bookmark.id, formData);
+      }
     } finally {
       setFaviconLoading(false);
     }
@@ -315,14 +343,16 @@ export const EditBookmarkModal = ({
               </div>
 
               {/* 파비콘 미리보기 */}
-              {showFaviconPreview && formData.url && (
+              {showFaviconPreview && (formData.url || formData.favicon) && (
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     파비콘 미리보기
                   </h4>
                   <div className="flex items-center space-x-3">
                     <img
-                      src={getFaviconPreviewUrl(formData.url)}
+                      src={
+                        formData.favicon || getFaviconPreviewUrl(formData.url)
+                      }
                       alt="파비콘 미리보기"
                       className="w-12 h-12 rounded"
                       onError={(e) => {
@@ -330,8 +360,16 @@ export const EditBookmarkModal = ({
                       }}
                     />
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <p>도메인: {new URL(formData.url).hostname}</p>
+                      <p>
+                        도메인:{" "}
+                        {formData.url
+                          ? new URL(formData.url).hostname
+                          : "직접 입력된 파비콘"}
+                      </p>
                       <p>미리보기 크기: 64x64</p>
+                      {formData.favicon && (
+                        <p>파비콘 URL: {formData.favicon}</p>
+                      )}
                     </div>
                   </div>
                 </div>
