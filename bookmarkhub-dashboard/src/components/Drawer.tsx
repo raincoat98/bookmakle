@@ -99,7 +99,12 @@ export const Drawer: React.FC<DrawerProps> = ({
                 <Link
                   key={item.name}
                   to={item.href}
-                  onClick={() => setIsDrawerOpen(false)}
+                  onClick={() => {
+                    // 북마크 페이지가 아닌 경우에만 Drawer 닫기
+                    if (item.href !== "/bookmarks") {
+                      setIsDrawerOpen(false);
+                    }
+                  }}
                   className={`group flex items-center space-x-2 lg:space-x-3 px-3 py-2 lg:px-4 lg:py-3 rounded-xl lg:rounded-2xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
                     item.current
                       ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-soft"

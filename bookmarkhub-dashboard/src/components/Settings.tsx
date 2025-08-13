@@ -875,7 +875,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
       {/* 데이터 가져오기 확인 모달 */}
       {showImportModal && importData && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-40">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               데이터 가져오기 확인

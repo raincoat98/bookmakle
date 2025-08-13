@@ -166,7 +166,7 @@ export const IconPicker = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden">
         {/* 헤더 */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
