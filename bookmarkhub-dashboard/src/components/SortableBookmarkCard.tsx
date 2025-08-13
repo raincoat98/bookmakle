@@ -322,12 +322,35 @@ export const SortableBookmarkCard = ({
 
           {/* 텍스트 및 정보 영역 - 수직 배치 */}
           <div className="flex-1 min-w-0 flex flex-col gap-y-2">
-            <div className="flex items-center space-x-2 mb-1">
+            <div className="flex items-center space-x-2 mb-1 pointer-events-auto">
               <a
                 href={bookmark.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-lg sm:text-base font-semibold text-gray-900 dark:text-white truncate hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200 cursor-pointer"
+                onClick={(e) => {
+                  if (isDragging) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                }}
+                onMouseDown={(e) => {
+                  if (isDragging) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                }}
+                onTouchStart={(e) => {
+                  if (isDragging) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                  }
+                }}
+                className={`text-lg sm:text-base font-semibold text-gray-900 dark:text-white truncate hover:text-brand-600 dark:hover:text-brand-400 transition-colors duration-200 cursor-pointer pointer-events-auto ${
+                  isDragging ? "pointer-events-none opacity-50" : ""
+                }`}
                 title={bookmark.title}
               >
                 {bookmark.title}
@@ -373,12 +396,35 @@ export const SortableBookmarkCard = ({
           </div>
         </div>
         {/* 방문하기 버튼: 모바일에서 전체 너비, 데스크톱은 우측 정렬 */}
-        <div className="flex mt-4 sm:justify-end">
+        <div className="flex mt-4 sm:justify-end relative z-30 pointer-events-auto">
           <a
             href={bookmark.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px]"
+            onClick={(e) => {
+              if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+            }}
+            onMouseDown={(e) => {
+              if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+            }}
+            onTouchStart={(e) => {
+              if (isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+              }
+            }}
+            className={`inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px] z-30 pointer-events-auto ${
+              isDragging ? "pointer-events-none opacity-50" : ""
+            }`}
           >
             <span>방문하기</span>
             <svg
