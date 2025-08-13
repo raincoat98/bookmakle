@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import type { Bookmark, Collection } from "../types";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
+import { MobileIconView } from "./MobileIconView";
 import {
   DndContext,
   closestCenter,
@@ -195,85 +196,107 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     <div className="space-y-6">
       {/* 북마크 그리드/리스트 */}
       {filteredBookmarks.length > 0 ? (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-          onDragStart={(event) => {
-            console.log("Drag start event:", event); // 디버깅 로그
-          }}
-          onDragOver={(event) => {
-            console.log("Drag over event:", event); // 디버깅 로그
-          }}
-        >
-          <SortableContext
-            items={filteredBookmarks.map((item) => item.id)}
-            strategy={
-              viewMode === "grid"
-                ? rectSortingStrategy
-                : verticalListSortingStrategy
-            }
-          >
-            <div
-              className={
-                viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                  : "space-y-4"
-              }
-            >
-              {filteredBookmarks.map((bookmark, idx) =>
-                viewMode === "grid" ? (
-                  <SortableBookmarkCard
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onRefreshFavicon={
-                      onRefreshFavicon ? handleRefreshFavicon : async () => {}
-                    }
-                    faviconLoading={faviconLoadingStates[bookmark.id] || false}
-                    collections={collections}
-                    onToggleFavorite={onToggleFavorite}
-                    onMoveUp={handleMoveUp}
-                    onMoveDown={handleMoveDown}
-                    isFirst={idx === 0}
-                    isLast={idx === filteredBookmarks.length - 1}
-                    isMoving={movingBookmarkId === bookmark.id}
-                    moveDirection={moveDirection}
-                  />
-                ) : (
-                  <SortableBookmarkListItem
-                    key={bookmark.id}
-                    bookmark={bookmark}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onRefreshFavicon={
-                      onRefreshFavicon ? handleRefreshFavicon : undefined
-                    }
-                    faviconLoading={faviconLoadingStates[bookmark.id] || false}
-                    collections={collections}
-                    onToggleFavorite={onToggleFavorite}
-                    onMoveUp={handleMoveUp}
-                    onMoveDown={handleMoveDown}
-                    isFirst={idx === 0}
-                    isLast={idx === filteredBookmarks.length - 1}
-                    isMoving={movingBookmarkId === bookmark.id}
-                    moveDirection={moveDirection}
-                  />
-                )
-              )}
-            </div>
-          </SortableContext>
-        </DndContext>
-      ) : (
-        <div className="card-glass p-12 text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-brand-500 to-accent-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-soft">
-            <BookOpen className="w-8 h-8 text-white" />
+        <>
+          {/* 모바일 아이콘 뷰 */}
+          <div className="block sm:hidden">
+            <MobileIconView
+              bookmarks={filteredBookmarks}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onToggleFavorite={onToggleFavorite}
+              onReorder={onReorder}
+            />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+
+          {/* 데스크톱 뷰 */}
+          <div className="hidden sm:block">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+              onDragStart={(event) => {
+                console.log("Drag start event:", event); // 디버깅 로그
+              }}
+              onDragOver={(event) => {
+                console.log("Drag over event:", event); // 디버깅 로그
+              }}
+            >
+              <SortableContext
+                items={filteredBookmarks.map((item) => item.id)}
+                strategy={
+                  viewMode === "grid"
+                    ? rectSortingStrategy
+                    : verticalListSortingStrategy
+                }
+              >
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                      : "space-y-4"
+                  }
+                >
+                  {filteredBookmarks.map((bookmark, idx) =>
+                    viewMode === "grid" ? (
+                      <SortableBookmarkCard
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={
+                          onRefreshFavicon
+                            ? handleRefreshFavicon
+                            : async () => {}
+                        }
+                        faviconLoading={
+                          faviconLoadingStates[bookmark.id] || false
+                        }
+                        collections={collections}
+                        onToggleFavorite={onToggleFavorite}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
+                        isFirst={idx === 0}
+                        isLast={idx === filteredBookmarks.length - 1}
+                        isMoving={movingBookmarkId === bookmark.id}
+                        moveDirection={moveDirection}
+                      />
+                    ) : (
+                      <SortableBookmarkListItem
+                        key={bookmark.id}
+                        bookmark={bookmark}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onRefreshFavicon={
+                          onRefreshFavicon ? handleRefreshFavicon : undefined
+                        }
+                        faviconLoading={
+                          faviconLoadingStates[bookmark.id] || false
+                        }
+                        collections={collections}
+                        onToggleFavorite={onToggleFavorite}
+                        onMoveUp={handleMoveUp}
+                        onMoveDown={handleMoveDown}
+                        isFirst={idx === 0}
+                        isLast={idx === filteredBookmarks.length - 1}
+                        isMoving={movingBookmarkId === bookmark.id}
+                        moveDirection={moveDirection}
+                      />
+                    )
+                  )}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 px-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+            <BookOpen className="w-10 h-10 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
             북마크가 없습니다
           </h3>
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
             {searchTerm
               ? "검색 결과가 없습니다. 다른 검색어를 시도해보세요."
               : "첫 번째 북마크를 추가해보세요!"}

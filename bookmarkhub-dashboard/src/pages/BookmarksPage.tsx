@@ -382,28 +382,28 @@ export const BookmarksPage: React.FC = () => {
         {/* 북마크 리스트 상단 컨트롤 바 */}
         <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row gap-4 w-full">
-            {/* 검색창 - 모바일에서 전체 너비 */}
-            <div className="relative w-full sm:flex-1 min-w-0">
+            {/* 검색창 - 데스크톱에서만 보임 */}
+            <div className="relative w-full sm:flex-1 min-w-0 hidden sm:block">
               <input
                 type="text"
                 placeholder="북마크 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 h-[48px] border border-slate-300/50 dark:border-slate-600/50 rounded-xl bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm shadow-sm"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             </div>
 
             {/* 데스크톱 컨트롤 */}
             <div className="hidden sm:flex items-center gap-4">
-              {/* 뷰 모드 토글 버튼 */}
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              {/* 뷰 모드 토글 버튼 - 데스크톱에서만 */}
+              <div className="flex bg-slate-100 dark:bg-slate-700 rounded-xl p-1 shadow-lg">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-md transition-colors min-w-[40px] h-[40px] flex items-center justify-center ${
+                  className={`p-2 rounded-lg transition-all duration-200 min-w-[40px] h-[40px] flex items-center justify-center ${
                     viewMode === "grid"
-                      ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-md"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                   title="그리드 뷰"
                 >
@@ -411,10 +411,10 @@ export const BookmarksPage: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-md transition-colors min-w-[40px] h-[40px] flex items-center justify-center ${
+                  className={`p-2 rounded-lg transition-all duration-200 min-w-[40px] h-[40px] flex items-center justify-center ${
                     viewMode === "list"
-                      ? "bg-white dark:bg-gray-600 text-brand-600 dark:text-brand-400 shadow-sm"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                      ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-md"
+                      : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                   title="리스트 뷰"
                 >
@@ -423,17 +423,17 @@ export const BookmarksPage: React.FC = () => {
               </div>
 
               {/* 데스크톱 버튼들 */}
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setIsAddCollectionModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 h-[48px] bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200 whitespace-nowrap"
+                  className="inline-flex items-center justify-center px-6 py-3 h-[48px] bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 whitespace-nowrap shadow-lg hover:shadow-xl"
                 >
                   <FolderPlus className="w-5 h-5 mr-2" />
                   컬렉션 추가
                 </button>
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className="inline-flex items-center justify-center px-4 py-2 h-[48px] bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200 whitespace-nowrap"
+                  className="inline-flex items-center justify-center px-6 py-3 h-[48px] bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 whitespace-nowrap shadow-lg hover:shadow-xl"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   북마크 추가
@@ -446,14 +446,14 @@ export const BookmarksPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 mt-4 sm:hidden">
             <button
               onClick={() => setIsAddCollectionModalOpen(true)}
-              className="flex items-center justify-center px-4 py-3 h-[48px] bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
+              className="flex items-center justify-center px-4 py-3 h-[48px] bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg"
             >
               <FolderPlus className="w-5 h-5 mr-2" />
               컬렉션 추가
             </button>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="flex items-center justify-center px-4 py-3 h-[48px] bg-brand-600 hover:bg-brand-700 text-white font-medium rounded-lg transition-colors duration-200"
+              className="flex items-center justify-center px-4 py-3 h-[48px] bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
               북마크 추가
@@ -462,7 +462,7 @@ export const BookmarksPage: React.FC = () => {
         </div>
 
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
+        <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0 sm:pb-6 pb-24">
           <BookmarkList
             bookmarks={bookmarks}
             onEdit={setEditingBookmark}
@@ -479,6 +479,22 @@ export const BookmarksPage: React.FC = () => {
             searchTerm={searchTerm}
             viewMode={viewMode}
           />
+
+          {/* 모바일 하단 검색바 */}
+          <div className="fixed bottom-0 left-0 right-0 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-t border-slate-200/50 dark:border-slate-700/50 p-4 sm:hidden">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="검색어 또는 URL 입력"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-4 pr-16 py-4 border border-slate-300/50 dark:border-slate-600/50 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm shadow-lg"
+              />
+              <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl text-sm font-medium shadow-lg transition-all duration-200">
+                완료
+              </button>
+            </div>
+          </div>
 
           {/* 태그 필터 UI */}
           {(() => {
@@ -517,12 +533,12 @@ export const BookmarksPage: React.FC = () => {
             );
 
             return allTags.length > 0 && hasBookmarksWithTags ? (
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap gap-3">
                 <button
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200 shadow-sm ${
                     selectedTag === null
-                      ? "bg-purple-500 text-white border-purple-500"
-                      : "bg-gray-100 text-gray-700 border-gray-200"
+                      ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-500 shadow-lg"
+                      : "bg-white/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:shadow-md backdrop-blur-sm"
                   }`}
                   onClick={() => setSelectedTag(null)}
                 >
@@ -531,10 +547,10 @@ export const BookmarksPage: React.FC = () => {
                 {allTags.map((tag) => (
                   <button
                     key={tag}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                    className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-all duration-200 shadow-sm ${
                       selectedTag === tag
-                        ? "bg-purple-500 text-white border-purple-500"
-                        : "bg-gray-100 text-purple-700 border-gray-200 hover:bg-purple-100"
+                        ? "bg-gradient-to-r from-purple-500 to-purple-600 text-white border-purple-500 shadow-lg"
+                        : "bg-white/80 dark:bg-slate-800/80 text-purple-700 dark:text-purple-300 border-slate-300 dark:border-slate-600 hover:shadow-md backdrop-blur-sm hover:bg-purple-50 dark:hover:bg-purple-900/20"
                     }`}
                     onClick={() => setSelectedTag(tag)}
                   >

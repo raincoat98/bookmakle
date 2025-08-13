@@ -61,14 +61,14 @@ export const Drawer: React.FC<DrawerProps> = ({
       {/* 모바일 오버레이 */}
       {isDrawerOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-[9998] bg-black/20 dark:bg-black/40 backdrop-blur-sm lg:hidden"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
 
       {/* 사이드바 */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 lg:w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        className={`fixed inset-y-0 left-0 z-[9999] w-64 lg:w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
           isDrawerOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
