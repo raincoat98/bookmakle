@@ -7,6 +7,7 @@ import {
   Wind,
   MapPin,
   X,
+  RefreshCw,
 } from "lucide-react";
 
 interface WeatherData {
@@ -147,10 +148,11 @@ export const WeatherWidget: React.FC = () => {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          resolve({
+          const newLocation = {
             lat: position.coords.latitude,
             lon: position.coords.longitude,
-          });
+          };
+          resolve(newLocation);
         },
         (error) => {
           console.log("위치 정보 가져오기 실패:", error);
@@ -294,13 +296,11 @@ export const WeatherWidget: React.FC = () => {
     }
   };
 
-  // 날씨 데이터 가져오기
-  const fetchWeather = async () => {
+  // 특정 위치로 날씨 데이터 가져오기
+  const fetchWeatherWithLocation = async (lat: number, lon: number) => {
     try {
       setLoading(true);
       setError(null);
-
-      const location = await getLocation();
 
       const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
       if (!API_KEY) {
@@ -308,7 +308,7 @@ export const WeatherWidget: React.FC = () => {
       }
 
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${API_KEY}&units=metric&lang=kr`
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=kr`
       );
 
       if (!response.ok) {
@@ -328,7 +328,7 @@ export const WeatherWidget: React.FC = () => {
       });
 
       // 주간 날씨 데이터도 함께 가져오기
-      await fetchWeeklyWeather(location.lat, location.lon);
+      await fetchWeeklyWeather(lat, lon);
     } catch (error) {
       console.log("날씨 정보 가져오기 실패:", error);
       setError("날씨 정보를 가져올 수 없습니다");
@@ -380,6 +380,17 @@ export const WeatherWidget: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 날씨 데이터 가져오기
+  const fetchWeather = async () => {
+    const location = await getLocation();
+    await fetchWeatherWithLocation(location.lat, location.lon);
+  };
+
+  // 현재 위치 새로고침
+  const handleRefreshLocation = async () => {
+    await fetchWeather();
   };
 
   useEffect(() => {
@@ -490,6 +501,20 @@ export const WeatherWidget: React.FC = () => {
 
         {/* 배경 오버레이 */}
         <div className="absolute inset-0 bg-white/20 dark:bg-black/20 backdrop-blur-sm" />
+
+        {/* 위치 새로고침 버튼 */}
+        <div className="absolute bottom-2 right-2 z-20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRefreshLocation();
+            }}
+            className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all duration-200 hover:scale-110"
+            title="위치 새로고침"
+          >
+            <RefreshCw className="w-4 h-4 text-white" />
+          </button>
+        </div>
 
         {/* 컨텐츠 */}
         <div className="relative z-10 p-4">
