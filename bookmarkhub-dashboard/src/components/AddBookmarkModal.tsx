@@ -52,8 +52,19 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
           const defaultFavicon = getFaviconUrl(url);
           setFavicon(defaultFavicon);
 
-          // 웹사이트에서 실제 파비콘 찾기 시도
-          const actualFavicon = await findFaviconFromWebsite(url);
+          // 웹사이트에서 실제 파비콘 찾기 시도 (타임아웃 설정)
+          const timeoutPromise = new Promise<string>((_, reject) => {
+            setTimeout(
+              () => reject(new Error("파비콘 가져오기 시간 초과")),
+              5000
+            );
+          });
+
+          const faviconPromise = findFaviconFromWebsite(url);
+          const actualFavicon = await Promise.race([
+            faviconPromise,
+            timeoutPromise,
+          ]);
           setFavicon(actualFavicon);
         } catch (error) {
           console.error("파비콘 가져오기 실패:", error);
@@ -74,22 +85,60 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !url.trim()) return;
+
+    // 기본 유효성 검사
+    if (!title.trim()) {
+      alert("북마크 제목을 입력해주세요.");
+      return;
+    }
+
+    if (!url.trim()) {
+      alert("북마크 URL을 입력해주세요.");
+      return;
+    }
+
+    // URL 유효성 검사
+    let validUrl = url.trim();
+    if (!validUrl.startsWith("http://") && !validUrl.startsWith("https://")) {
+      validUrl = `https://${validUrl}`;
+    }
+
+    try {
+      new URL(validUrl);
+    } catch {
+      alert("올바른 URL 형식이 아닙니다.");
+      return;
+    }
 
     setIsLoading(true);
     try {
-      await onAdd({
+      console.log("북마크 추가 시도:", {
         title: title.trim(),
-        url: url.trim(),
-        description: description.trim() || undefined,
+        url: validUrl,
+        description: description.trim() || "",
         collection: selectedCollection,
         tags: [],
         isFavorite: false,
-        favicon: favicon || undefined,
+        favicon: favicon || "",
+      });
+
+      await onAdd({
+        title: title.trim(),
+        url: validUrl,
+        description: description.trim() || "",
+        collection: selectedCollection,
+        tags: [],
+        isFavorite: false,
+        favicon: favicon || "",
       });
       onClose();
     } catch (error) {
       console.error("북마크 추가 실패:", error);
+      console.error("오류 상세:", {
+        message: error instanceof Error ? error.message : "알 수 없는 오류",
+        stack: error instanceof Error ? error.stack : "스택 없음",
+        type: typeof error,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -157,55 +206,35 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                   required
                 />
               </div>
-              {/* 파비콘 미리보기 및 직접 입력 */}
+              {/* 파비콘 미리보기 */}
               {url.trim() && (
-                <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      {favicon ? (
-                        <img
-                          src={favicon}
-                          alt="파비콘"
-                          className="w-8 h-8 rounded"
-                          onError={(e) => {
-                            e.currentTarget.src = "/favicon.svg";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-                          <Globe className="w-5 h-5 text-gray-400" />
-                        </div>
-                      )}
-                      {faviconLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {faviconLoading
-                        ? "파비콘 가져오는 중..."
-                        : "파비콘 미리보기"}
-                    </span>
+                <div className="flex items-center space-x-2">
+                  <div className="relative">
+                    {favicon ? (
+                      <img
+                        src={favicon}
+                        alt="파비콘"
+                        className="w-6 h-6 rounded"
+                        onError={(e) => {
+                          e.currentTarget.src = "/favicon.svg";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                        <Globe className="w-4 h-4 text-gray-400" />
+                      </div>
+                    )}
+                    {faviconLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-brand-500"></div>
+                      </div>
+                    )}
                   </div>
-
-                  {/* 직접 파비콘 URL 입력 */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400">
-                      직접 파비콘 URL 입력 (선택사항)
-                    </label>
-                    <input
-                      type="url"
-                      value={favicon}
-                      onChange={(e) => setFavicon(e.target.value)}
-                      placeholder="https://example.com/favicon.png"
-                      className="w-full px-3 py-2 text-xs bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      예:
-                      https://www.gstatic.com/mobilesdk/240501_mobilesdk/firebase_28dp.png
-                    </p>
-                  </div>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {faviconLoading
+                      ? "파비콘 가져오는 중..."
+                      : "파비콘 미리보기"}
+                  </span>
                 </div>
               )}
             </div>

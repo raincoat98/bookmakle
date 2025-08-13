@@ -205,27 +205,67 @@ export const useBookmarks = (
   const addBookmark = async (bookmarkData: BookmarkFormData) => {
     if (!userId) throw new Error("사용자가 로그인되지 않았습니다.");
 
-    // favicon이 없으면 자동으로 가져오기
-    let favicon = bookmarkData.favicon;
-    if (!favicon && bookmarkData.url) {
-      favicon = getFaviconUrl(bookmarkData.url);
+    try {
+      console.log("북마크 추가 시작:", bookmarkData);
+
+      // 데이터 유효성 검사
+      if (!bookmarkData.title || !bookmarkData.title.trim()) {
+        throw new Error("북마크 제목은 필수입니다.");
+      }
+
+      if (!bookmarkData.url || !bookmarkData.url.trim()) {
+        throw new Error("북마크 URL은 필수입니다.");
+      }
+
+      // URL 유효성 검사
+      try {
+        new URL(
+          bookmarkData.url.startsWith("http")
+            ? bookmarkData.url
+            : `https://${bookmarkData.url}`
+        );
+      } catch {
+        throw new Error("올바른 URL 형식이 아닙니다.");
+      }
+
+      // favicon이 없으면 자동으로 가져오기
+      let favicon = bookmarkData.favicon;
+      if (!favicon && bookmarkData.url) {
+        favicon = getFaviconUrl(bookmarkData.url);
+      }
+
+      const newBookmark = {
+        title: bookmarkData.title.trim(),
+        url: bookmarkData.url.trim(),
+        description: bookmarkData.description || "",
+        favicon: favicon || "",
+        collection: bookmarkData.collection || null,
+        order: bookmarks.length,
+        userId: userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tags: Array.isArray(bookmarkData.tags) ? bookmarkData.tags : [],
+        isFavorite: Boolean(bookmarkData.isFavorite),
+      };
+
+      console.log("Firestore에 저장할 북마크 데이터:", newBookmark);
+
+      // Firestore에 저장
+      const docRef = await addDoc(collection(db, "bookmarks"), newBookmark);
+      console.log("북마크 추가 성공, 문서 ID:", docRef.id);
+    } catch (error) {
+      console.error("북마크 추가 실패 - 상세 오류:", error);
+      console.error("오류 타입:", typeof error);
+      console.error(
+        "오류 메시지:",
+        error instanceof Error ? error.message : "알 수 없는 오류"
+      );
+      console.error(
+        "오류 스택:",
+        error instanceof Error ? error.stack : "스택 없음"
+      );
+      throw error;
     }
-
-    const newBookmark = {
-      title: bookmarkData.title,
-      url: bookmarkData.url,
-      description: bookmarkData.description,
-      favicon: favicon,
-      collection: bookmarkData.collection || null,
-      order: bookmarks.length,
-      userId: userId,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      tags: bookmarkData.tags || [],
-      isFavorite: bookmarkData.isFavorite || false, // 즐겨찾기 필드 추가
-    };
-
-    await addDoc(collection(db, "bookmarks"), newBookmark);
   };
 
   const updateBookmark = async (
@@ -244,8 +284,8 @@ export const useBookmarks = (
     await updateDoc(bookmarkRef, {
       title: bookmarkData.title,
       url: bookmarkData.url,
-      description: bookmarkData.description,
-      favicon: favicon,
+      description: bookmarkData.description || "",
+      favicon: favicon || "",
       collection: bookmarkData.collection || null,
       updatedAt: new Date(),
       tags: bookmarkData.tags || [],

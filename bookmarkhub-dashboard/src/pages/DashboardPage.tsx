@@ -37,11 +37,23 @@ export const DashboardPage: React.FC = () => {
   // 북마크 추가
   const handleAddBookmark = async (data: BookmarkFormData) => {
     try {
+      console.log("DashboardPage - 북마크 추가 시도:", data);
+
       await addBookmark({ ...data, isFavorite: data.isFavorite || false });
       setIsAddModalOpen(false);
       toast.success("북마크가 추가되었습니다.");
-    } catch {
-      toast.error("북마크 추가 중 오류가 발생했습니다.");
+    } catch (error) {
+      console.error("DashboardPage - 북마크 추가 실패:", error);
+      console.error("오류 상세:", {
+        message: error instanceof Error ? error.message : "알 수 없는 오류",
+        stack: error instanceof Error ? error.stack : "스택 없음",
+        type: typeof error,
+      });
+
+      // 사용자에게 더 구체적인 오류 메시지 표시
+      const errorMessage =
+        error instanceof Error ? error.message : "알 수 없는 오류";
+      toast.error(`북마크 추가 실패: ${errorMessage}`);
     }
   };
 

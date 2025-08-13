@@ -76,15 +76,39 @@ export const findFaviconFromWebsite = async (url: string): Promise<string> => {
     const domain = getDomainFromUrl(url);
     if (!domain) return getFaviconUrl(url);
 
-    // 여러 파비콘 서비스 시도
-    const faviconServices = [
-      `https://www.google.com/s2/favicons?domain=${domain}&sz=32`,
+    // Google 파비콘 서비스를 기본으로 사용 (가장 안정적)
+    const googleFavicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+
+    // 파비콘 유효성 검사
+    try {
+      const status = await checkFaviconStatus(googleFavicon);
+      if (status.valid) {
+        return googleFavicon;
+      }
+    } catch (error) {
+      console.warn("Google 파비콘 서비스 검증 실패:", error);
+    }
+
+    // Google 파비콘이 실패하면 다른 서비스 시도
+    const alternativeServices = [
       `https://favicon.ico/${domain}`,
       `https://icon.horse/icon/${domain}`,
     ];
 
-    // 첫 번째 서비스 (Google)를 기본으로 사용
-    return faviconServices[0];
+    for (const serviceUrl of alternativeServices) {
+      try {
+        const status = await checkFaviconStatus(serviceUrl);
+        if (status.valid) {
+          console.log("대체 파비콘 서비스 사용:", serviceUrl);
+          return serviceUrl;
+        }
+      } catch (error) {
+        console.warn("대체 파비콘 서비스 실패:", serviceUrl, error);
+      }
+    }
+
+    // 모든 서비스가 실패하면 기본 Google 파비콘 반환
+    return googleFavicon;
   } catch (error) {
     console.error("파비콘 서비스 접근 실패:", error);
     return getFaviconUrl(url);
@@ -159,9 +183,9 @@ export const checkFaviconStatus = async (
   faviconUrl: string
 ): Promise<{ valid: boolean; error?: string }> => {
   try {
-    // 타임아웃 설정 (5초)
+    // 타임아웃 설정 (3초로 단축)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     await fetch(faviconUrl, {
       method: "HEAD",
@@ -172,8 +196,11 @@ export const checkFaviconStatus = async (
     clearTimeout(timeoutId);
 
     // no-cors 모드에서는 응답이 있다면 유효하다고 간주
+    // 또는 네트워크 오류가 없으면 유효하다고 간주
     return { valid: true };
   } catch (error) {
+    // 네트워크 오류나 타임아웃의 경우
+    console.warn("파비콘 상태 확인 실패:", faviconUrl, error);
     return {
       valid: false,
       error: error instanceof Error ? error.message : "Unknown error",
