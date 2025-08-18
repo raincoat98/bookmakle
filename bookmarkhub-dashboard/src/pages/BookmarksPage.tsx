@@ -477,22 +477,53 @@ export const BookmarksPage: React.FC = () => {
 
         {/* 메인 콘텐츠 */}
         <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0 sm:pb-6 pb-24">
-          <BookmarkList
-            bookmarks={bookmarks}
-            onEdit={setEditingBookmark}
-            onDelete={(bookmark: Bookmark) => {
-              setDeleteBookmarkModal({
-                isOpen: true,
-                bookmark: bookmark,
-              });
-            }}
-            onToggleFavorite={handleToggleFavorite}
-            onReorder={handleReorderBookmarks}
-            onRefreshFavicon={handleRefreshFavicon} // 파비콘 새로고침 함수 전달
-            collections={collections}
-            searchTerm={searchTerm}
-            viewMode={viewMode}
-          />
+          {(() => {
+            // 필터링된 북마크 데이터에서 실제 북마크 배열 추출
+            let bookmarksToDisplay: Bookmark[] = [];
+
+            if (Array.isArray(filteredBookmarksData)) {
+              bookmarksToDisplay = filteredBookmarksData;
+            } else if (filteredBookmarksData.isGrouped) {
+              // 그룹된 데이터의 경우 모든 북마크를 평면화
+              const groupedData = filteredBookmarksData as {
+                isGrouped: true;
+                selectedCollectionBookmarks: Bookmark[];
+                selectedCollectionName: string;
+                groupedBookmarks: {
+                  collectionId: string;
+                  collectionName: string;
+                  bookmarks: Bookmark[];
+                }[];
+              };
+              bookmarksToDisplay = [
+                ...groupedData.selectedCollectionBookmarks,
+                ...groupedData.groupedBookmarks.flatMap(
+                  (group) => group.bookmarks
+                ),
+              ];
+            } else {
+              bookmarksToDisplay = filteredBookmarksData.bookmarks || [];
+            }
+
+            return (
+              <BookmarkList
+                bookmarks={bookmarksToDisplay}
+                onEdit={setEditingBookmark}
+                onDelete={(bookmark: Bookmark) => {
+                  setDeleteBookmarkModal({
+                    isOpen: true,
+                    bookmark: bookmark,
+                  });
+                }}
+                onToggleFavorite={handleToggleFavorite}
+                onReorder={handleReorderBookmarks}
+                onRefreshFavicon={handleRefreshFavicon} // 파비콘 새로고침 함수 전달
+                collections={collections}
+                searchTerm="" // 이미 필터링된 북마크를 전달하므로 빈 문자열
+                viewMode={viewMode}
+              />
+            );
+          })()}
 
           {/* 모바일 하단 검색바 */}
           <div className="fixed bottom-0 left-0 right-0 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-t border-slate-200/50 dark:border-slate-700/50 p-4 sm:hidden">
