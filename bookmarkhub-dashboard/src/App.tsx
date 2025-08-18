@@ -128,17 +128,16 @@ function App() {
           <Route
             path="/"
             element={
-              defaultPage === "bookmarks" ? (
-                <BookmarksPage />
-              ) : (
-                <DashboardPage />
-              )
+              <Navigate
+                to={defaultPage === "bookmarks" ? "/bookmarks" : "/dashboard"}
+                replace
+              />
             }
           />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/bookmarks" element={<BookmarksPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
         <Toaster
           position="top-right"

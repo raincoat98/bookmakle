@@ -38,9 +38,9 @@ export const Drawer: React.FC<DrawerProps> = ({
   const navigation = [
     {
       name: "대시보드",
-      href: "/",
+      href: "/dashboard",
       icon: Home,
-      current: location.pathname === "/",
+      current: location.pathname === "/dashboard" || location.pathname === "/",
     },
     {
       name: "북마크",
