@@ -6,7 +6,8 @@ export type WidgetId =
   | "favorite-bookmarks"
   | "collection-distribution"
   | "recent-bookmarks"
-  | "quick-actions";
+  | "quick-actions"
+  | "bible-verse";
 
 export interface WidgetConfig {
   id: WidgetId;
@@ -15,11 +16,12 @@ export interface WidgetConfig {
 }
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
+  { id: "bible-verse", title: "성경말씀", enabled: true },
   { id: "clock", title: "시계", enabled: true },
   { id: "stats", title: "통계", enabled: true },
   { id: "favorite-bookmarks", title: "즐겨찾기 북마크", enabled: true },
   { id: "recent-bookmarks", title: "최근 추가 북마크", enabled: true },
-  { id: "collection-distribution", title: "컬렉션 분포", enabled: true },
+  { id: "collection-distribution", title: "컬렉션 분포", enabled: false },
   { id: "quick-actions", title: "빠른 작업", enabled: true },
 ];
 

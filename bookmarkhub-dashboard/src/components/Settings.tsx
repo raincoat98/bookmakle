@@ -20,6 +20,11 @@ import {
   Key,
   Briefcase,
   List,
+  BarChart3,
+  BookOpen,
+  Folder,
+  FileText,
+  Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { getUserDefaultPage, setUserDefaultPage } from "../firebase";
@@ -393,6 +398,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
   const tabs = [
     { id: "general", label: "일반", icon: SettingsIcon },
+    { id: "stats", label: "통계", icon: BarChart3 },
     { id: "backup", label: "백업", icon: Download },
     { id: "account", label: "계정", icon: User },
     { id: "appearance", label: "외관", icon: Palette },
@@ -646,6 +652,161 @@ export const Settings: React.FC<SettingsProps> = ({
     </div>
   );
 
+  const renderStatsSettings = () => {
+    const totalBookmarks = bookmarks.length;
+    const totalCollections = collections.length;
+    const unassignedBookmarks = bookmarks.filter((b) => !b.collection).length;
+    const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).length;
+
+    const StatsCard = ({
+      title,
+      value,
+      icon,
+      color,
+      description,
+    }: {
+      title: string;
+      value: number;
+      icon: React.ReactNode;
+      color: string;
+      description?: string;
+    }) => (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {title}
+            </p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              {value.toLocaleString()}
+            </p>
+            {description && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {description}
+              </p>
+            )}
+          </div>
+          <div
+            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${color}`}
+          >
+            {icon}
+          </div>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            북마크 통계
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatsCard
+              title="전체 북마크"
+              value={totalBookmarks}
+              icon={<BookOpen className="w-6 h-6" />}
+              color="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+              description="총 북마크 수"
+            />
+            <StatsCard
+              title="컬렉션"
+              value={totalCollections}
+              icon={<Folder className="w-6 h-6" />}
+              color="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
+              description="총 컬렉션 수"
+            />
+            <StatsCard
+              title="즐겨찾기"
+              value={favoriteBookmarks}
+              icon={<Sparkles className="w-6 h-6" />}
+              color="bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
+              description="즐겨찾기 북마크"
+            />
+            <StatsCard
+              title="미분류"
+              value={unassignedBookmarks}
+              icon={<FileText className="w-6 h-6" />}
+              color="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
+              description="컬렉션 없는 북마크"
+            />
+          </div>
+        </div>
+
+        {/* 추가 통계 정보 */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            상세 분석
+          </h3>
+          <div className="space-y-4">
+            {collections.length > 0 && (
+              <div>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                  컬렉션별 북마크 분포
+                </h4>
+                <div className="space-y-2">
+                  {collections.map((collection) => {
+                    const count = bookmarks.filter(
+                      (b) => b.collection === collection.id
+                    ).length;
+                    const percentage =
+                      totalBookmarks > 0 ? (count / totalBookmarks) * 100 : 0;
+
+                    return (
+                      <div
+                        key={collection.id}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {collection.name}
+                        </span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[2rem]">
+                            {count}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {unassignedBookmarks > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        미분류
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gray-500 rounded-full transition-all duration-300"
+                            style={{
+                              width: `${
+                                totalBookmarks > 0
+                                  ? (unassignedBookmarks / totalBookmarks) * 100
+                                  : 0
+                              }%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white min-w-[2rem]">
+                          {unassignedBookmarks}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPrivacySettings = () => (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -795,6 +956,8 @@ export const Settings: React.FC<SettingsProps> = ({
     switch (activeTab) {
       case "general":
         return renderGeneralSettings();
+      case "stats":
+        return renderStatsSettings();
       case "backup":
         return renderBackupSettings();
       case "account":
