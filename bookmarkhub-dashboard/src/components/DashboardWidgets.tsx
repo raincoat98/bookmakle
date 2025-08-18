@@ -1308,13 +1308,10 @@ const BibleVerseWidget: React.FC = () => {
     Math.floor(Math.random() * backgrounds.length)
   );
 
+  // 마운트 시에만 한 번 설정 (interval 제거)
   useEffect(() => {
-    const verseInterval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * bibleVerses.length);
-      setCurrentVerse(bibleVerses[randomIndex]);
-    }, 30000); // 30초마다 변경
-
-    return () => clearInterval(verseInterval);
+    const randomIndex = Math.floor(Math.random() * bibleVerses.length);
+    setCurrentVerse(bibleVerses[randomIndex]);
   }, []);
 
   return (

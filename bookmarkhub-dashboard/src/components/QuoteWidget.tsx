@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BookOpen } from "lucide-react";
 import bibleVersesData from "../data/bibleVerses.json";
 
@@ -31,28 +31,25 @@ export const BibleVerseWidget: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [backgroundGradient, setBackgroundGradient] = useState<string>("");
 
-  // 새로고침마다 랜덤 구절 선택
-  const getRandomVerse = (): BibleVerse => {
+  // 마운트 시에만 실행되는 랜덤 구절 선택 함수 (메모이제이션)
+  const getRandomVerse = useCallback((): BibleVerse => {
     const index = Math.floor(Math.random() * bibleVersesData.length);
     return bibleVersesData[index];
-  };
+  }, []); // 빈 dependency로 마운트 시에만 생성
 
-  // 랜덤 배경 그라데이션 선택
-  const getRandomGradient = (): string => {
+  // 마운트 시에만 실행되는 랜덤 배경 그라데이션 선택 함수 (메모이제이션)
+  const getRandomGradient = useCallback((): string => {
     const index = Math.floor(Math.random() * gradientBackgrounds.length);
     return gradientBackgrounds[index];
-  };
+  }, []); // 빈 dependency로 마운트 시에만 생성
 
+  // 마운트 시에만 랜덤 구절과 배경 설정
   useEffect(() => {
-    const fetchVerse = async () => {
-      setLoading(true);
-      setVerse(getRandomVerse());
-      setBackgroundGradient(getRandomGradient()); // 마운트 시마다 배경 변경
-      setLoading(false);
-    };
-
-    fetchVerse();
-  }, []);
+    setLoading(true);
+    setVerse(getRandomVerse());
+    setBackgroundGradient(getRandomGradient());
+    setLoading(false);
+  }, [getRandomVerse, getRandomGradient]); // 메모이제이션된 함수들을 dependency로 사용
 
   if (loading) {
     return (
