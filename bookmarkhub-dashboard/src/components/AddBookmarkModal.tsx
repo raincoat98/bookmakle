@@ -163,180 +163,185 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* 배경 오버레이 */}
       <div
         className="absolute inset-0 bg-black/20 dark:bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* 모달 컨테이너 */}
-      <div className="relative w-full max-w-md animate-slide-up">
-        <div className="card-glass p-8">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-              북마크 추가
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* 폼 */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* URL 입력 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                URL *
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Globe className="w-5 h-5 text-gray-400" />
-                </div>
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => handleUrlChange(e.target.value)}
-                  placeholder="https://example.com"
-                  className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                  required
-                />
-              </div>
-              {/* 파비콘 미리보기 */}
-              {url.trim() && (
-                <div className="flex items-center space-x-2">
-                  <div className="relative">
-                    {favicon ? (
-                      <img
-                        src={favicon}
-                        alt="파비콘"
-                        className="w-6 h-6 rounded"
-                        onError={(e) => {
-                          e.currentTarget.src = "/favicon.svg";
-                        }}
-                      />
-                    ) : (
-                      <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-                        <Globe className="w-4 h-4 text-gray-400" />
-                      </div>
-                    )}
-                    {faviconLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-brand-500"></div>
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {faviconLoading
-                      ? "파비콘 가져오는 중..."
-                      : "파비콘 미리보기"}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* 제목 입력 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                제목 *
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="북마크 제목"
-                className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                required
-              />
-            </div>
-
-            {/* 설명 입력 */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                설명 (선택사항)
-              </label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="북마크에 대한 설명을 입력하세요"
-                rows={3}
-                className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-              />
-            </div>
-
-            {/* 컬렉션 선택 */}
-            {collections.length > 0 && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  컬렉션 (선택사항)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Folder className="w-5 h-5 text-gray-400" />
-                  </div>
-                  <select
-                    value={selectedCollection}
-                    onChange={(e) => setSelectedCollection(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
-                  >
-                    <option value="">컬렉션 선택 안함</option>
-                    {collections.map((collection) => (
-                      <option key={collection.id} value={collection.id}>
-                        {collection.name}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 버튼 그룹 */}
-            <div className="flex space-x-3 pt-4">
+      {/* 모달 래퍼 */}
+      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        {/* 모달 컨테이너 */}
+        <div className="relative w-full max-w-md animate-slide-up">
+          <div className="card-glass max-h-[90vh] overflow-hidden flex flex-col">
+            {/* 헤더 - 고정 */}
+            <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-10 border-b border-white/20 dark:border-gray-700/30">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                북마크 추가
+              </h2>
               <button
-                type="button"
                 onClick={onClose}
-                className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
               >
-                취소
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading || !title.trim() || !url.trim()}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-2xl font-medium hover:from-brand-600 hover:to-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 backdrop-blur-sm flex items-center justify-center space-x-2"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="spinner w-4 h-4"></div>
-                    <span>추가 중...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4" />
-                    <span>추가</span>
-                  </>
-                )}
+                <X className="w-5 h-5" />
               </button>
             </div>
-          </form>
+
+            {/* 폼 - 스크롤 가능 */}
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8 pt-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* URL 입력 */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    URL *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Globe className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="url"
+                      value={url}
+                      onChange={(e) => handleUrlChange(e.target.value)}
+                      placeholder="https://example.com"
+                      className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                      required
+                    />
+                  </div>
+                  {/* 파비콘 미리보기 */}
+                  {url.trim() && (
+                    <div className="flex items-center space-x-2">
+                      <div className="relative">
+                        {favicon ? (
+                          <img
+                            src={favicon}
+                            alt="파비콘"
+                            className="w-6 h-6 rounded"
+                            onError={(e) => {
+                              e.currentTarget.src = "/favicon.svg";
+                            }}
+                          />
+                        ) : (
+                          <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                            <Globe className="w-4 h-4 text-gray-400" />
+                          </div>
+                        )}
+                        {faviconLoading && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-brand-500"></div>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {faviconLoading
+                          ? "파비콘 가져오는 중..."
+                          : "파비콘 미리보기"}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* 제목 입력 */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    제목 *
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="북마크 제목"
+                    className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    required
+                  />
+                </div>
+
+                {/* 설명 입력 */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    설명 (선택사항)
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="북마크에 대한 설명을 입력하세요"
+                    rows={3}
+                    className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                  />
+                </div>
+
+                {/* 컬렉션 선택 */}
+                {collections.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      컬렉션 (선택사항)
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Folder className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <select
+                        value={selectedCollection}
+                        onChange={(e) => setSelectedCollection(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                      >
+                        <option value="">컬렉션 선택 안함</option>
+                        {collections.map((collection) => (
+                          <option key={collection.id} value={collection.id}>
+                            {collection.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                        <svg
+                          className="w-5 h-5 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 버튼 그룹 */}
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105 backdrop-blur-sm"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading || !title.trim() || !url.trim()}
+                    className="flex-1 px-6 py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-2xl font-medium hover:from-brand-600 hover:to-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 backdrop-blur-sm flex items-center justify-center space-x-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="spinner w-4 h-4"></div>
+                        <span>추가 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        <span>추가</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
