@@ -56,7 +56,7 @@ export const BibleVerseWidget: React.FC = () => {
 
   if (loading) {
     return (
-      <div 
+      <div
         className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex items-center justify-center"
         style={{ background: backgroundGradient || gradientBackgrounds[0] }}
       >
@@ -71,13 +71,13 @@ export const BibleVerseWidget: React.FC = () => {
   if (!verse) return null;
 
   return (
-    <div 
+    <div
       className="rounded-lg shadow-sm border border-gray-200/20 p-6 relative overflow-hidden"
       style={{ background: backgroundGradient }}
     >
       {/* 배경 오버레이 */}
       <div className="absolute inset-0 bg-black/10"></div>
-      
+
       <div className="relative z-10 flex items-start space-x-3">
         <BookOpen className="w-5 h-5 text-white mt-1 flex-shrink-0 drop-shadow-sm" />
         <div className="flex-1">
