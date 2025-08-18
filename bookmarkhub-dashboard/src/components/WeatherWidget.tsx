@@ -487,7 +487,7 @@ export const WeatherWidget: React.FC = () => {
   return (
     <>
       <div
-        className="relative overflow-hidden rounded-2xl shadow-soft cursor-pointer hover:shadow-lg transition-shadow"
+        className="relative overflow-hidden rounded-xl sm:rounded-2xl shadow-soft cursor-pointer hover:shadow-lg transition-shadow min-h-[120px] sm:min-h-[140px]"
         onClick={() => setIsModalOpen(true)}
       >
         {/* 동적 배경 */}
@@ -517,8 +517,8 @@ export const WeatherWidget: React.FC = () => {
         </div>
 
         {/* 컨텐츠 */}
-        <div className="relative z-10 p-4">
-          <h3 className="text-md font-semibold text-white mb-3 drop-shadow-lg">
+        <div className="relative z-10 p-3 sm:p-4">
+          <h3 className="text-sm sm:text-md font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
             날씨
           </h3>
 
@@ -542,11 +542,11 @@ export const WeatherWidget: React.FC = () => {
                     <img
                       src={getWeatherIconUrl(weather.icon)}
                       alt={weather.description}
-                      className="w-12 h-12 drop-shadow-lg"
+                      className="w-10 sm:w-12 h-10 sm:h-12 drop-shadow-lg"
                     />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-white drop-shadow-lg">
+                    <p className="text-xl sm:text-2xl font-bold text-white drop-shadow-lg">
                       {weather.temperature}°C
                     </p>
                     <p className="text-xs text-white/90 capitalize drop-shadow">

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  BookOpen,
-  Folder,
-  FileText,
   Sparkles,
   Globe,
   Plus,
@@ -15,6 +12,7 @@ import {
   RotateCcw,
   Eye,
   EyeOff,
+  BookOpen,
 } from "lucide-react";
 import type { Bookmark, Collection } from "../types";
 import bibleVerses from "../data/bibleVerses.json";
@@ -38,14 +36,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useWidgetOrder } from "../hooks/useWidgetOrder";
 import type { WidgetId, WidgetConfig } from "../hooks/useWidgetOrder";
-
-interface StatsCardProps {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-  description?: string;
-}
 
 interface FavoriteBookmarksProps {
   bookmarks: Bookmark[];
@@ -103,7 +93,7 @@ const SortableWidget: React.FC<{
     transition,
   };
 
-  if (!enabled) {
+  if (!enabled && !isEditMode) {
     return null;
   }
 
@@ -113,7 +103,7 @@ const SortableWidget: React.FC<{
       style={style}
       className={`relative group ${isDragging ? "opacity-50 z-50" : ""} ${
         isEditMode ? "cursor-move" : ""
-      }`}
+      } ${!enabled && isEditMode ? "opacity-50" : ""}`}
       {...attributes}
       {...listeners}
     >
@@ -148,61 +138,6 @@ const SortableWidget: React.FC<{
         {children}
       </div>
     </div>
-  );
-};
-
-const StatsCard: React.FC<StatsCardProps> = ({
-  title,
-  value,
-  icon,
-  color,
-  description,
-}) => {
-  return (
-    <>
-      {/* 모바일 뱃지 스타일 (sm 미만) */}
-      <div className="sm:hidden">
-        <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 hover:bg-white/60 dark:hover:bg-gray-800/60 transition-all duration-200 min-h-[80px]">
-          <div
-            className={`w-8 h-8 rounded-lg flex items-center justify-center ${color} shadow-lg mb-2`}
-          >
-            <div className="scale-75">{icon}</div>
-          </div>
-          <div className="text-center">
-            <p className="text-xl font-bold text-gray-900 dark:text-white leading-none">
-              {value.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-600 dark:text-gray-400 truncate mt-1">
-              {title}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 데스크톱 카드 스타일 (sm 이상) */}
-      <div className="hidden sm:block card-glass p-6 hover-lift">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              {title}
-            </p>
-            <p className="text-3xl font-bold gradient-text">
-              {value.toLocaleString()}
-            </p>
-            {description && (
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {description}
-              </p>
-            )}
-          </div>
-          <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl backdrop-blur-sm ${color}`}
-          >
-            {icon}
-          </div>
-        </div>
-      </div>
-    </>
   );
 };
 
@@ -497,7 +432,6 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
-  onReorder: _onReorder,
 }) => {
   const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 6);
 
@@ -579,7 +513,6 @@ const FavoriteBookmarksIconGrid: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
-  onReorder: _onReorder,
 }) => {
   const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 12);
 
@@ -588,22 +521,22 @@ const FavoriteBookmarksIconGrid: React.FC<FavoriteBookmarksProps> = ({
   };
 
   return (
-    <div className="card-glass p-6 h-full flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Sparkles className="w-5 h-5 text-yellow-500 mr-3" />
+    <div className="card-glass p-4 sm:p-6 h-full flex flex-col min-h-[280px] sm:min-h-[320px] md:min-h-[400px]">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <Sparkles className="w-4 sm:w-5 h-4 sm:h-5 text-yellow-500 mr-2 sm:mr-3" />
         즐겨찾기 북마크
       </h3>
       <div className="flex-1">
         {favoriteBookmarks.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
             {favoriteBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
-                className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
+                className="group relative flex flex-col items-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
               >
                 {/* 파비콘 */}
                 <div
-                  className="w-12 h-12 rounded-xl shadow-sm hover:scale-110 transition-transform cursor-pointer mb-2 relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600"
+                  className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg sm:rounded-xl shadow-sm hover:scale-110 transition-transform cursor-pointer mb-1 sm:mb-2 relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600"
                   onClick={() => handleFaviconClick(bookmark.url)}
                 >
                   {bookmark.favicon ? (
@@ -792,10 +725,9 @@ const RecentBookmarks: React.FC<{
 // 최근 추가 북마크 아이콘 그리드 위젯 (새로운)
 const RecentBookmarksIconGrid: React.FC<{
   bookmarks: Bookmark[];
-  collections: Collection[];
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: string) => void;
-}> = ({ bookmarks, collections: _collections, onEdit, onDelete }) => {
+}> = ({ bookmarks, onEdit, onDelete }) => {
   const recentBookmarks = bookmarks
     .sort(
       (a, b) =>
@@ -827,22 +759,22 @@ const RecentBookmarksIconGrid: React.FC<{
   };
 
   return (
-    <div className="card-glass p-6 h-full flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-        <Globe className="w-5 h-5 text-blue-500 mr-3" />
+    <div className="card-glass p-4 sm:p-6 h-full flex flex-col min-h-[280px] sm:min-h-[320px] md:min-h-[400px]">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
+        <Globe className="w-4 sm:w-5 h-4 sm:h-5 text-blue-500 mr-2 sm:mr-3" />
         최근 추가 북마크
       </h3>
       <div className="flex-1">
         {recentBookmarks.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
             {recentBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
-                className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
+                className="group relative flex flex-col items-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
               >
                 {/* 파비콘 */}
                 <div
-                  className="w-12 h-12 rounded-xl shadow-sm hover:scale-110 transition-transform cursor-pointer mb-2 relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600"
+                  className="w-10 sm:w-12 h-10 sm:h-12 rounded-lg sm:rounded-xl shadow-sm hover:scale-110 transition-transform cursor-pointer mb-1 sm:mb-2 relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600"
                   onClick={() => handleFaviconClick(bookmark.url)}
                 >
                   {bookmark.favicon ? (
@@ -921,50 +853,6 @@ const RecentBookmarksIconGrid: React.FC<{
   );
 };
 
-// 통계 위젯 컴포넌트
-const StatsWidget: React.FC<{
-  bookmarks: Bookmark[];
-  collections: Collection[];
-}> = ({ bookmarks, collections }) => {
-  const totalBookmarks = bookmarks.length;
-  const totalCollections = collections.length;
-  const unassignedBookmarks = bookmarks.filter((b) => !b.collection).length;
-  const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).length;
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-      <StatsCard
-        title="전체 북마크"
-        value={totalBookmarks}
-        icon={<BookOpen className="w-6 h-6" />}
-        color="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-        description="총 북마크 수"
-      />
-      <StatsCard
-        title="컬렉션"
-        value={totalCollections}
-        icon={<Folder className="w-6 h-6" />}
-        color="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
-        description="총 컬렉션 수"
-      />
-      <StatsCard
-        title="즐겨찾기"
-        value={favoriteBookmarks}
-        icon={<Sparkles className="w-6 h-6" />}
-        color="bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
-        description="즐겨찾기 북마크"
-      />
-      <StatsCard
-        title="미분류"
-        value={unassignedBookmarks}
-        icon={<FileText className="w-6 h-6" />}
-        color="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-        description="컬렉션 없는 북마크"
-      />
-    </div>
-  );
-};
-
 // 시계 위젯 (시계와 날씨만 포함)
 export const ClockWidget: React.FC = () => {
   const [now, setNow] = useState(new Date());
@@ -987,13 +875,13 @@ export const ClockWidget: React.FC = () => {
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-4">
       {/* 시계 */}
-      <div className="sm:col-span-2 card-glass p-4 flex flex-col items-center justify-center text-center">
-        <div className="text-2xl sm:text-3xl font-bold gradient-text tracking-wider mb-1">
+      <div className="sm:col-span-2 card-glass p-3 sm:p-4 flex flex-col items-center justify-center text-center min-h-[120px] sm:min-h-[140px]">
+        <div className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text tracking-wider mb-1">
           {timeStr}
         </div>
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
           {dateStr}
         </div>
       </div>
@@ -1063,8 +951,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     switch (id) {
       case "clock":
         return <ClockWidget />;
-      case "stats":
-        return <StatsWidget bookmarks={bookmarks} collections={collections} />;
+
       case "favorite-bookmarks":
         return (
           <FavoriteBookmarks
@@ -1075,9 +962,6 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             onReorder={onReorder}
           />
         );
-      case "collection-distribution":
-        // 컬렉션별 분포 위젯 제거
-        return null;
       case "recent-bookmarks":
         return (
           <RecentBookmarks
@@ -1095,8 +979,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           />
         );
       case "bible-verse":
-        // 사이드바에서는 성경 말씀 위젯을 표시하지 않음 (메인 영역에서만 표시)
-        return null;
+        return <BibleVerseWidget />;
       default:
         return null;
     }
@@ -1133,126 +1016,34 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         </div>
       </div>
 
-      {/* 메인 레이아웃 - 한 줄 표시 */}
-      <div className="space-y-6 lg:space-y-8">
-        {/* 시계/날씨 위젯 */}
-        {widgets.find((w) => w.id === "clock")?.enabled && (
-          <div className="relative">
-            {isEditMode && (
-              <div className="absolute top-4 right-4 z-10">
-                <button
-                  onClick={() => toggleWidget("clock")}
-                  className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  title="시계 숨기기"
-                >
-                  <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </button>
-              </div>
-            )}
-            <ClockWidget />
-          </div>
-        )}
-
-        {/* 성경 말씀 위젯 */}
-        {widgets.find((w) => w.id === "bible-verse")?.enabled && (
-          <div className="relative">
-            {isEditMode && (
-              <div className="absolute top-4 right-4 z-10">
-                <button
-                  onClick={() => toggleWidget("bible-verse")}
-                  className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  title="성경말씀 숨기기"
-                >
-                  <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                </button>
-              </div>
-            )}
-            <BibleVerseWidget />
-          </div>
-        )}
-
-        {/* 즐겨찾기 & 최근 북마크 위젯 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {/* 즐겨찾기 북마크 위젯 */}
-          {widgets.find((w) => w.id === "favorite-bookmarks")?.enabled && (
-            <div className="relative">
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => toggleWidget("favorite-bookmarks")}
-                    className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    title="즐겨찾기 북마크 숨기기"
-                  >
-                    <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </button>
-                </div>
-              )}
-              <FavoriteBookmarksIconGrid
-                bookmarks={bookmarks}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onToggleFavorite={onToggleFavorite}
-                onReorder={onReorder}
-              />
-            </div>
-          )}
-
-          {/* 최근 북마크 위젯 */}
-          {widgets.find((w) => w.id === "recent-bookmarks")?.enabled && (
-            <div className="relative">
-              {isEditMode && (
-                <div className="absolute top-4 right-4 z-10">
-                  <button
-                    onClick={() => toggleWidget("recent-bookmarks")}
-                    className="p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    title="최근 북마크 숨기기"
-                  >
-                    <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  </button>
-                </div>
-              )}
-              <RecentBookmarksIconGrid
-                bookmarks={bookmarks}
-                collections={collections}
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* 기타 위젯들 */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleWidgetDragEnd}
-        >
-          <SortableContext
-            items={widgets
+      {/* 메인 레이아웃 - 모든 위젯을 통합 드래그 시스템으로 관리 */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleWidgetDragEnd}
+      >
+        <SortableContext
+          items={widgets
+            .filter(
+              (widget) =>
+                // 활성화되었거나 편집 모드인 위젯들만 포함
+                widget.enabled || isEditMode
+            )
+            .map((widget) => widget.id)}
+          strategy={verticalListSortingStrategy}
+                 >
+           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+            {/* 모든 위젯을 순서대로 렌더링 */}
+            {widgets
               .filter(
                 (widget) =>
-                  widget.id !== "bible-verse" &&
-                  widget.id !== "clock" &&
-                  widget.id !== "stats" &&
                   widget.id !== "favorite-bookmarks" &&
                   widget.id !== "recent-bookmarks" &&
-                  widget.enabled
+                  widget.id !== "quick-actions" &&
+                  (widget.enabled || isEditMode)
               )
-              .map((widget) => widget.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-6 lg:space-y-8">
-              {widgets
-                .filter(
-                  (widget) =>
-                    widget.id !== "bible-verse" &&
-                    widget.id !== "clock" &&
-                    widget.id !== "stats" &&
-                    widget.id !== "favorite-bookmarks" &&
-                    widget.id !== "recent-bookmarks" &&
-                    widget.enabled
-                )
-                .map((widget) => (
+              .map((widget) => {
+                return (
                   <SortableWidget
                     key={widget.id}
                     id={widget.id}
@@ -1262,11 +1053,79 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   >
                     {renderWidget(widget)}
                   </SortableWidget>
-                ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      </div>
+                );
+              })}
+
+            {/* 즐겨찾기 & 최근 북마크 위젯을 그리드로 처리 */}
+            {(widgets.find((w) => w.id === "favorite-bookmarks")?.enabled ||
+              widgets.find((w) => w.id === "recent-bookmarks")?.enabled ||
+              isEditMode) && (
+                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-stretch">
+                {/* 즐겨찾기 북마크 위젯 */}
+                {(widgets.find((w) => w.id === "favorite-bookmarks")?.enabled ||
+                  isEditMode) && (
+                  <SortableWidget
+                    id="favorite-bookmarks"
+                    enabled={
+                      widgets.find((w) => w.id === "favorite-bookmarks")
+                        ?.enabled || false
+                    }
+                    isEditMode={isEditMode}
+                    onToggle={() => toggleWidget("favorite-bookmarks")}
+                  >
+                    <FavoriteBookmarksIconGrid
+                      bookmarks={bookmarks}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onToggleFavorite={onToggleFavorite}
+                      onReorder={onReorder}
+                    />
+                  </SortableWidget>
+                )}
+
+                {/* 최근 북마크 위젯 */}
+                {(widgets.find((w) => w.id === "recent-bookmarks")?.enabled ||
+                  isEditMode) && (
+                  <SortableWidget
+                    id="recent-bookmarks"
+                    enabled={
+                      widgets.find((w) => w.id === "recent-bookmarks")
+                        ?.enabled || false
+                    }
+                    isEditMode={isEditMode}
+                    onToggle={() => toggleWidget("recent-bookmarks")}
+                  >
+                    <RecentBookmarksIconGrid
+                      bookmarks={bookmarks}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                    />
+                  </SortableWidget>
+                )}
+              </div>
+            )}
+
+            {/* 빠른 작업 위젯을 맨 아래에 배치 */}
+            {(widgets.find((w) => w.id === "quick-actions")?.enabled ||
+              isEditMode) && (
+              <SortableWidget
+                id="quick-actions"
+                enabled={
+                  widgets.find((w) => w.id === "quick-actions")?.enabled ||
+                  false
+                }
+                isEditMode={isEditMode}
+                onToggle={() => toggleWidget("quick-actions")}
+              >
+                <QuickActions
+                  onAddBookmark={onAddBookmark}
+                  onAddCollection={onAddCollection}
+                />
+              </SortableWidget>
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* 편집 모드 도움말 */}
       {isEditMode && (
@@ -1275,10 +1134,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <Settings className="w-5 h-5" />
             <h3 className="font-medium">위젯 편집 모드</h3>
           </div>
-          <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-            위젯을 드래그하여 순서를 변경하고, 눈 모양 아이콘을 클릭하여 위젯을
-            숨기거나 표시할 수 있습니다.
-          </p>
+          <div className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+            <p>
+              • 눈 모양 아이콘을 클릭하여 위젯을 숨기거나 표시할 수 있습니다.
+            </p>
+            <p>• 하단의 드래그 가능한 위젯들은 순서를 변경할 수 있습니다.</p>
+            <p>
+              • 비활성화된 위젯은 반투명하게 표시되며, 클릭하여 다시 활성화할 수
+              있습니다.
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -1369,55 +1234,89 @@ const BibleVerseWidget: React.FC = () => {
         scale: 1.02,
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
       }}
-      className={`relative overflow-hidden rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[400px] flex items-center`}
+      className={`relative overflow-hidden rounded-2xl md:rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[280px] sm:min-h-[320px] md:min-h-[400px] flex items-center`}
     >
-      {/* 애니메이션 배경 패턴 */}
-      <div className="absolute inset-0 opacity-10">
+      {/* 애니메이션 배경 패턴 - z-index를 낮게 설정하여 텍스트 뒤로 배치 */}
+      <div className="absolute inset-0 opacity-10" style={{ zIndex: -10 }}>
         {/* 움직이는 원형 패턴들 */}
         <div
           className="absolute animate-pulse duration-[4000ms] top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)] animate-spin"
-          style={{ animationDuration: "60s" }}
+          style={{ animationDuration: "60s", zIndex: -10 }}
         ></div>
         <div
           className="absolute animate-pulse duration-[6000ms] bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.05)_0%,transparent_50%)] animate-spin"
-          style={{ animationDuration: "90s", animationDirection: "reverse" }}
+          style={{
+            animationDuration: "90s",
+            animationDirection: "reverse",
+            zIndex: -10,
+          }}
         ></div>
         <div
           className="absolute animate-pulse duration-[5000ms] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[radial-gradient(circle,rgba(255,255,255,0.03)_0%,transparent_70%)] animate-ping"
-          style={{ animationDuration: "8s" }}
+          style={{ animationDuration: "8s", zIndex: -10 }}
         ></div>
 
         {/* 떠다니는 점들 - 더 많은 효과 */}
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/20 rounded-full animate-bounce duration-[3000ms]"></div>
-        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/30 rounded-full animate-bounce duration-[4000ms] delay-1000"></div>
-        <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-white/25 rounded-full animate-bounce duration-[3500ms] delay-2000"></div>
-        <div className="absolute top-1/3 right-1/2 w-1 h-1 bg-white/15 rounded-full animate-bounce duration-[2800ms] delay-500"></div>
-        <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-bounce duration-[3200ms] delay-1500"></div>
-        <div className="absolute top-2/3 left-2/3 w-1 h-1 bg-white/25 rounded-full animate-bounce duration-[3600ms] delay-3000"></div>
+        <div
+          className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/20 rounded-full animate-bounce duration-[3000ms]"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/30 rounded-full animate-bounce duration-[4000ms] delay-1000"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-white/25 rounded-full animate-bounce duration-[3500ms] delay-2000"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute top-1/3 right-1/2 w-1 h-1 bg-white/15 rounded-full animate-bounce duration-[2800ms] delay-500"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-bounce duration-[3200ms] delay-1500"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute top-2/3 left-2/3 w-1 h-1 bg-white/25 rounded-full animate-bounce duration-[3600ms] delay-3000"
+          style={{ zIndex: -10 }}
+        ></div>
 
         {/* 움직이는 그라디언트 오버레이들 */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse duration-[8000ms]"></div>
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/3 to-transparent animate-pulse duration-[12000ms] delay-2000"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/2 to-transparent animate-pulse duration-[10000ms] delay-4000"></div>
+        <div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse duration-[8000ms]"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute inset-0 bg-gradient-to-l from-transparent via-white/3 to-transparent animate-pulse duration-[12000ms] delay-2000"
+          style={{ zIndex: -10 }}
+        ></div>
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-transparent via-white/2 to-transparent animate-pulse duration-[10000ms] delay-4000"
+          style={{ zIndex: -10 }}
+        ></div>
 
         {/* 흐르는 빛의 선들 */}
         <div
           className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-60"
           style={{
             animation: "float-horizontal 15s infinite ease-in-out",
+            zIndex: -10,
           }}
         ></div>
         <div
           className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-40"
           style={{
             animation: "float-horizontal-reverse 20s infinite ease-in-out",
+            zIndex: -10,
           }}
         ></div>
       </div>
 
-      {/* 메인 콘텐츠 */}
-      <motion.div
-        className="relative p-8 md:p-12 text-center w-full"
+             {/* 메인 콘텐츠 - z-index를 높게 설정하여 배경 패턴 위에 표시 */}
+       <motion.div
+         className="relative p-4 sm:p-6 md:p-8 lg:p-12 text-center w-full"
+         style={{ zIndex: 100 }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 1 }}
@@ -1428,7 +1327,10 @@ const BibleVerseWidget: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.8 }}
         >
-          <div className="inline-flex items-center space-x-2 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
+                     <div
+             className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg relative"
+             style={{ zIndex: 200 }}
+           >
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -1454,8 +1356,16 @@ const BibleVerseWidget: React.FC = () => {
               animate={{ width: 96 }}
               transition={{ delay: 1.5, duration: 1 }}
             ></motion.div>
-            <motion.div
-              className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-relaxed tracking-wide px-4"
+                         <motion.div
+               className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-light text-white leading-relaxed tracking-wide px-2 sm:px-3 md:px-4 relative"
+               style={{
+                 zIndex: 200,
+                 textShadow:
+                   "0 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6)",
+                 backgroundColor: "rgba(0,0,0,0.2)",
+                 borderRadius: "8px",
+                 padding: "0.75rem 1rem",
+               }}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1.2, duration: 1 }}
@@ -1529,15 +1439,24 @@ const BibleVerseWidget: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 2.2, duration: 0.8 }}
           >
-            <p className="text-base md:text-lg text-white/70 font-medium tracking-wide">
+                         <p
+               className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 font-medium tracking-wide relative"
+               style={{
+                 zIndex: 200,
+                 textShadow: "0 2px 8px rgba(0,0,0,0.7)",
+                 borderRadius: "6px",
+                 padding: "0.5rem 0.75rem",
+               }}
+             >
               {currentVerse.reference}
             </p>
           </motion.div>
         </div>
 
-        {/* 장식 요소 */}
-        <motion.div
-          className="absolute top-8 right-8 w-24 h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+                 {/* 장식 요소 - 중간 레이어에 배치 */}
+         <motion.div
+           className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+           style={{ zIndex: 50 }}
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 180, 360],
@@ -1548,8 +1467,9 @@ const BibleVerseWidget: React.FC = () => {
             ease: "easeInOut",
           }}
         ></motion.div>
-        <motion.div
-          className="absolute bottom-8 left-8 w-20 h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+                 <motion.div
+           className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 w-10 sm:w-14 md:w-16 lg:w-20 h-10 sm:h-14 md:h-16 lg:h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+           style={{ zIndex: 50 }}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.7, 0.3],
@@ -1561,8 +1481,9 @@ const BibleVerseWidget: React.FC = () => {
             delay: 2,
           }}
         ></motion.div>
-        <motion.div
-          className="absolute top-1/4 left-8 w-12 h-12 bg-white/3 rounded-full backdrop-blur-sm"
+                 <motion.div
+           className="absolute top-1/4 left-4 sm:left-6 md:left-8 w-6 sm:w-8 md:w-10 lg:w-12 h-6 sm:h-8 md:h-10 lg:h-12 bg-white/3 rounded-full backdrop-blur-sm"
+           style={{ zIndex: 50 }}
           animate={{
             y: [0, -20, 0],
             opacity: [0.2, 0.5, 0.2],
@@ -1573,8 +1494,9 @@ const BibleVerseWidget: React.FC = () => {
             ease: "easeInOut",
           }}
         ></motion.div>
-        <motion.div
-          className="absolute bottom-1/4 right-12 w-16 h-16 bg-white/3 rounded-full backdrop-blur-sm"
+                 <motion.div
+           className="absolute bottom-1/4 right-6 sm:right-8 md:right-10 lg:right-12 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 bg-white/3 rounded-full backdrop-blur-sm"
+           style={{ zIndex: 50 }}
           animate={{
             x: [0, 10, 0],
             scale: [1, 1.1, 1],
