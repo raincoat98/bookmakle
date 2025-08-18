@@ -802,7 +802,7 @@ const RecentBookmarksIconGrid: React.FC<{
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )
-    .slice(0, 12);
+    .slice(0, 5);
 
   const handleFaviconClick = (url: string) => {
     window.open(url, "_blank");
@@ -835,14 +835,14 @@ const RecentBookmarksIconGrid: React.FC<{
       </h3>
       <div className="flex-1">
         {recentBookmarks.length > 0 ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
             {recentBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
                 className="group relative flex flex-col items-center p-3 rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
               >
                 {/* 파비콘 */}
-                <div 
+                <div
                   className="w-12 h-12 rounded-xl shadow-sm hover:scale-110 transition-transform cursor-pointer mb-2 relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600"
                   onClick={() => handleFaviconClick(bookmark.url)}
                 >
@@ -853,17 +853,26 @@ const RecentBookmarksIconGrid: React.FC<{
                       className="w-full h-full object-cover rounded-xl"
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
-                        e.currentTarget.nextElementSibling?.classList.remove("hidden");
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
                       }}
                     />
                   ) : null}
-                  <div className={`${bookmark.favicon ? "hidden" : ""} w-full h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center`}>
+                  <div
+                    className={`${
+                      bookmark.favicon ? "hidden" : ""
+                    } w-full h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center`}
+                  >
                     <Globe className="w-6 h-6 text-white" />
                   </div>
                 </div>
 
                 {/* 제목 */}
-                <p className="text-xs font-medium text-gray-900 dark:text-white text-center truncate w-full max-w-[60px]" title={bookmark.title}>
+                <p
+                  className="text-xs font-medium text-gray-900 dark:text-white text-center truncate w-full max-w-[60px]"
+                  title={bookmark.title}
+                >
                   {bookmark.title}
                 </p>
 
@@ -1219,20 +1228,20 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           collisionDetection={closestCenter}
           onDragEnd={handleWidgetDragEnd}
         >
-                      <SortableContext
-              items={widgets
-                .filter(
-                  (widget) =>
-                    widget.id !== "bible-verse" &&
-                    widget.id !== "clock" &&
-                    widget.id !== "stats" &&
-                    widget.id !== "favorite-bookmarks" &&
-                    widget.id !== "recent-bookmarks" &&
-                    widget.enabled
-                )
-                .map((widget) => widget.id)}
-              strategy={verticalListSortingStrategy}
-            >
+          <SortableContext
+            items={widgets
+              .filter(
+                (widget) =>
+                  widget.id !== "bible-verse" &&
+                  widget.id !== "clock" &&
+                  widget.id !== "stats" &&
+                  widget.id !== "favorite-bookmarks" &&
+                  widget.id !== "recent-bookmarks" &&
+                  widget.enabled
+              )
+              .map((widget) => widget.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-6 lg:space-y-8">
               {widgets
                 .filter(
