@@ -1,7 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useDrawer } from "../contexts/DrawerContext";
-import { Home, BookOpen, Settings, X } from "lucide-react";
+import {
+  Home,
+  BookOpen,
+  Settings,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { CollectionList } from "./CollectionList";
 import type { Collection } from "../types";
 
@@ -32,7 +39,12 @@ export const Drawer: React.FC<DrawerProps> = ({
   onOpenAddCollectionModal = () => {},
   onOpenAddSubCollectionModal = () => {},
 }) => {
-  const { isDrawerOpen, setIsDrawerOpen } = useDrawer();
+  const {
+    isDrawerOpen,
+    setIsDrawerOpen,
+    isDrawerCollapsed,
+    setIsDrawerCollapsed,
+  } = useDrawer();
   const location = useLocation();
 
   const navigation = [
@@ -68,31 +80,71 @@ export const Drawer: React.FC<DrawerProps> = ({
 
       {/* 사이드바 */}
       <div
-        className={`fixed inset-y-0 left-0 z-[9999] w-64 lg:w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-          isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-[9999] transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+          isDrawerCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-64"
+        } ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-full flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-r border-white/30 dark:border-gray-700/30 shadow-glass">
           {/* 헤더 */}
-          <div className="flex items-center justify-between p-4 lg:p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-            <div className="flex items-center space-x-2 lg:space-x-3">
-              <div className="w-7 h-7 lg:w-8 lg:h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-soft">
-                <BookOpen className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
-              </div>
-              <h1 className="text-lg lg:text-xl font-bold gradient-text">
-                북마클
-              </h1>
-            </div>
-            <button
-              onClick={() => setIsDrawerOpen(false)}
-              className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm lg:hidden"
+          <div
+            className={`flex items-center justify-between border-b border-gray-200/50 dark:border-gray-700/50 ${
+              isDrawerCollapsed ? "p-2 lg:p-3" : "p-4 lg:p-6"
+            }`}
+          >
+            <div
+              className={`flex items-center ${
+                isDrawerCollapsed ? "justify-center" : "space-x-2 lg:space-x-3"
+              }`}
             >
-              <X className="w-5 h-5" />
-            </button>
+              <div
+                className={`bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-soft ${
+                  isDrawerCollapsed ? "w-6 h-6" : "w-7 h-7 lg:w-8 lg:h-8"
+                }`}
+              >
+                <BookOpen
+                  className={`text-white ${
+                    isDrawerCollapsed ? "w-3 h-3" : "w-4 h-4 lg:w-5 lg:h-5"
+                  }`}
+                />
+              </div>
+              {!isDrawerCollapsed && (
+                <h1 className="text-lg lg:text-xl font-bold gradient-text">
+                  북마클
+                </h1>
+              )}
+            </div>
+            <div
+              className={`flex items-center ${
+                isDrawerCollapsed ? "justify-center" : "space-x-2"
+              }`}
+            >
+              {/* 데스크톱 토글 버튼 */}
+              <button
+                onClick={() => setIsDrawerCollapsed(!isDrawerCollapsed)}
+                className="hidden lg:flex p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
+              >
+                {isDrawerCollapsed ? (
+                  <ChevronRight className="w-5 h-5" />
+                ) : (
+                  <ChevronLeft className="w-5 h-5" />
+                )}
+              </button>
+              {/* 모바일 닫기 버튼 */}
+              {!isDrawerCollapsed && (
+                <button
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm lg:hidden"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 네비게이션 */}
-          <nav className="p-3 lg:p-4 space-y-1 lg:space-y-2">
+          <nav
+            className={`space-y-1 ${isDrawerCollapsed ? "p-2" : "p-2 lg:p-3"}`}
+          >
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -105,20 +157,29 @@ export const Drawer: React.FC<DrawerProps> = ({
                       setIsDrawerOpen(false);
                     }
                   }}
-                  className={`group flex items-center space-x-2 lg:space-x-3 px-3 py-2 lg:px-4 lg:py-3 rounded-xl lg:rounded-2xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                  className={`group flex items-center ${
+                    isDrawerCollapsed
+                      ? "justify-center px-2 py-2"
+                      : "space-x-2 lg:space-x-3 px-3 py-2 lg:px-3 lg:py-2"
+                  } rounded-xl lg:rounded-2xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
                     item.current
                       ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-soft"
                       : "text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
                   }`}
+                  title={isDrawerCollapsed ? item.name : undefined}
                 >
                   <Icon
-                    className={`w-4 h-4 lg:w-5 lg:h-5 ${
+                    className={`${
+                      isDrawerCollapsed ? "w-4 h-4" : "w-4 h-4 lg:w-5 lg:h-5"
+                    } ${
                       item.current
                         ? "text-white"
                         : "text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400"
                     }`}
                   />
-                  <span className="text-sm lg:text-base">{item.name}</span>
+                  {!isDrawerCollapsed && (
+                    <span className="text-sm lg:text-base">{item.name}</span>
+                  )}
                 </Link>
               );
             })}
@@ -126,7 +187,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
           {/* CollectionList - 북마크 페이지에서만 표시 */}
           {location.pathname === "/bookmarks" && (
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden min-h-0">
               <CollectionList
                 collections={collections}
                 loading={collectionsLoading}
@@ -139,16 +200,21 @@ export const Drawer: React.FC<DrawerProps> = ({
                 onEditCollection={onEditCollection}
                 onOpenAddCollectionModal={onOpenAddCollectionModal}
                 onOpenAddSubCollectionModal={onOpenAddSubCollectionModal}
+                {...({ collapsed: isDrawerCollapsed } as {
+                  collapsed: boolean;
+                })}
               />
             </div>
           )}
 
           {/* 푸터 */}
-          <div className="p-3 lg:p-4 border-t border-gray-200/50 dark:border-gray-700/50">
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              © 2024 북마클
+          {!isDrawerCollapsed && (
+            <div className="p-2 lg:p-3 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                © 2024 북마클
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

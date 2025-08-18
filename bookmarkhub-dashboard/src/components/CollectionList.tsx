@@ -14,6 +14,7 @@ interface CollectionListProps {
   onEditCollection: (collection: Collection) => void;
   onOpenAddCollectionModal: () => void;
   onOpenAddSubCollectionModal: (parentId: string) => void;
+  collapsed?: boolean;
 }
 
 export const CollectionList = ({
@@ -25,6 +26,7 @@ export const CollectionList = ({
   onEditCollection,
   onOpenAddCollectionModal,
   onOpenAddSubCollectionModal,
+  collapsed = false,
 }: CollectionListProps) => {
   // 오픈된(열린) 컬렉션 id 목록
   const [openIds, setOpenIds] = useState<string[]>([]);
@@ -71,7 +73,7 @@ export const CollectionList = ({
       const nodes = [
         <div
           key={collection.id}
-          className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 cursor-pointer relative tree-item border-l-4 ${
+          className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-left transition-colors duration-200 cursor-pointer relative tree-item border-l-4 ${
             selectedCollection === collection.id
               ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300 border-brand-500 dark:border-brand-400"
               : depth === 1
@@ -81,7 +83,7 @@ export const CollectionList = ({
               : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border-transparent"
           }`}
           style={{
-            paddingLeft: `${depth * 12 + 8}px`,
+            paddingLeft: `${depth * 8 + 6}px`,
           }}
           onContextMenu={
             depth < 2
@@ -108,7 +110,7 @@ export const CollectionList = ({
           )}
 
           {/* 트리 아이콘 영역 - 고정된 공간 할당 */}
-          <div className="w-4 h-4 flex items-center justify-center">
+          <div className="w-3 h-3 flex items-center justify-center">
             {hasChild && (
               <span
                 className="tree-toggle"
@@ -201,11 +203,88 @@ export const CollectionList = ({
     });
   }
 
+  // 축소 모드에서는 간단한 아이콘 리스트만 표시
+  if (collapsed) {
+    return (
+      <div className="w-full h-full flex flex-col">
+        {/* 축소된 컬렉션 목록 */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {/* 전체 북마크 */}
+          <button
+            onClick={() => onCollectionChange("all")}
+            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+              selectedCollection === "all"
+                ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+            title="전체"
+          >
+            <span className="text-sm">📚</span>
+          </button>
+
+          {/* 컬렉션 없음 */}
+          <button
+            onClick={() => onCollectionChange("none")}
+            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+              selectedCollection === "none"
+                ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+            title="컬렉션 없음"
+          >
+            <span className="text-sm">📄</span>
+          </button>
+
+          {/* 최상위 컬렉션들만 표시 */}
+          {collections
+            .filter((col) => !col.parentId)
+            .map((collection) => (
+              <button
+                key={collection.id}
+                onClick={() => onCollectionChange(collection.id)}
+                className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+                  selectedCollection === collection.id
+                    ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+                title={collection.name}
+              >
+                {renderCollectionIcon(collection.icon, "w-4 h-4")}
+              </button>
+            ))}
+        </div>
+
+        {/* 새 컬렉션 추가 버튼 */}
+        <div className="p-2 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={onOpenAddCollectionModal}
+            className="w-full flex items-center justify-center p-2 btn-primary rounded-lg"
+            title="새 컬렉션"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
       {/* 헤더 */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900 dark:text-white">
           컬렉션
         </h2>
         <button
@@ -219,12 +298,12 @@ export const CollectionList = ({
       </div>
 
       {/* 컬렉션 목록 */}
-      <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
-        <nav className="space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 scrollbar-hide">
+        <nav className="space-y-1">
           {/* 전체 북마크 */}
           <button
             onClick={() => onCollectionChange("all")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
+            className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-left transition-colors duration-200 ${
               selectedCollection === "all"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -237,7 +316,7 @@ export const CollectionList = ({
           {/* 컬렉션 없음 */}
           <button
             onClick={() => onCollectionChange("none")}
-            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors duration-200 ${
+            className={`w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-left transition-colors duration-200 ${
               selectedCollection === "none"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -266,10 +345,10 @@ export const CollectionList = ({
       </div>
 
       {/* 새 컬렉션 추가 버튼 */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-3 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={onOpenAddCollectionModal}
-          className="w-full flex items-center justify-center space-x-2 btn-primary py-3 font-medium"
+          className="w-full flex items-center justify-center space-x-2 btn-primary py-2 font-medium"
         >
           <svg
             className="w-5 h-5"

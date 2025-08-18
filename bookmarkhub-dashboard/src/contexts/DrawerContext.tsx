@@ -5,6 +5,8 @@ interface DrawerContextType {
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   isDrawerClosing: boolean;
   setIsDrawerClosing: React.Dispatch<React.SetStateAction<boolean>>;
+  isDrawerCollapsed: boolean;
+  setIsDrawerCollapsed: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const DrawerContext = createContext<DrawerContextType | undefined>(undefined);
@@ -14,6 +16,7 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDrawerClosing, setIsDrawerClosing] = useState(false);
+  const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   return (
     <DrawerContext.Provider
       value={{
@@ -21,6 +24,8 @@ export const DrawerProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsDrawerOpen,
         isDrawerClosing,
         setIsDrawerClosing,
+        isDrawerCollapsed,
+        setIsDrawerCollapsed,
       }}
     >
       {children}
