@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   BookOpen,
   Folder,
@@ -1291,16 +1292,51 @@ const BibleVerseWidget: React.FC = () => {
     return bibleVerses[randomIndex];
   });
 
-  // 배경 그라디언트 배열
+  // 배경 그라디언트 배열 - 더 다양한 색상 조합
   const backgrounds = [
+    // 블루 계열
     "bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-indigo-900/90",
-    "bg-gradient-to-br from-purple-900/90 via-pink-900/90 to-red-900/90",
     "bg-gradient-to-br from-indigo-900/90 via-blue-900/90 to-cyan-900/90",
-    "bg-gradient-to-br from-emerald-900/90 via-teal-900/90 to-blue-900/90",
-    "bg-gradient-to-br from-violet-900/90 via-purple-900/90 to-indigo-900/90",
-    "bg-gradient-to-br from-orange-900/90 via-red-900/90 to-pink-900/90",
     "bg-gradient-to-br from-cyan-900/90 via-blue-900/90 to-indigo-900/90",
+    "bg-gradient-to-br from-sky-900/90 via-blue-900/90 to-slate-900/90",
+    "bg-gradient-to-br from-blue-800/90 via-indigo-800/90 to-purple-800/90",
+
+    // 퍼플/핑크 계열
+    "bg-gradient-to-br from-purple-900/90 via-pink-900/90 to-red-900/90",
+    "bg-gradient-to-br from-violet-900/90 via-purple-900/90 to-indigo-900/90",
     "bg-gradient-to-br from-rose-900/90 via-pink-900/90 to-purple-900/90",
+    "bg-gradient-to-br from-fuchsia-900/90 via-purple-900/90 to-violet-900/90",
+    "bg-gradient-to-br from-pink-800/90 via-rose-800/90 to-red-800/90",
+
+    // 그린/틸 계열
+    "bg-gradient-to-br from-emerald-900/90 via-teal-900/90 to-blue-900/90",
+    "bg-gradient-to-br from-teal-900/90 via-cyan-900/90 to-blue-900/90",
+    "bg-gradient-to-br from-green-900/90 via-emerald-900/90 to-teal-900/90",
+    "bg-gradient-to-br from-lime-800/90 via-green-800/90 to-emerald-800/90",
+
+    // 웜톤 계열
+    "bg-gradient-to-br from-orange-900/90 via-red-900/90 to-pink-900/90",
+    "bg-gradient-to-br from-amber-900/90 via-orange-900/90 to-red-900/90",
+    "bg-gradient-to-br from-yellow-800/90 via-amber-800/90 to-orange-800/90",
+    "bg-gradient-to-br from-red-900/90 via-rose-900/90 to-pink-900/90",
+
+    // 다크/뉴트럴 계열
+    "bg-gradient-to-br from-slate-900/90 via-gray-900/90 to-zinc-900/90",
+    "bg-gradient-to-br from-gray-900/90 via-slate-900/90 to-stone-900/90",
+    "bg-gradient-to-br from-zinc-900/90 via-neutral-900/90 to-stone-900/90",
+
+    // 특별한 조합들
+    "bg-gradient-to-br from-purple-900/90 via-blue-900/90 to-teal-900/90",
+    "bg-gradient-to-br from-rose-900/90 via-orange-900/90 to-amber-900/90",
+    "bg-gradient-to-br from-emerald-900/90 via-blue-900/90 to-purple-900/90",
+    "bg-gradient-to-br from-indigo-900/90 via-pink-900/90 to-red-900/90",
+    "bg-gradient-to-br from-teal-900/90 via-purple-900/90 to-rose-900/90",
+
+    // 대각선 방향 변화
+    "bg-gradient-to-tr from-blue-900/90 via-purple-900/90 to-pink-900/90",
+    "bg-gradient-to-tl from-emerald-900/90 via-cyan-900/90 to-blue-900/90",
+    "bg-gradient-to-bl from-violet-900/90 via-indigo-900/90 to-blue-900/90",
+    "bg-gradient-to-r from-orange-900/90 via-red-900/90 to-rose-900/90",
   ];
 
   // 마운트 시 랜덤 배경 선택
@@ -1318,8 +1354,22 @@ const BibleVerseWidget: React.FC = () => {
   }, []);
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[400px] flex items-center transition-all duration-[4000ms] ease-in-out transform hover:scale-[1.01]`}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, rotateX: -15 }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        rotateX: 0,
+      }}
+      transition={{
+        duration: 1.5,
+        ease: "easeOut",
+      }}
+      whileHover={{
+        scale: 1.02,
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      }}
+      className={`relative overflow-hidden rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[400px] flex items-center`}
     >
       {/* 애니메이션 배경 패턴 */}
       <div className="absolute inset-0 opacity-10">
@@ -1366,20 +1416,50 @@ const BibleVerseWidget: React.FC = () => {
       </div>
 
       {/* 메인 콘텐츠 */}
-      <div className="relative p-8 md:p-12 text-center w-full">
-        <div className="mb-8">
+      <motion.div
+        className="relative p-8 md:p-12 text-center w-full"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 1 }}
+      >
+        <motion.div
+          className="mb-8"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.7, duration: 0.8 }}
+        >
           <div className="inline-flex items-center space-x-2 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg">
-            <BookOpen className="w-5 h-5 text-white/80" />
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <BookOpen className="w-5 h-5 text-white/80" />
+            </motion.div>
             <span className="text-white/80 text-sm font-medium">
               오늘의 성경말씀
             </span>
           </div>
-        </div>
+        </motion.div>
 
         <div className="space-y-8">
-          <div className="relative">
-            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
-            <div className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-relaxed tracking-wide px-4">
+          <motion.div
+            className="relative"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 1, duration: 1.2, ease: "easeOut" }}
+          >
+            <motion.div
+              className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 1.5, duration: 1 }}
+            ></motion.div>
+            <motion.div
+              className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-relaxed tracking-wide px-4"
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1.2, duration: 1 }}
+            >
               {(() => {
                 const verse = currentVerse.verse;
                 // 줄바꿈을 위한 적절한 지점 찾기 (구두점이나 문절 끝)
@@ -1434,23 +1514,79 @@ const BibleVerseWidget: React.FC = () => {
                 // 짧은 문장은 그대로 표시
                 return `"${verse}"`;
               })()}
-            </div>
-            <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
-          </div>
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 2, duration: 1 }}
+            ></motion.div>
+          </motion.div>
 
-          <div className="pt-6">
+          <motion.div
+            className="pt-6"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 2.2, duration: 0.8 }}
+          >
             <p className="text-base md:text-lg text-white/70 font-medium tracking-wide">
               {currentVerse.reference}
             </p>
-          </div>
+          </motion.div>
         </div>
 
         {/* 장식 요소 */}
-        <div className="absolute top-8 right-8 w-24 h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"></div>
-        <div className="absolute bottom-8 left-8 w-20 h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"></div>
-        <div className="absolute top-1/4 left-8 w-12 h-12 bg-white/3 rounded-full backdrop-blur-sm"></div>
-        <div className="absolute bottom-1/4 right-12 w-16 h-16 bg-white/3 rounded-full backdrop-blur-sm"></div>
-      </div>
-    </div>
+        <motion.div
+          className="absolute top-8 right-8 w-24 h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+          animate={{
+            scale: [1, 1.1, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        ></motion.div>
+        <motion.div
+          className="absolute bottom-8 left-8 w-20 h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.7, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        ></motion.div>
+        <motion.div
+          className="absolute top-1/4 left-8 w-12 h-12 bg-white/3 rounded-full backdrop-blur-sm"
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.2, 0.5, 0.2],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        ></motion.div>
+        <motion.div
+          className="absolute bottom-1/4 right-12 w-16 h-16 bg-white/3 rounded-full backdrop-blur-sm"
+          animate={{
+            x: [0, 10, 0],
+            scale: [1, 1.1, 1],
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3,
+          }}
+        ></motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
