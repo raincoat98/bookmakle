@@ -267,3 +267,80 @@
     @apply opacity-100;
   }
 }
+
+@layer utilities {
+  /* 성경말씀 위젯 애니메이션 */
+  @keyframes float-horizontal {
+    0%,
+    100% {
+      transform: translateX(-100%) translateY(0px);
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateX(100%) translateY(-10px);
+      opacity: 0.8;
+    }
+    75% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float-horizontal-reverse {
+    0%,
+    100% {
+      transform: translateX(100%) translateY(0px);
+      opacity: 0;
+    }
+    25% {
+      opacity: 1;
+    }
+    50% {
+      transform: translateX(-100%) translateY(10px);
+      opacity: 0.8;
+    }
+    75% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes gentle-float {
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(180deg);
+    }
+  }
+
+  @keyframes sparkle {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-float-horizontal {
+    animation: float-horizontal 15s infinite ease-in-out;
+  }
+
+  .animate-float-horizontal-reverse {
+    animation: float-horizontal-reverse 20s infinite ease-in-out;
+  }
+
+  .animate-gentle-float {
+    animation: gentle-float 6s infinite ease-in-out;
+  }
+
+  .animate-sparkle {
+    animation: sparkle 4s infinite ease-in-out;
+  }
+}

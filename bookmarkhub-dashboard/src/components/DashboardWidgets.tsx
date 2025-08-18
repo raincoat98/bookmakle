@@ -496,8 +496,7 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onReorder,
+  onReorder: _onReorder,
 }) => {
   const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 6);
 
@@ -579,8 +578,7 @@ const FavoriteBookmarksIconGrid: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onReorder,
+  onReorder: _onReorder,
 }) => {
   const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 12);
 
@@ -796,7 +794,7 @@ const RecentBookmarksIconGrid: React.FC<{
   collections: Collection[];
   onEdit: (bookmark: Bookmark) => void;
   onDelete: (id: string) => void;
-}> = ({ bookmarks, collections, onEdit, onDelete }) => {
+}> = ({ bookmarks, collections: _collections, onEdit, onDelete }) => {
   const recentBookmarks = bookmarks
     .sort(
       (a, b) =>
@@ -1293,22 +1291,78 @@ const BibleVerseWidget: React.FC = () => {
     return bibleVerses[randomIndex];
   });
 
+  // 배경 그라디언트 배열
+  const backgrounds = [
+    "bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-indigo-900/90",
+    "bg-gradient-to-br from-purple-900/90 via-pink-900/90 to-red-900/90",
+    "bg-gradient-to-br from-indigo-900/90 via-blue-900/90 to-cyan-900/90",
+    "bg-gradient-to-br from-emerald-900/90 via-teal-900/90 to-blue-900/90",
+    "bg-gradient-to-br from-violet-900/90 via-purple-900/90 to-indigo-900/90",
+    "bg-gradient-to-br from-orange-900/90 via-red-900/90 to-pink-900/90",
+    "bg-gradient-to-br from-cyan-900/90 via-blue-900/90 to-indigo-900/90",
+    "bg-gradient-to-br from-rose-900/90 via-pink-900/90 to-purple-900/90",
+  ];
+
+  // 마운트 시 랜덤 배경 선택
+  const [backgroundIndex] = useState(() =>
+    Math.floor(Math.random() * backgrounds.length)
+  );
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    const verseInterval = setInterval(() => {
       const randomIndex = Math.floor(Math.random() * bibleVerses.length);
       setCurrentVerse(bibleVerses[randomIndex]);
     }, 30000); // 30초마다 변경
 
-    return () => clearInterval(interval);
+    return () => clearInterval(verseInterval);
   }, []);
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900/90 via-purple-900/90 to-indigo-900/90 backdrop-blur-xl border border-white/20 shadow-2xl min-h-[400px] flex items-center">
-      {/* 배경 패턴 */}
+    <div
+      className={`relative overflow-hidden rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[400px] flex items-center transition-all duration-[4000ms] ease-in-out transform hover:scale-[1.01]`}
+    >
+      {/* 애니메이션 배경 패턴 */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)]"></div>
-        <div className="absolute bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.05)_0%,transparent_50%)]"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[radial-gradient(circle,rgba(255,255,255,0.03)_0%,transparent_70%)]"></div>
+        {/* 움직이는 원형 패턴들 */}
+        <div
+          className="absolute animate-pulse duration-[4000ms] top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)] animate-spin"
+          style={{ animationDuration: "60s" }}
+        ></div>
+        <div
+          className="absolute animate-pulse duration-[6000ms] bottom-0 right-0 w-full h-full bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.05)_0%,transparent_50%)] animate-spin"
+          style={{ animationDuration: "90s", animationDirection: "reverse" }}
+        ></div>
+        <div
+          className="absolute animate-pulse duration-[5000ms] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[radial-gradient(circle,rgba(255,255,255,0.03)_0%,transparent_70%)] animate-ping"
+          style={{ animationDuration: "8s" }}
+        ></div>
+
+        {/* 떠다니는 점들 - 더 많은 효과 */}
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/20 rounded-full animate-bounce duration-[3000ms]"></div>
+        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/30 rounded-full animate-bounce duration-[4000ms] delay-1000"></div>
+        <div className="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-white/25 rounded-full animate-bounce duration-[3500ms] delay-2000"></div>
+        <div className="absolute top-1/3 right-1/2 w-1 h-1 bg-white/15 rounded-full animate-bounce duration-[2800ms] delay-500"></div>
+        <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 bg-white/20 rounded-full animate-bounce duration-[3200ms] delay-1500"></div>
+        <div className="absolute top-2/3 left-2/3 w-1 h-1 bg-white/25 rounded-full animate-bounce duration-[3600ms] delay-3000"></div>
+
+        {/* 움직이는 그라디언트 오버레이들 */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse duration-[8000ms]"></div>
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-white/3 to-transparent animate-pulse duration-[12000ms] delay-2000"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/2 to-transparent animate-pulse duration-[10000ms] delay-4000"></div>
+
+        {/* 흐르는 빛의 선들 */}
+        <div
+          className="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-60"
+          style={{
+            animation: "float-horizontal 15s infinite ease-in-out",
+          }}
+        ></div>
+        <div
+          className="absolute top-3/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-40"
+          style={{
+            animation: "float-horizontal-reverse 20s infinite ease-in-out",
+          }}
+        ></div>
       </div>
 
       {/* 메인 콘텐츠 */}
