@@ -109,6 +109,32 @@ export const useWidgetOrder = (userId: string) => {
     saveWidgetOrder(DEFAULT_WIDGETS);
   };
 
+  // 위젯을 위로 이동
+  const moveWidgetUp = (widgetId: WidgetId) => {
+    const currentIndex = widgets.findIndex((w) => w.id === widgetId);
+    if (currentIndex > 0) {
+      const newWidgets = [...widgets];
+      [newWidgets[currentIndex - 1], newWidgets[currentIndex]] = [
+        newWidgets[currentIndex],
+        newWidgets[currentIndex - 1],
+      ];
+      saveWidgetOrder(newWidgets);
+    }
+  };
+
+  // 위젯을 아래로 이동
+  const moveWidgetDown = (widgetId: WidgetId) => {
+    const currentIndex = widgets.findIndex((w) => w.id === widgetId);
+    if (currentIndex < widgets.length - 1) {
+      const newWidgets = [...widgets];
+      [newWidgets[currentIndex], newWidgets[currentIndex + 1]] = [
+        newWidgets[currentIndex + 1],
+        newWidgets[currentIndex],
+      ];
+      saveWidgetOrder(newWidgets);
+    }
+  };
+
   return {
     widgets,
     isEditMode,
@@ -116,5 +142,7 @@ export const useWidgetOrder = (userId: string) => {
     reorderWidgets,
     toggleWidget,
     resetWidgetOrder,
+    moveWidgetUp,
+    moveWidgetDown,
   };
 };

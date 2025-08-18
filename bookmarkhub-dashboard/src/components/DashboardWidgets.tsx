@@ -13,6 +13,8 @@ import {
   Eye,
   EyeOff,
   BookOpen,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import type { Bookmark, Collection } from "../types";
 import bibleVerses from "../data/bibleVerses.json";
@@ -71,7 +73,34 @@ const SortableWidget: React.FC<{
   isEditMode: boolean;
   enabled: boolean;
   onToggle: () => void;
-}> = ({ id, children, isEditMode, enabled, onToggle }) => {
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+}> = ({
+  id,
+  children,
+  isEditMode,
+  enabled,
+  onToggle,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+}) => {
+  // 화면 크기 감지를 위한 상태
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md 브레이크포인트
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const {
     attributes,
     listeners,
@@ -81,7 +110,7 @@ const SortableWidget: React.FC<{
     isDragging,
   } = useSortable({
     id: id,
-    disabled: !isEditMode,
+    disabled: !isEditMode || isMobile, // 모바일에서는 드래그 비활성화
     transition: {
       duration: 150,
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
@@ -102,13 +131,13 @@ const SortableWidget: React.FC<{
       ref={setNodeRef}
       style={style}
       className={`relative group ${isDragging ? "opacity-50 z-50" : ""} ${
-        isEditMode ? "cursor-move" : ""
+        isEditMode && !isMobile ? "cursor-move" : ""
       } ${!enabled && isEditMode ? "opacity-50" : ""}`}
-      {...attributes}
-      {...listeners}
+      {...(isMobile ? {} : { ...attributes, ...listeners })} // 모바일에서는 드래그 리스너 제거
     >
       {isEditMode && (
-        <div className="absolute top-2 right-2 z-10 flex space-x-2">
+        <div className="absolute top-2 right-2 z-10 flex flex-col space-y-2">
+          {/* 토글 버튼 */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -123,7 +152,37 @@ const SortableWidget: React.FC<{
               <Eye className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             )}
           </button>
-          <div className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+
+          {/* 모바일용 이동 버튼 그룹 */}
+          <div className="md:hidden flex flex-col space-y-1">
+            {canMoveUp && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveUp?.();
+                }}
+                className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                title="위로 이동"
+              >
+                <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+            )}
+            {canMoveDown && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveDown?.();
+                }}
+                className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                title="아래로 이동"
+              >
+                <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+            )}
+          </div>
+
+          {/* 데스크톱용 드래그 핸들 */}
+          <div className="hidden md:block p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md">
             <Move className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           </div>
         </div>
@@ -912,6 +971,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     reorderWidgets,
     toggleWidget,
     resetWidgetOrder,
+    moveWidgetUp,
+    moveWidgetDown,
   } = useWidgetOrder(userId);
 
   // 그룹 순서 관련 코드 제거 (더 이상 사용하지 않음)
@@ -1031,8 +1092,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             )
             .map((widget) => widget.id)}
           strategy={verticalListSortingStrategy}
-                 >
-           <div className="space-y-4 sm:space-y-6 lg:space-y-8">
+        >
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {/* 모든 위젯을 순서대로 렌더링 */}
             {widgets
               .filter(
@@ -1042,7 +1103,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   widget.id !== "quick-actions" &&
                   (widget.enabled || isEditMode)
               )
-              .map((widget) => {
+              .map((widget, index, filteredWidgets) => {
                 return (
                   <SortableWidget
                     key={widget.id}
@@ -1050,6 +1111,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     enabled={widget.enabled}
                     isEditMode={isEditMode}
                     onToggle={() => toggleWidget(widget.id)}
+                    onMoveUp={() => moveWidgetUp(widget.id)}
+                    onMoveDown={() => moveWidgetDown(widget.id)}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < filteredWidgets.length - 1}
                   >
                     {renderWidget(widget)}
                   </SortableWidget>
@@ -1060,7 +1125,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             {(widgets.find((w) => w.id === "favorite-bookmarks")?.enabled ||
               widgets.find((w) => w.id === "recent-bookmarks")?.enabled ||
               isEditMode) && (
-                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-stretch">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-stretch">
                 {/* 즐겨찾기 북마크 위젯 */}
                 {(widgets.find((w) => w.id === "favorite-bookmarks")?.enabled ||
                   isEditMode) && (
@@ -1072,6 +1137,16 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     }
                     isEditMode={isEditMode}
                     onToggle={() => toggleWidget("favorite-bookmarks")}
+                    onMoveUp={() => moveWidgetUp("favorite-bookmarks")}
+                    onMoveDown={() => moveWidgetDown("favorite-bookmarks")}
+                    canMoveUp={
+                      widgets.findIndex((w) => w.id === "favorite-bookmarks") >
+                      0
+                    }
+                    canMoveDown={
+                      widgets.findIndex((w) => w.id === "favorite-bookmarks") <
+                      widgets.length - 1
+                    }
                   >
                     <FavoriteBookmarksIconGrid
                       bookmarks={bookmarks}
@@ -1094,6 +1169,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     }
                     isEditMode={isEditMode}
                     onToggle={() => toggleWidget("recent-bookmarks")}
+                    onMoveUp={() => moveWidgetUp("recent-bookmarks")}
+                    onMoveDown={() => moveWidgetDown("recent-bookmarks")}
+                    canMoveUp={
+                      widgets.findIndex((w) => w.id === "recent-bookmarks") > 0
+                    }
+                    canMoveDown={
+                      widgets.findIndex((w) => w.id === "recent-bookmarks") <
+                      widgets.length - 1
+                    }
                   >
                     <RecentBookmarksIconGrid
                       bookmarks={bookmarks}
@@ -1116,6 +1200,15 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                 }
                 isEditMode={isEditMode}
                 onToggle={() => toggleWidget("quick-actions")}
+                onMoveUp={() => moveWidgetUp("quick-actions")}
+                onMoveDown={() => moveWidgetDown("quick-actions")}
+                canMoveUp={
+                  widgets.findIndex((w) => w.id === "quick-actions") > 0
+                }
+                canMoveDown={
+                  widgets.findIndex((w) => w.id === "quick-actions") <
+                  widgets.length - 1
+                }
               >
                 <QuickActions
                   onAddBookmark={onAddBookmark}
@@ -1138,7 +1231,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             <p>
               • 눈 모양 아이콘을 클릭하여 위젯을 숨기거나 표시할 수 있습니다.
             </p>
-            <p>• 하단의 드래그 가능한 위젯들은 순서를 변경할 수 있습니다.</p>
+            <p className="hidden md:block">
+              • 데스크톱에서는 위젯을 드래그하여 순서를 변경할 수 있습니다.
+            </p>
+            <p className="md:hidden">
+              • 모바일에서는 위/아래 화살표 버튼으로 위젯 순서를 변경할 수
+              있습니다.
+            </p>
             <p>
               • 비활성화된 위젯은 반투명하게 표시되며, 클릭하여 다시 활성화할 수
               있습니다.
@@ -1313,10 +1412,10 @@ const BibleVerseWidget: React.FC = () => {
         ></div>
       </div>
 
-             {/* 메인 콘텐츠 - z-index를 높게 설정하여 배경 패턴 위에 표시 */}
-       <motion.div
-         className="relative p-4 sm:p-6 md:p-8 lg:p-12 text-center w-full"
-         style={{ zIndex: 100 }}
+      {/* 메인 콘텐츠 - z-index를 높게 설정하여 배경 패턴 위에 표시 */}
+      <motion.div
+        className="relative p-4 sm:p-6 md:p-8 lg:p-12 text-center w-full"
+        style={{ zIndex: 100 }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 1 }}
@@ -1327,10 +1426,10 @@ const BibleVerseWidget: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.8 }}
         >
-                     <div
-             className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg relative"
-             style={{ zIndex: 200 }}
-           >
+          <div
+            className="inline-flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-lg relative"
+            style={{ zIndex: 200 }}
+          >
             <motion.div
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -1356,16 +1455,16 @@ const BibleVerseWidget: React.FC = () => {
               animate={{ width: 96 }}
               transition={{ delay: 1.5, duration: 1 }}
             ></motion.div>
-                         <motion.div
-               className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-light text-white leading-relaxed tracking-wide px-2 sm:px-3 md:px-4 relative"
-               style={{
-                 zIndex: 200,
-                 textShadow:
-                   "0 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6)",
-                 backgroundColor: "rgba(0,0,0,0.2)",
-                 borderRadius: "8px",
-                 padding: "0.75rem 1rem",
-               }}
+            <motion.div
+              className="text-sm sm:text-base md:text-xl lg:text-2xl xl:text-3xl font-light text-white leading-relaxed tracking-wide px-2 sm:px-3 md:px-4 relative"
+              style={{
+                zIndex: 200,
+                textShadow:
+                  "0 2px 10px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.6)",
+                backgroundColor: "rgba(0,0,0,0.2)",
+                borderRadius: "8px",
+                padding: "0.75rem 1rem",
+              }}
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1.2, duration: 1 }}
@@ -1439,24 +1538,24 @@ const BibleVerseWidget: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 2.2, duration: 0.8 }}
           >
-                         <p
-               className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 font-medium tracking-wide relative"
-               style={{
-                 zIndex: 200,
-                 textShadow: "0 2px 8px rgba(0,0,0,0.7)",
-                 borderRadius: "6px",
-                 padding: "0.5rem 0.75rem",
-               }}
-             >
+            <p
+              className="text-xs sm:text-sm md:text-base lg:text-lg text-white/90 font-medium tracking-wide relative"
+              style={{
+                zIndex: 200,
+                textShadow: "0 2px 8px rgba(0,0,0,0.7)",
+                borderRadius: "6px",
+                padding: "0.5rem 0.75rem",
+              }}
+            >
               {currentVerse.reference}
             </p>
           </motion.div>
         </div>
 
-                 {/* 장식 요소 - 중간 레이어에 배치 */}
-         <motion.div
-           className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
-           style={{ zIndex: 50 }}
+        {/* 장식 요소 - 중간 레이어에 배치 */}
+        <motion.div
+          className="absolute top-4 sm:top-6 md:top-8 right-4 sm:right-6 md:right-8 w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+          style={{ zIndex: 50 }}
           animate={{
             scale: [1, 1.1, 1],
             rotate: [0, 180, 360],
@@ -1467,9 +1566,9 @@ const BibleVerseWidget: React.FC = () => {
             ease: "easeInOut",
           }}
         ></motion.div>
-                 <motion.div
-           className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 w-10 sm:w-14 md:w-16 lg:w-20 h-10 sm:h-14 md:h-16 lg:h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
-           style={{ zIndex: 50 }}
+        <motion.div
+          className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-8 w-10 sm:w-14 md:w-16 lg:w-20 h-10 sm:h-14 md:h-16 lg:h-20 bg-white/5 rounded-full backdrop-blur-sm border border-white/10"
+          style={{ zIndex: 50 }}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.7, 0.3],
@@ -1481,9 +1580,9 @@ const BibleVerseWidget: React.FC = () => {
             delay: 2,
           }}
         ></motion.div>
-                 <motion.div
-           className="absolute top-1/4 left-4 sm:left-6 md:left-8 w-6 sm:w-8 md:w-10 lg:w-12 h-6 sm:h-8 md:h-10 lg:h-12 bg-white/3 rounded-full backdrop-blur-sm"
-           style={{ zIndex: 50 }}
+        <motion.div
+          className="absolute top-1/4 left-4 sm:left-6 md:left-8 w-6 sm:w-8 md:w-10 lg:w-12 h-6 sm:h-8 md:h-10 lg:h-12 bg-white/3 rounded-full backdrop-blur-sm"
+          style={{ zIndex: 50 }}
           animate={{
             y: [0, -20, 0],
             opacity: [0.2, 0.5, 0.2],
@@ -1494,9 +1593,9 @@ const BibleVerseWidget: React.FC = () => {
             ease: "easeInOut",
           }}
         ></motion.div>
-                 <motion.div
-           className="absolute bottom-1/4 right-6 sm:right-8 md:right-10 lg:right-12 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 bg-white/3 rounded-full backdrop-blur-sm"
-           style={{ zIndex: 50 }}
+        <motion.div
+          className="absolute bottom-1/4 right-6 sm:right-8 md:right-10 lg:right-12 w-8 sm:w-10 md:w-12 lg:w-16 h-8 sm:h-10 md:h-12 lg:h-16 bg-white/3 rounded-full backdrop-blur-sm"
+          style={{ zIndex: 50 }}
           animate={{
             x: [0, 10, 0],
             scale: [1, 1.1, 1],
