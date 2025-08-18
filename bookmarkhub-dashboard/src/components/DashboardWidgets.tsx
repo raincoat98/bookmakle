@@ -1379,9 +1379,62 @@ const BibleVerseWidget: React.FC = () => {
         <div className="space-y-8">
           <div className="relative">
             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
-            <p className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-relaxed tracking-wide px-4">
-              "{currentVerse.verse}"
-            </p>
+            <div className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-light text-white leading-relaxed tracking-wide px-4">
+              {(() => {
+                const verse = currentVerse.verse;
+                // 줄바꿈을 위한 적절한 지점 찾기 (구두점이나 문절 끝)
+                const breakPatterns = [
+                  " 그리하면 ",
+                  " 그러므로 ",
+                  " 하지만 ",
+                  " 그런데 ",
+                  " 왜냐하면 ",
+                  " 그리고 ",
+                ];
+
+                for (const pattern of breakPatterns) {
+                  if (verse.includes(pattern)) {
+                    const parts = verse.split(pattern);
+                    return (
+                      <>
+                        "{parts[0]}
+                        {pattern.trim()}
+                        <br />
+                        {parts.slice(1).join(pattern)}"
+                      </>
+                    );
+                  }
+                }
+
+                // 특별한 패턴이 없으면 쉼표나 적절한 지점에서 분할
+                const commaIndex = verse.indexOf(",");
+                if (commaIndex > 10 && commaIndex < verse.length - 10) {
+                  return (
+                    <>
+                      "{verse.substring(0, commaIndex + 1)}
+                      <br />
+                      {verse.substring(commaIndex + 1).trim()}"
+                    </>
+                  );
+                }
+
+                // 적절한 지점이 없으면 중간에서 분할
+                const words = verse.split(" ");
+                if (words.length > 8) {
+                  const midPoint = Math.floor(words.length / 2);
+                  return (
+                    <>
+                      "{words.slice(0, midPoint).join(" ")}
+                      <br />
+                      {words.slice(midPoint).join(" ")}"
+                    </>
+                  );
+                }
+
+                // 짧은 문장은 그대로 표시
+                return `"${verse}"`;
+              })()}
+            </div>
             <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
           </div>
 
