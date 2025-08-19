@@ -1255,6 +1255,7 @@ const BibleVerseWidget: React.FC = () => {
     const randomIndex = Math.floor(Math.random() * bibleVerses.length);
     return bibleVerses[randomIndex];
   });
+  const [copied, setCopied] = useState(false);
 
   // 배경 그라디언트 배열 - 더 다양한 색상 조합
   const backgrounds = [
@@ -1308,6 +1309,59 @@ const BibleVerseWidget: React.FC = () => {
     Math.floor(Math.random() * backgrounds.length)
   );
 
+  // 성경말씀 복사 기능
+  const handleCopyVerse = async () => {
+    if (!currentVerse) {
+      console.log("복사할 말씀이 없습니다.");
+      return;
+    }
+
+    const textToCopy = `"${currentVerse.verse}" - ${currentVerse.reference}`;
+    console.log("복사 시도:", textToCopy);
+
+    // 현대적인 Clipboard API 시도
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        console.log("Clipboard API로 복사 성공");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+        return;
+      } catch (error) {
+        console.error("Clipboard API 복사 실패:", error);
+      }
+    }
+
+    // Fallback: execCommand 방법
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-999999px";
+      textArea.style.top = "-999999px";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      const successful = document.execCommand("copy");
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        console.log("execCommand로 복사 성공");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      } else {
+        console.error("execCommand 복사 실패");
+        alert("복사 기능을 사용할 수 없습니다. 브라우저가 지원하지 않습니다.");
+      }
+    } catch (fallbackError) {
+      console.error("모든 복사 방법 실패:", fallbackError);
+      alert(
+        "복사 기능을 사용할 수 없습니다. 수동으로 텍스트를 선택해서 복사해주세요."
+      );
+    }
+  };
+
   // 마운트 시에만 한 번 설정 (interval 제거)
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * bibleVerses.length);
@@ -1330,7 +1384,18 @@ const BibleVerseWidget: React.FC = () => {
         scale: 1.02,
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
       }}
-      className={`relative overflow-hidden rounded-2xl md:rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[280px] sm:min-h-[320px] md:min-h-[400px] flex items-center`}
+      whileTap={{ scale: 0.98 }}
+      className={`relative overflow-hidden rounded-2xl md:rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[280px] sm:min-h-[320px] md:min-h-[400px] flex items-center cursor-pointer`}
+      onClick={handleCopyVerse}
+      title={copied ? "복사됨!" : "클릭하여 성경말씀 복사"}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCopyVerse();
+        }
+      }}
     >
       {/* 애니메이션 배경 패턴 - z-index를 낮게 설정하여 텍스트 뒤로 배치 */}
       <div className="absolute inset-0 opacity-10" style={{ zIndex: -10 }}>
@@ -1434,10 +1499,29 @@ const BibleVerseWidget: React.FC = () => {
               <BookOpen className="w-5 h-5 text-white/80" />
             </motion.div>
             <span className="text-white/80 text-sm font-medium">
-              오늘의 성경말씀
+              {copied ? "복사됨!" : "오늘의 성경말씀"}
             </span>
           </div>
         </motion.div>
+
+        {/* 복사 상태 알림 */}
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.8 }}
+            className="absolute top-4 right-4 bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-medium shadow-xl backdrop-blur-sm border border-white/20 flex items-center space-x-2"
+            style={{ zIndex: 300 }}
+          >
+            <motion.div
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.3 }}
+            >
+              ✓
+            </motion.div>
+            <span>복사됨!</span>
+          </motion.div>
+        )}
 
         <div className="space-y-8">
           <motion.div
