@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -16,7 +16,8 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import type { Bookmark, Collection } from "../types";
+import type { Bookmark, Collection, SortOption } from "../types";
+import { sortBookmarks } from "../utils/sortBookmarks";
 import bibleVerses from "../data/bibleVerses.json";
 import { WeatherWidget } from "./WeatherWidget";
 import {
@@ -45,6 +46,8 @@ interface FavoriteBookmarksProps {
   onDelete: (id: string) => void;
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
   onReorder?: (newBookmarks: Bookmark[]) => void;
+  currentSort?: SortOption;
+  onSortChange?: (sort: SortOption) => void;
 }
 
 // CollectionDistributionProps 인터페이스 제거 (더 이상 사용하지 않음)
@@ -63,6 +66,8 @@ interface DashboardOverviewProps {
   onAddBookmark: () => void;
   onAddCollection: () => void;
   onReorder?: (newBookmarks: Bookmark[]) => void;
+  currentSort?: SortOption;
+  onSortChange?: (sort: SortOption) => void;
   userId: string;
 }
 
@@ -491,8 +496,18 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
+  currentSort,
+  onSortChange,
 }) => {
-  const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 6);
+  // 정렬된 즐겨찾기 북마크
+  const sortedFavoriteBookmarks = useMemo(() => {
+    let filtered = bookmarks.filter((b) => b.isFavorite);
+    if (currentSort && onSortChange) {
+      // 정렬 로직 적용
+      return sortBookmarks(filtered, currentSort).slice(0, 6);
+    }
+    return filtered.slice(0, 6);
+  }, [bookmarks, currentSort, onSortChange]);
 
   const getCollectionName = (collectionId: string | null) => {
     if (!collectionId) return "미분류";
@@ -507,9 +522,9 @@ const FavoriteBookmarks: React.FC<FavoriteBookmarksProps> = ({
         즐겨찾기 북마크
       </h3>
       <div className="space-y-3 flex-1 flex flex-col">
-        {favoriteBookmarks.length > 0 ? (
+        {sortedFavoriteBookmarks.length > 0 ? (
           <div className="space-y-3 flex-1">
-            {favoriteBookmarks.map((bookmark) => (
+            {sortedFavoriteBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
                 className="group flex items-center justify-between p-3 rounded-xl border border-white/30 dark:border-gray-600/30 hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
@@ -572,8 +587,18 @@ const FavoriteBookmarksIconGrid: React.FC<FavoriteBookmarksProps> = ({
   onEdit,
   onDelete,
   onToggleFavorite,
+  currentSort,
+  onSortChange,
 }) => {
-  const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).slice(0, 12);
+  // 정렬된 즐겨찾기 북마크
+  const sortedFavoriteBookmarks = useMemo(() => {
+    let filtered = bookmarks.filter((b) => b.isFavorite);
+    if (currentSort && onSortChange) {
+      // 정렬 로직 적용
+      return sortBookmarks(filtered, currentSort).slice(0, 12);
+    }
+    return filtered.slice(0, 12);
+  }, [bookmarks, currentSort, onSortChange]);
 
   const handleFaviconClick = (url: string) => {
     window.open(url, "_blank");
@@ -586,9 +611,9 @@ const FavoriteBookmarksIconGrid: React.FC<FavoriteBookmarksProps> = ({
         즐겨찾기 북마크
       </h3>
       <div className="flex-1">
-        {favoriteBookmarks.length > 0 ? (
+        {sortedFavoriteBookmarks.length > 0 ? (
           <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-            {favoriteBookmarks.map((bookmark) => (
+            {sortedFavoriteBookmarks.map((bookmark) => (
               <div
                 key={bookmark.id}
                 className="group relative flex flex-col items-center p-2 sm:p-3 rounded-lg sm:rounded-xl hover:bg-white/50 dark:hover:bg-gray-700/50 transition-all duration-300"
@@ -962,6 +987,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onAddBookmark,
   onAddCollection,
   onReorder,
+  currentSort,
+  onSortChange,
   userId,
 }) => {
   const {
@@ -1021,6 +1048,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             onDelete={onDelete}
             onToggleFavorite={onToggleFavorite}
             onReorder={onReorder}
+            currentSort={currentSort}
+            onSortChange={onSortChange}
           />
         );
       case "recent-bookmarks":

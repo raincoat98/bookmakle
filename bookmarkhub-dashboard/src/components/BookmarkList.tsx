@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import type { Bookmark, Collection } from "../types";
+import type { Bookmark, Collection, SortOption } from "../types";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
 import { MobileIconView } from "./MobileIconView";
+import { BookmarkSort } from "./BookmarkSort";
+import { sortBookmarks } from "../utils/sortBookmarks";
 import {
   DndContext,
   closestCenter,
@@ -32,6 +34,9 @@ interface BookmarkListProps {
   collections?: Collection[];
   searchTerm: string;
   viewMode: "grid" | "list";
+  // 정렬 관련 props 추가
+  currentSort: SortOption;
+  onSortChange: (sort: SortOption) => void;
   // 그룹화된 북마크 데이터 추가
   groupedBookmarks?: {
     isGrouped: boolean;
@@ -55,6 +60,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   collections = [],
   searchTerm,
   viewMode,
+  currentSort,
+  onSortChange,
   groupedBookmarks,
 }) => {
   const [faviconLoadingStates, setFaviconLoadingStates] = useState<
@@ -67,8 +74,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     null
   );
 
-  // 필터링된 북마크
-  const filteredBookmarks = useMemo(() => {
+  // 필터링 및 정렬된 북마크
+  const filteredAndSortedBookmarks = useMemo(() => {
     let filtered = bookmarks;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -80,8 +87,27 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
             bookmark.description.toLowerCase().includes(term))
       );
     }
-    return filtered;
-  }, [bookmarks, searchTerm]);
+
+    // 정렬 적용
+    return sortBookmarks(filtered, currentSort);
+  }, [bookmarks, searchTerm, currentSort]);
+
+  // 그룹화된 북마크 정렬 처리
+  const sortedGroupedBookmarks = useMemo(() => {
+    if (!groupedBookmarks?.isGrouped) return undefined;
+
+    return {
+      ...groupedBookmarks,
+      selectedCollectionBookmarks: sortBookmarks(
+        groupedBookmarks.selectedCollectionBookmarks || [],
+        currentSort
+      ),
+      groupedBookmarks: groupedBookmarks.groupedBookmarks?.map((group) => ({
+        ...group,
+        bookmarks: sortBookmarks(group.bookmarks, currentSort),
+      })),
+    };
+  }, [groupedBookmarks, currentSort]);
 
   // 드래그 앤 드롭 센서 설정
   const sensors = useSensors(
@@ -107,14 +133,14 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 
     if (active.id !== over.id) {
       // 그룹화된 뷰인지 확인
-      const bookmarksToUse = groupedBookmarks?.isGrouped
+      const bookmarksToUse = sortedGroupedBookmarks?.isGrouped
         ? [
-            ...(groupedBookmarks.selectedCollectionBookmarks || []),
-            ...(groupedBookmarks.groupedBookmarks?.flatMap(
+            ...(sortedGroupedBookmarks.selectedCollectionBookmarks || []),
+            ...(sortedGroupedBookmarks.groupedBookmarks?.flatMap(
               (group) => group.bookmarks
             ) || []),
           ]
-        : filteredBookmarks;
+        : filteredAndSortedBookmarks;
 
       const oldIndex = bookmarksToUse.findIndex(
         (item) => item.id === active.id
@@ -137,7 +163,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
 
   // 순서 변경 함수들 - 애니메이션 효과 추가
   const handleMoveUp = async (bookmark: Bookmark) => {
-    const currentIndex = filteredBookmarks.findIndex(
+    const currentIndex = filteredAndSortedBookmarks.findIndex(
       (b) => b.id === bookmark.id
     );
     if (currentIndex > 0) {
@@ -148,7 +174,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
       // 약간의 지연 후 실제 이동 수행 (애니메이션 효과)
       setTimeout(() => {
         const newOrder = arrayMove(
-          filteredBookmarks,
+          filteredAndSortedBookmarks,
           currentIndex,
           currentIndex - 1
         );
@@ -168,10 +194,10 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   };
 
   const handleMoveDown = async (bookmark: Bookmark) => {
-    const currentIndex = filteredBookmarks.findIndex(
+    const currentIndex = filteredAndSortedBookmarks.findIndex(
       (b) => b.id === bookmark.id
     );
-    if (currentIndex < filteredBookmarks.length - 1) {
+    if (currentIndex < filteredAndSortedBookmarks.length - 1) {
       // 이동 시작 상태 설정
       setMovingBookmarkId(bookmark.id);
       setMoveDirection("down");
@@ -179,7 +205,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
       // 약간의 지연 후 실제 이동 수행 (애니메이션 효과)
       setTimeout(() => {
         const newOrder = arrayMove(
-          filteredBookmarks,
+          filteredAndSortedBookmarks,
           currentIndex,
           currentIndex + 1
         );
@@ -319,46 +345,55 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   };
 
   // 그룹화된 북마크가 있는 경우 그룹화된 뷰 렌더링
-  if (groupedBookmarks?.isGrouped) {
+  if (sortedGroupedBookmarks?.isGrouped) {
     // 그룹화된 뷰에서 사용할 모든 북마크 목록 (드래그 앤 드롭용)
     const allGroupedBookmarks = [
-      ...(groupedBookmarks.selectedCollectionBookmarks || []),
-      ...(groupedBookmarks.groupedBookmarks?.flatMap(
+      ...(sortedGroupedBookmarks.selectedCollectionBookmarks || []),
+      ...(sortedGroupedBookmarks.groupedBookmarks?.flatMap(
         (group) => group.bookmarks
       ) || []),
     ];
 
     return (
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        onDragStart={(event) => {
-          console.log("Drag start event:", event);
-        }}
-        onDragOver={(event) => {
-          console.log("Drag over event:", event);
-        }}
-      >
-        <SortableContext
-          items={allGroupedBookmarks.map((item) => item.id)}
-          strategy={
-            viewMode === "grid"
-              ? rectSortingStrategy
-              : verticalListSortingStrategy
-          }
+      <div className="space-y-6">
+        {/* 정렬 컨트롤 */}
+        <div className="flex justify-between items-center">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            총 {allGroupedBookmarks.length}개의 북마크
+          </div>
+          <BookmarkSort currentSort={currentSort} onSortChange={onSortChange} />
+        </div>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+          onDragStart={(event) => {
+            console.log("Drag start event:", event);
+          }}
+          onDragOver={(event) => {
+            console.log("Drag over event:", event);
+          }}
         >
-          <div className="space-y-8">
+          <SortableContext
+            items={allGroupedBookmarks.map((item) => item.id)}
+            strategy={
+              viewMode === "grid"
+                ? rectSortingStrategy
+                : verticalListSortingStrategy
+            }
+          >
+            <div className="space-y-8">
             {/* 상위 컬렉션 북마크 */}
-            {groupedBookmarks.selectedCollectionBookmarks &&
-              groupedBookmarks.selectedCollectionBookmarks.length > 0 && (
+            {sortedGroupedBookmarks.selectedCollectionBookmarks &&
+              sortedGroupedBookmarks.selectedCollectionBookmarks.length > 0 && (
                 <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
                   {renderBookmarkSection(
-                    groupedBookmarks.selectedCollectionBookmarks,
-                    groupedBookmarks.selectedCollectionName,
+                    sortedGroupedBookmarks.selectedCollectionBookmarks,
+                    sortedGroupedBookmarks.selectedCollectionName,
                     collections.find(
                       (col) =>
-                        col.name === groupedBookmarks.selectedCollectionName
+                        col.name === sortedGroupedBookmarks.selectedCollectionName
                     )?.icon,
                     false
                   )}
@@ -366,8 +401,8 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
               )}
 
             {/* 하위 컬렉션 북마크들 */}
-            {groupedBookmarks.groupedBookmarks &&
-              groupedBookmarks.groupedBookmarks.length > 0 && (
+            {sortedGroupedBookmarks.groupedBookmarks &&
+              sortedGroupedBookmarks.groupedBookmarks.length > 0 && (
                 <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 shadow-sm border border-purple-200 dark:border-purple-700">
                   <div className="mb-4">
                     <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
@@ -379,7 +414,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                     </p>
                   </div>
                   <div className="space-y-6">
-                    {groupedBookmarks.groupedBookmarks.map((group) =>
+                    {sortedGroupedBookmarks.groupedBookmarks.map((group) =>
                       renderBookmarkSection(
                         group.bookmarks,
                         group.collectionName,
@@ -391,22 +426,31 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                   </div>
                 </div>
               )}
-          </div>
-        </SortableContext>
-      </DndContext>
+            </div>
+          </SortableContext>
+        </DndContext>
+      </div>
     );
   }
 
   // 일반 북마크 리스트 렌더링
   return (
     <div className="space-y-6">
+      {/* 정렬 컨트롤 */}
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          총 {filteredAndSortedBookmarks.length}개의 북마크
+        </div>
+        <BookmarkSort currentSort={currentSort} onSortChange={onSortChange} />
+      </div>
+
       {/* 북마크 그리드/리스트 */}
-      {filteredBookmarks.length > 0 ? (
+      {filteredAndSortedBookmarks.length > 0 ? (
         <>
           {/* 모바일 아이콘 뷰 */}
           <div className="block sm:hidden">
             <MobileIconView
-              bookmarks={filteredBookmarks}
+              bookmarks={filteredAndSortedBookmarks}
               onEdit={onEdit}
               onDelete={onDelete}
               onToggleFavorite={onToggleFavorite}
@@ -428,7 +472,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
               }}
             >
               <SortableContext
-                items={filteredBookmarks.map((item) => item.id)}
+                items={filteredAndSortedBookmarks.map((item) => item.id)}
                 strategy={
                   viewMode === "grid"
                     ? rectSortingStrategy
@@ -442,7 +486,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                       : "space-y-4"
                   }
                 >
-                  {filteredBookmarks.map((bookmark, idx) =>
+                  {filteredAndSortedBookmarks.map((bookmark, idx) =>
                     viewMode === "grid" ? (
                       <SortableBookmarkCard
                         key={bookmark.id}
@@ -462,7 +506,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                         onMoveUp={handleMoveUp}
                         onMoveDown={handleMoveDown}
                         isFirst={idx === 0}
-                        isLast={idx === filteredBookmarks.length - 1}
+                        isLast={idx === filteredAndSortedBookmarks.length - 1}
                         isMoving={movingBookmarkId === bookmark.id}
                         moveDirection={moveDirection}
                       />
@@ -483,7 +527,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                         onMoveUp={handleMoveUp}
                         onMoveDown={handleMoveDown}
                         isFirst={idx === 0}
-                        isLast={idx === filteredBookmarks.length - 1}
+                        isLast={idx === filteredAndSortedBookmarks.length - 1}
                         isMoving={movingBookmarkId === bookmark.id}
                         moveDirection={moveDirection}
                       />

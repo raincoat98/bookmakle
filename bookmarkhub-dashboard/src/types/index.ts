@@ -66,3 +66,19 @@ export interface CollectionFormData {
 
 // 기존 하드코딩된 컬렉션 타입은 호환성을 위해 유지
 export type LegacyCollection = "all" | "default" | "work" | "personal";
+
+// 정렬 관련 타입 추가
+export type SortField =
+  | "title"
+  | "url"
+  | "createdAt"
+  | "updatedAt"
+  | "isFavorite"
+  | "order";
+export type SortDirection = "asc" | "desc";
+
+export interface SortOption {
+  field: SortField;
+  direction: SortDirection;
+  label: string;
+}

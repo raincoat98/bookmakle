@@ -3,7 +3,7 @@ import { DashboardOverview } from "../components/DashboardWidgets";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
-import type { Bookmark, BookmarkFormData } from "../types";
+import type { Bookmark, BookmarkFormData, SortOption } from "../types";
 import toast from "react-hot-toast";
 import { AddBookmarkModal } from "../components/AddBookmarkModal";
 import { EditBookmarkModal } from "../components/EditBookmarkModal";
@@ -22,6 +22,13 @@ export const DashboardPage: React.FC = () => {
     reorderBookmarks,
   } = useBookmarks(user?.uid || "", "all");
   const { collections, addCollection } = useCollections(user?.uid || "");
+
+  // 정렬 상태 관리
+  const [currentSort, setCurrentSort] = useState<SortOption>({
+    field: "isFavorite",
+    direction: "desc",
+    label: "즐겨찾기 우선",
+  });
 
   // 모달 상태
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -226,6 +233,8 @@ export const DashboardPage: React.FC = () => {
             onAddCollection={() => setIsAddCollectionModalOpen(true)}
             onToggleFavorite={handleToggleFavorite}
             onReorder={handleReorderBookmarks}
+            currentSort={currentSort}
+            onSortChange={setCurrentSort}
             userId={user?.uid || ""}
           />
         </div>

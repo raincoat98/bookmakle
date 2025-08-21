@@ -8,7 +8,12 @@ import { EditCollectionModal } from "../components/EditCollectionModal";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
-import type { Bookmark, BookmarkFormData, Collection } from "../types";
+import type {
+  Bookmark,
+  BookmarkFormData,
+  Collection,
+  SortOption,
+} from "../types";
 import toast from "react-hot-toast";
 import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
 import { Drawer } from "../components/Drawer";
@@ -18,6 +23,13 @@ export const BookmarksPage: React.FC = () => {
 
   // 상태 관리
   const [selectedCollection, setSelectedCollection] = useState("all");
+
+  // 정렬 상태 관리
+  const [currentSort, setCurrentSort] = useState<SortOption>({
+    field: "order",
+    direction: "asc",
+    label: "사용자 순서",
+  });
 
   const { collections, addCollection, updateCollection, deleteCollection } =
     useCollections(user?.uid || "");
@@ -501,6 +513,8 @@ export const BookmarksPage: React.FC = () => {
                 collections={collections}
                 searchTerm="" // 이미 필터링된 북마크를 전달하므로 빈 문자열
                 viewMode={viewMode}
+                currentSort={currentSort}
+                onSortChange={setCurrentSort}
                 groupedBookmarks={
                   filteredBookmarksData.isGrouped
                     ? filteredBookmarksData
