@@ -1,6 +1,6 @@
 import React from "react";
 import { ChevronDown, ArrowUpDown } from "lucide-react";
-import type { SortOption, SortField, SortDirection } from "../types";
+import type { SortOption } from "../types";
 
 interface BookmarkSortProps {
   currentSort: SortOption;
