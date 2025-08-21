@@ -282,8 +282,6 @@ async function getCollectionsFromFirebase(userId) {
   });
 }
 
-
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Background received message:", message);
 
@@ -381,6 +379,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
 
     return true; // Indicates we will send a response asynchronously
+  }
 });
 
 // 아이콘 클릭 이벤트 처리 (빠른 실행 모드)
