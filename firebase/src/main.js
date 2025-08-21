@@ -15,7 +15,6 @@ import {
   where,
   getDocs,
   orderBy,
-  limit,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Firebase 설정
@@ -49,7 +48,6 @@ const statusEl = document.getElementById("status");
 const signinBtn = document.getElementById("signin-btn");
 const signoutBtn = document.getElementById("signout-btn");
 const userInfoEl = document.getElementById("user-info");
-const bookmarksList = document.getElementById("bookmarksList");
 
 // 인증 상태 변경 감지
 onAuthStateChanged(auth, async (user) => {
@@ -87,10 +85,6 @@ onAuthStateChanged(auth, async (user) => {
         "*"
       );
     }
-
-    // 북마크 로드
-    const bookmarks = await loadBookmarks(user.uid);
-    displayBookmarks(bookmarks);
   } else {
     // 로그아웃된 상태
     statusEl.textContent = "로그아웃됨";
@@ -108,8 +102,6 @@ onAuthStateChanged(auth, async (user) => {
         "*"
       );
     }
-
-    bookmarksList.innerHTML = "<p>로그인 후 북마크를 확인하세요.</p>";
   }
 });
 
@@ -334,74 +326,6 @@ async function loadCollections(userId) {
   }
 }
 
-// 북마크 목록 가져오기
-async function loadBookmarks(userId) {
-  try {
-    const q = query(
-      collection(db, "bookmarks"),
-      where("userId", "==", userId),
-      orderBy("createdAt", "desc"),
-      limit(10)
-    );
-
-    const querySnapshot = await getDocs(q);
-    const bookmarks = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      bookmarks.push({
-        id: doc.id,
-        title: data.title,
-        url: data.url,
-        description: data.description || "",
-        pageTitle: data.pageTitle || data.title,
-        userId: data.userId,
-        collection: data.collection || null,
-        tags: data.tags || [],
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-      });
-    });
-
-    return bookmarks;
-  } catch (error) {
-    console.error("북마크 로드 오류:", error);
-    return [];
-  }
-}
-
-// 북마크 목록 표시
-function displayBookmarks(bookmarks) {
-  bookmarksList.innerHTML = "";
-
-  if (bookmarks.length === 0) {
-    bookmarksList.innerHTML = "<p>저장된 북마크가 없습니다.</p>";
-    return;
-  }
-
-  bookmarks.forEach((bookmark) => {
-    const bookmarkElement = document.createElement("div");
-    bookmarkElement.className = "bookmark-item";
-    bookmarkElement.innerHTML = `
-      <h3>${bookmark.title}</h3>
-      <p><a href="${bookmark.url}" target="_blank">${bookmark.url}</a></p>
-      ${bookmark.description ? `<p>${bookmark.description}</p>` : ""}
-      ${
-        bookmark.collection
-          ? `<p><strong>컬렉션:</strong> ${bookmark.collection}</p>`
-          : ""
-      }
-      ${
-        bookmark.tags && bookmark.tags.length > 0
-          ? `<p><strong>태그:</strong> ${bookmark.tags.join(", ")}</p>`
-          : ""
-      }
-      <small>저장일: ${bookmark.createdAt.toDate().toLocaleString()}</small>
-    `;
-    bookmarksList.appendChild(bookmarkElement);
-  });
-}
-
 window.addEventListener("message", async function ({ data, origin }) {
   console.log("=== FIREBASE RECEIVED MESSAGE ===", {
     data: data,
@@ -520,7 +444,7 @@ window.addEventListener("message", async function ({ data, origin }) {
     // 응답 전송
     window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
     return;
-
+  }
 });
 
 // 페이지 로드 완료 시 준비 상태 알림
