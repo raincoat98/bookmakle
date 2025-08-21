@@ -14,33 +14,6 @@ import {
 import { db } from "../firebase";
 import type { Collection, CollectionFormData } from "../types";
 
-const DEFAULT_COLLECTIONS = [
-  {
-    name: "업무",
-    icon: "💼",
-  },
-  {
-    name: "개인",
-    icon: "🏠",
-  },
-  {
-    name: "학습",
-    icon: "📚",
-  },
-  {
-    name: "즐겨찾기",
-    icon: "⭐",
-  },
-  {
-    name: "개발",
-    icon: "💻",
-  },
-  {
-    name: "디자인",
-    icon: "🎨",
-  },
-];
-
 export const useCollections = (userId: string) => {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,43 +46,10 @@ export const useCollections = (userId: string) => {
       });
 
       setCollections(collectionList);
-
-      // 컬렉션이 없으면 기본 컬렉션 생성
-      if (collectionList.length === 0) {
-        await createDefaultCollections();
-        // 기본 컬렉션 생성 후 상태 업데이트
-        const defaultCollectionList: Collection[] = DEFAULT_COLLECTIONS.map(
-          (collection, index) => ({
-            id: `default-${index}`,
-            ...collection,
-            userId,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            parentId: null,
-          })
-        );
-        setCollections(defaultCollectionList);
-      }
     } catch (error) {
       console.error("Error fetching collections:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  // 기본 컬렉션 생성
-  const createDefaultCollections = async () => {
-    try {
-      for (const defaultCollection of DEFAULT_COLLECTIONS) {
-        await addDoc(collection(db, "collections"), {
-          ...defaultCollection,
-          userId,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      }
-    } catch (error) {
-      console.error("Error creating default collections:", error);
     }
   };
 

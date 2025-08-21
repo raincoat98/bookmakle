@@ -164,33 +164,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             collections = response.collections;
             console.log("Loaded collections from Firebase:", collections);
 
-            // 컬렉션이 없으면 기본 컬렉션 생성 요청
-            if (collections.length === 0) {
-              console.log(
-                "No collections found, creating default collections..."
-              );
-              collectionSelect.innerHTML =
-                '<option value="">🔄 기본 컬렉션 생성 중...</option>';
-
-              chrome.runtime.sendMessage(
-                { action: "createDefaultCollections", userId: user.uid },
-                function (createResponse) {
-                  if (createResponse && createResponse.success) {
-                    console.log("Default collections created successfully");
-                    // 기본 컬렉션 생성 후 다시 로드
-                    loadCollections();
-                  } else {
-                    console.error(
-                      "Failed to create default collections:",
-                      createResponse?.error
-                    );
-                    updateCollectionSelect();
-                  }
-                }
-              );
-            } else {
-              updateCollectionSelect();
-            }
+            updateCollectionSelect();
           } else {
             console.error("Failed to load collections:", response?.error);
             // 기본 컬렉션으로 폴백

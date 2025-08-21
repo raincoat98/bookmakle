@@ -282,73 +282,7 @@ async function getCollectionsFromFirebase(userId) {
   });
 }
 
-async function createDefaultCollectionsInFirebase(userId) {
-  console.log("Creating default collections in Firebase for user:", userId);
 
-  try {
-    await setupOffscreenDocument();
-  } catch (error) {
-    console.error(
-      "Failed to setup offscreen document for default collections creation:",
-      error
-    );
-    throw new Error("Offscreen 문서 설정에 실패했습니다: " + error.message);
-  }
-
-  return new Promise((resolve, reject) => {
-    console.log("Sending createDefaultCollections request to offscreen");
-
-    // 타임아웃 설정
-    const timeoutId = setTimeout(() => {
-      console.error("Timeout waiting for offscreen response");
-      reject(new Error("Offscreen 응답 대기 시간 초과"));
-    }, 30000);
-
-    chrome.runtime.sendMessage(
-      {
-        action: "createDefaultCollections",
-        target: "offscreen",
-        userId: userId,
-      },
-      (response) => {
-        clearTimeout(timeoutId);
-        console.log(
-          "Background received createDefaultCollections response from offscreen:",
-          response
-        );
-
-        if (chrome.runtime.lastError) {
-          console.error("Runtime error:", chrome.runtime.lastError);
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-
-        if (!response) {
-          console.error("No response received from offscreen");
-          reject(new Error("offscreen에서 응답을 받지 못했습니다."));
-          return;
-        }
-
-        if (response.error) {
-          console.error(
-            "Create default collections error from offscreen:",
-            response.error
-          );
-          reject(new Error(response.error));
-        } else if (response.success) {
-          console.log(
-            "Default collections created successfully from offscreen:",
-            response
-          );
-          resolve(response);
-        } else {
-          console.error("Invalid response format from offscreen:", response);
-          reject(new Error("기본 컬렉션 생성 응답이 올바르지 않습니다."));
-        }
-      }
-    );
-  });
-}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("Background received message:", message);
@@ -447,29 +381,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
 
     return true; // Indicates we will send a response asynchronously
-  } else if (message.action === "createDefaultCollections") {
-    console.log("Background received createDefaultCollections request");
-
-    // offscreen 문서를 통해 기본 컬렉션 생성
-    createDefaultCollectionsInFirebase(message.userId)
-      .then((result) => {
-        console.log("Default collections created successfully:", result);
-        sendResponse({ success: true, result: result });
-      })
-      .catch((error) => {
-        console.error("Error creating default collections:", error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : typeof error === "string"
-            ? error
-            : error?.message || "기본 컬렉션 생성 중 오류가 발생했습니다.";
-
-        sendResponse({ error: errorMessage });
-      });
-
-    return true; // Indicates we will send a response asynchronously
-  }
 });
 
 // 아이콘 클릭 이벤트 처리 (빠른 실행 모드)

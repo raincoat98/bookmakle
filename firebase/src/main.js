@@ -299,68 +299,6 @@ async function saveBookmark(bookmarkData) {
   }
 }
 
-// 기본 컬렉션 데이터
-const defaultCollections = [
-  {
-    name: "업무",
-    icon: "💼",
-    description: "업무 관련 북마크",
-  },
-  {
-    name: "개인",
-    icon: "🏠",
-    description: "개인 관련 북마크",
-  },
-  {
-    name: "학습",
-    icon: "📚",
-    description: "학습 관련 북마크",
-  },
-  {
-    name: "즐겨찾기",
-    icon: "⭐",
-    description: "자주 사용하는 북마크",
-  },
-  {
-    name: "개발",
-    icon: "💻",
-    description: "개발 관련 북마크",
-  },
-  {
-    name: "디자인",
-    icon: "🎨",
-    description: "디자인 관련 북마크",
-  },
-];
-
-// 기본 컬렉션 생성 함수
-async function createDefaultCollections(userId) {
-  try {
-    console.log("=== CREATING DEFAULT COLLECTIONS FOR USER ===", userId);
-
-    for (const collectionData of defaultCollections) {
-      const docRef = await addDoc(collection(db, "collections"), {
-        name: collectionData.name,
-        icon: collectionData.icon,
-        description: collectionData.description,
-        userId: userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      });
-
-      console.log(
-        `=== COLLECTION CREATED: ${collectionData.name} (ID: ${docRef.id}) ===`
-      );
-    }
-
-    console.log("=== ALL DEFAULT COLLECTIONS CREATED SUCCESSFULLY ===");
-    return true;
-  } catch (error) {
-    console.error("=== ERROR CREATING DEFAULT COLLECTIONS ===", error);
-    return false;
-  }
-}
-
 // 컬렉션 목록 가져오기
 async function loadCollections(userId) {
   try {
@@ -388,26 +326,6 @@ async function loadCollections(userId) {
     });
 
     console.log("=== COLLECTIONS LOADED SUCCESSFULLY ===", collections);
-
-    // 컬렉션이 없으면 기본 컬렉션 생성
-    if (collections.length === 0) {
-      console.log("=== NO COLLECTIONS FOUND, CREATING DEFAULT ONES ===");
-      await createDefaultCollections(userId);
-
-      // 다시 컬렉션 로드
-      const newQuerySnapshot = await getDocs(q);
-      newQuerySnapshot.forEach((doc) => {
-        const data = doc.data();
-        collections.push({
-          id: doc.id,
-          name: data.name || "",
-          icon: data.icon || "",
-          userId: data.userId,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-        });
-      });
-    }
 
     return collections;
   } catch (error) {
@@ -602,22 +520,7 @@ window.addEventListener("message", async function ({ data, origin }) {
     // 응답 전송
     window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
     return;
-  } else if (data.createDefaultCollections) {
-    console.log("Received createDefaultCollections request", data);
-    let result;
-    try {
-      const success = await createDefaultCollections(data.userId);
-      result = {
-        success: success,
-        msgId: data.msgId,
-      };
-    } catch (error) {
-      result = { error: error.message, msgId: data.msgId };
-    }
-    // 응답 전송
-    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
-    return;
-  }
+
 });
 
 // 페이지 로드 완료 시 준비 상태 알림
