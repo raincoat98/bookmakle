@@ -33,15 +33,17 @@ export const sortBookmarks = (
         }
         break;
       case "order":
-        // order가 0이 아닌 경우에만 order로 정렬, 그렇지 않으면 생성일 기준
-        if (
-          a.order !== undefined &&
-          b.order !== undefined &&
-          a.order !== 0 &&
-          b.order !== 0
-        ) {
-          comparison = a.order - b.order;
+        // 사용자 정의 순서로 정렬 (order 값이 다르면 order로 정렬)
+        if (a.order !== undefined && b.order !== undefined) {
+          if (a.order !== b.order) {
+            comparison = a.order - b.order;
+          } else {
+            // order가 같은 경우 생성일 기준으로 정렬 (최신순)
+            comparison =
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          }
         } else {
+          // order가 없는 경우 생성일 기준으로 정렬 (최신순)
           comparison =
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }

@@ -48,11 +48,7 @@ export const SortableBookmarkCard = ({
     },
   });
 
-  console.log("SortableBookmarkCard render:", bookmark.id, {
-    attributes,
-    listeners,
-    isDragging,
-  }); // 디버깅 로그
+  // 디버깅 로그 제거 - 불필요한 렌더링 방지
 
   const style = {
     transform: CSS.Transform.toString(transform),

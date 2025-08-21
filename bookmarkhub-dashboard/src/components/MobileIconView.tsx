@@ -214,7 +214,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
           <div
             {...attributes}
             {...listeners}
-            className={`block w-12 h-12 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 transition-all duration-300 overflow-hidden shadow-lg touch-manipulation cursor-grab active:cursor-grabbing ${
+            className={`block w-10 h-10 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 transition-all duration-300 overflow-hidden shadow-lg touch-manipulation cursor-grab active:cursor-grabbing ${
               isEditMode
                 ? "border-2 border-blue-400 dark:border-blue-500 scale-105"
                 : "hover:scale-105 hover:shadow-2xl active:scale-95"
@@ -274,7 +274,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                   <img
                     src={bookmark.favicon}
                     alt="파비콘"
-                    className="w-10 h-10 rounded shadow-lg"
+                    className="w-8 h-8 rounded shadow-lg"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
                       e.currentTarget.nextElementSibling?.classList.remove(
@@ -284,7 +284,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                   />
                 ) : null}
                 <div
-                  className={`text-white font-bold text-lg shadow-lg ${
+                  className={`text-white font-bold text-sm shadow-lg ${
                     bookmark.favicon ? "hidden" : ""
                   }`}
                 >
@@ -299,16 +299,16 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
             <div
               onClick={(e) => handleSettingsClick(e, bookmark)}
               onPointerDown={(e) => handleSettingsClick(e, bookmark)}
-              className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-500 dark:to-slate-700 backdrop-blur-xl rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 z-50 touch-manipulation cursor-pointer"
+              className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-500 dark:to-slate-700 backdrop-blur-xl rounded-full flex items-center justify-center shadow-lg border border-white dark:border-slate-800 z-50 touch-manipulation cursor-pointer"
             >
-              <Settings className="w-4 h-4 text-white" />
+              <Settings className="w-3 h-3 text-white" />
             </div>
           )}
         </div>
 
         {/* 제목 */}
-        <div className="mt-2 text-center w-full px-1 min-w-0">
-          <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight overflow-hidden text-ellipsis whitespace-nowrap w-full">
+        <div className="mt-1 text-center w-full px-1 min-w-0">
+          <p className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight overflow-hidden text-ellipsis whitespace-nowrap w-full">
             {bookmark.title}
           </p>
         </div>
@@ -317,32 +317,19 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
   };
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* 헤더 */}
-      <div className="sticky top-0 z-40 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-700/50">
-        <div className="flex items-center justify-between px-6 py-4">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-            북마크
-          </h1>
-          <div className="flex items-center gap-2">
-            {isEditMode && (
-              <button
-                onClick={handleExitEditMode}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center"
-              >
-                <X className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <div className="relative">
       {/* 수정 모드 안내 */}
       {isEditMode && (
-        <div className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center">
+        <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg">
           <p className="text-xs font-medium">
             수정 모드 - 드래그하거나 설정 버튼 사용
           </p>
+          <button
+            onClick={handleExitEditMode}
+            className="absolute top-1 right-2 w-6 h-6 rounded-full bg-white/20 flex items-center justify-center"
+          >
+            <X className="w-3 h-3 text-white" />
+          </button>
         </div>
       )}
 
@@ -357,7 +344,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
           items={bookmarks.map((item) => item.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-5 gap-3 p-4 justify-items-center">
+          <div className="grid grid-cols-6 gap-2 p-3 justify-items-center">
             {bookmarks.map((bookmark) => (
               <DraggableBookmarkItem key={bookmark.id} bookmark={bookmark} />
             ))}

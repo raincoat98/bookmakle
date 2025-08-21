@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   collection,
   query,
@@ -19,36 +19,68 @@ export const useBookmarks = (
   selectedCollection: string = "all",
   collections: any[] = [] // 컬렉션 목록을 받아서 하위 컬렉션 ID를 계산
 ) => {
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [rawBookmarks, setRawBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 하위 컬렉션 ID들을 재귀적으로 가져오는 함수
-  const getChildCollectionIds = (parentId: string): string[] => {
-    const childIds: string[] = [];
-    const getChildren = (id: string) => {
-      const children = collections.filter((col) => col.parentId === id);
-      children.forEach((child) => {
-        childIds.push(child.id);
-        getChildren(child.id);
-      });
-    };
-    getChildren(parentId);
-    return childIds;
-  };
+  // 하위 컬렉션 ID들을 재귀적으로 가져오는 함수 (useCallback으로 안정화)
+  const getChildCollectionIds = useCallback(
+    (parentId: string): string[] => {
+      const childIds: string[] = [];
+      const getChildren = (id: string) => {
+        const children = collections.filter((col) => col.parentId === id);
+        children.forEach((child) => {
+          childIds.push(child.id);
+          getChildren(child.id);
+        });
+      };
+      getChildren(parentId);
+      return childIds;
+    },
+    [collections]
+  );
+
+  // 필터링된 북마크를 메모이제이션 (정렬 제외)
+  const bookmarks = useMemo(() => {
+    let filtered = rawBookmarks;
+
+    if (selectedCollection === "none") {
+      // 컬렉션이 없는 북마크들
+      filtered = rawBookmarks.filter(
+        (bookmark) =>
+          !bookmark.collection ||
+          bookmark.collection === "" ||
+          bookmark.collection === null
+      );
+    } else if (selectedCollection !== "all") {
+      // 특정 컬렉션의 북마크들 (하위 컬렉션 포함)
+      const childCollectionIds = getChildCollectionIds(selectedCollection);
+      const targetCollectionIds = [selectedCollection, ...childCollectionIds];
+
+      filtered = rawBookmarks.filter(
+        (bookmark) =>
+          bookmark.collection &&
+          targetCollectionIds.includes(String(bookmark.collection))
+      );
+    }
+
+    // 사용자 순서로 정렬 (order 필드 기준)
+    return [...filtered].sort((a, b) => {
+      if (a.order !== undefined && b.order !== undefined) {
+        return a.order - b.order;
+      }
+      // order가 없는 경우 생성일 기준으로 정렬 (최신순)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawBookmarks, selectedCollection, collections]);
 
   useEffect(() => {
     if (!userId) {
-      setBookmarks([]);
+      setRawBookmarks([]);
       setLoading(false);
       return;
     }
 
-    console.log(
-      "북마크 로딩 시작, userId:",
-      userId,
-      "selectedCollection:",
-      selectedCollection
-    );
+    // 북마크 로딩 시작
 
     // 컬렉션에 따라 쿼리 조건 설정
     let q;
@@ -67,11 +99,10 @@ export const useBookmarks = (
       q,
       (querySnapshot) => {
         const bookmarkList: Bookmark[] = [];
-        console.log("북마크 쿼리 결과:", querySnapshot.size, "개");
+        // 북마크 쿼리 결과 처리
 
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log("북마크 데이터:", doc.id, data);
           bookmarkList.push({
             id: doc.id,
             title: data.title || "",
@@ -88,75 +119,8 @@ export const useBookmarks = (
           });
         });
 
-        // 컬렉션별 필터링
-        let filteredBookmarks = bookmarkList;
-        if (selectedCollection === "none") {
-          // 컬렉션이 없는 북마크들
-          filteredBookmarks = bookmarkList.filter(
-            (bookmark) =>
-              !bookmark.collection ||
-              bookmark.collection === "" ||
-              bookmark.collection === null
-          );
-          console.log(
-            "컬렉션 없음 필터링 결과:",
-            filteredBookmarks.length,
-            "개"
-          );
-        } else if (selectedCollection !== "all") {
-          // 특정 컬렉션의 북마크들 (하위 컬렉션 포함)
-          const childCollectionIds = getChildCollectionIds(selectedCollection);
-          const targetCollectionIds = [
-            selectedCollection,
-            ...childCollectionIds,
-          ];
-          console.log("대상 컬렉션 ID들:", targetCollectionIds);
-
-          filteredBookmarks = bookmarkList.filter(
-            (bookmark) =>
-              bookmark.collection &&
-              targetCollectionIds.includes(String(bookmark.collection))
-          );
-          console.log(
-            "컬렉션 필터링 결과:",
-            filteredBookmarks.length,
-            "개 (상위:",
-            selectedCollection,
-            ", 하위:",
-            childCollectionIds,
-            ")"
-          );
-        }
-
-        // 클라이언트에서 정렬
-        filteredBookmarks.sort((a, b) => {
-          // order 필드가 있는 경우 우선적으로 사용
-          if (a.order !== undefined && b.order !== undefined) {
-            // order가 0이 아닌 경우에만 order로 정렬
-            if (a.order !== 0 || b.order !== 0) {
-              console.log(
-                `Sorting by order: ${a.title}(${a.order}) vs ${b.title}(${b.order})`
-              ); // 디버깅 로그
-              return a.order - b.order;
-            }
-          }
-          // order가 없거나 둘 다 0인 경우 생성일 기준으로 정렬
-          console.log(`Sorting by date: ${a.title} vs ${b.title}`); // 디버깅 로그
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        });
-
-        console.log("처리된 북마크:", filteredBookmarks.length, "개");
-        console.log(
-          "정렬된 북마크 순서:",
-          filteredBookmarks.map((b) => ({
-            title: b.title,
-            order: b.order,
-            isFavorite: b.isFavorite,
-          }))
-        ); // 디버깅 로그
-        setBookmarks(filteredBookmarks);
+        // 필터링과 정렬은 useMemo에서 처리하므로 여기서는 raw 데이터만 저장
+        setRawBookmarks(bookmarkList);
         setLoading(false);
       },
       (error) => {
@@ -166,7 +130,7 @@ export const useBookmarks = (
     );
 
     return () => unsubscribe();
-  }, [userId, selectedCollection, collections]); // collections 의존성 추가
+  }, [userId, selectedCollection]); // collections 의존성 제거
 
   // favicon 필드 마이그레이션 함수
   const migrateFavicons = async () => {
@@ -175,7 +139,7 @@ export const useBookmarks = (
     const batch = writeBatch(db);
     let updatedCount = 0;
 
-    for (const bookmark of bookmarks) {
+    for (const bookmark of rawBookmarks) {
       if (!bookmark.favicon && bookmark.url) {
         try {
           const faviconUrl = getFaviconUrl(bookmark.url);
@@ -210,7 +174,7 @@ export const useBookmarks = (
     const batch = writeBatch(db);
     let updatedCount = 0;
 
-    for (const bookmark of bookmarks) {
+    for (const bookmark of rawBookmarks) {
       if (bookmark.isFavorite === undefined) {
         try {
           const bookmarkRef = doc(db, "bookmarks", bookmark.id);
@@ -275,7 +239,7 @@ export const useBookmarks = (
         description: bookmarkData.description || "",
         favicon: favicon || "",
         collection: bookmarkData.collection || null,
-        order: bookmarks.length,
+        order: rawBookmarks.length,
         userId: userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -335,26 +299,48 @@ export const useBookmarks = (
   const reorderBookmarks = async (newBookmarks: Bookmark[]) => {
     if (!userId) return;
 
+    console.log("=== reorderBookmarks 시작 ===");
     console.log(
-      "reorderBookmarks called with:",
-      newBookmarks.length,
-      "bookmarks"
-    ); // 디버깅 로그
-    console.log(
-      "New order:",
-      newBookmarks.map((b) => ({ id: b.id, title: b.title, order: b.order }))
-    ); // 디버깅 로그
+      "새로운 순서:",
+      newBookmarks.map((b, i) => `${i}: ${b.title} (order: ${b.order})`)
+    );
 
     const batch = writeBatch(db);
 
     newBookmarks.forEach((bookmark, index) => {
       const bookmarkRef = doc(db, "bookmarks", bookmark.id);
       batch.update(bookmarkRef, { order: index });
-      console.log(`Updating ${bookmark.title} with order: ${index}`); // 디버깅 로그
+      console.log(`Firestore 업데이트: ${bookmark.title} -> order: ${index}`);
     });
 
     await batch.commit();
-    console.log("reorderBookmarks completed successfully"); // 디버깅 로그
+    console.log("Firestore 업데이트 완료");
+
+    // 로컬 상태 즉시 업데이트 (Firestore 구독 대기 없이)
+    setRawBookmarks((prev) => {
+      console.log("로컬 상태 업데이트 시작");
+      console.log(
+        "이전 상태:",
+        prev.map((b, i) => `${i}: ${b.title} (order: ${b.order})`)
+      );
+
+      const updated = [...prev];
+      newBookmarks.forEach((bookmark, index) => {
+        const existingIndex = updated.findIndex((b) => b.id === bookmark.id);
+        if (existingIndex !== -1) {
+          updated[existingIndex] = { ...updated[existingIndex], order: index };
+          console.log(`로컬 업데이트: ${bookmark.title} -> order: ${index}`);
+        }
+      });
+
+      console.log(
+        "업데이트 후 상태:",
+        updated.map((b, i) => `${i}: ${b.title} (order: ${b.order})`)
+      );
+      return updated;
+    });
+
+    console.log("=== reorderBookmarks 완료 ===");
   };
 
   // 즐겨찾기 토글 함수 추가
