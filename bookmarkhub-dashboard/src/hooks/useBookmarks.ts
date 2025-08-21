@@ -239,7 +239,7 @@ export const useBookmarks = (
         description: bookmarkData.description || "",
         favicon: favicon || "",
         collection: bookmarkData.collection || null,
-        order: rawBookmarks.length,
+        order: bookmarkData.order ?? rawBookmarks.length,
         userId: userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -252,6 +252,7 @@ export const useBookmarks = (
       // Firestore에 저장
       const docRef = await addDoc(collection(db, "bookmarks"), newBookmark);
       console.log("북마크 추가 성공, 문서 ID:", docRef.id);
+      return docRef.id;
     } catch (error) {
       console.error("북마크 추가 실패 - 상세 오류:", error);
       console.error("오류 타입:", typeof error);

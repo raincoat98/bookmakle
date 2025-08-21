@@ -54,12 +54,14 @@ interface SettingsProps {
     bookmarks: Bookmark[];
     collections: Collection[];
   }) => Promise<void>;
+  isRestoring?: boolean;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
   onBack,
   onImportData,
   onRestoreBackup,
+  isRestoring = false,
 }) => {
   const { user, logout } = useAuth();
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
@@ -81,6 +83,10 @@ export const Settings: React.FC<SettingsProps> = ({
   const [showImportModal, setShowImportModal] = useState(false);
   const [importData, setImportData] = useState<ImportData | null>(null);
   const [restoreConfirm, setRestoreConfirm] = useState<{
+    open: boolean;
+    timestamp: string | null;
+  }>({ open: false, timestamp: null });
+  const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     timestamp: string | null;
   }>({ open: false, timestamp: null });
@@ -237,6 +243,12 @@ export const Settings: React.FC<SettingsProps> = ({
   // 복원, 삭제, 수동 백업 등에서 syncBackups 호출
   const handleConfirmRestore = async () => {
     if (!restoreConfirm.timestamp) return;
+
+    // 중복 복원 방지
+    if (isRestoring) {
+      console.log("이미 복원 중입니다.");
+      return;
+    }
     try {
       const latest = getAllBackups();
       // 디버깅: 복원 시점 백업 목록, 복원 대상 timestamp, 실제 localStorage 키 출력
@@ -273,11 +285,20 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   const handleBackupDelete = (timestamp: string) => {
-    if (window.confirm("이 백업을 삭제하시겠습니까?")) {
-      deleteBackup(timestamp);
-      syncBackups();
-      toast.success("백업이 삭제되었습니다.");
-    }
+    setDeleteConfirm({ open: true, timestamp });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteConfirm.timestamp) return;
+
+    deleteBackup(deleteConfirm.timestamp);
+    syncBackups();
+    toast.success("백업이 삭제되었습니다.");
+    setDeleteConfirm({ open: false, timestamp: null });
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirm({ open: false, timestamp: null });
   };
 
   const handleDefaultPageChange = async (page: string) => {
@@ -1086,23 +1107,64 @@ export const Settings: React.FC<SettingsProps> = ({
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              백업 복원 확인
+              {isRestoring ? "백업 복원 중..." : "백업 복원 확인"}
+            </h3>
+            {isRestoring ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+                </div>
+                <p className="text-gray-700 dark:text-gray-200 text-center">
+                  백업 데이터를 복원하고 있습니다. 잠시만 기다려주세요...
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="text-gray-700 dark:text-gray-200 mb-6">
+                  이 백업으로 데이터를 복원하시겠습니까? 현재 데이터는
+                  덮어써집니다.
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={handleCancelRestore}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleConfirmRestore}
+                    className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                  >
+                    확인
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+      {/* 백업 삭제 확인 모달 */}
+      {deleteConfirm.open && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              백업 삭제 확인
             </h3>
             <p className="text-gray-700 dark:text-gray-200 mb-6">
-              이 백업으로 데이터를 복원하시겠습니까? 현재 데이터는 덮어써집니다.
+              이 백업을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.
             </p>
             <div className="flex justify-end space-x-3">
               <button
-                onClick={handleCancelRestore}
+                onClick={handleCancelDelete}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 취소
               </button>
               <button
-                onClick={handleConfirmRestore}
-                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                확인
+                삭제
               </button>
             </div>
           </div>

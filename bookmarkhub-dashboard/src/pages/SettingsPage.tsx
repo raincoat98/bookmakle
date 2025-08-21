@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Settings } from "../components/Settings";
 import { useAuth } from "../hooks/useAuth";
 import { useBookmarks } from "../hooks/useBookmarks";
@@ -15,6 +15,7 @@ export const SettingsPage: React.FC = () => {
   const { collections, addCollection, deleteCollection } = useCollections(
     user?.uid || ""
   );
+  const [isRestoring, setIsRestoring] = useState(false);
 
   // 데이터 가져오기 함수
   const handleImportData = async (importData: {
@@ -73,47 +74,92 @@ export const SettingsPage: React.FC = () => {
     bookmarks: Bookmark[];
     collections: Collection[];
   }) => {
+    // 중복 복원 방지
+    if (isRestoring) {
+      console.log("이미 복원 중입니다.");
+      return;
+    }
+
     try {
+      setIsRestoring(true);
+      console.log("백업 복원 시작:", backupData);
+
       // 기존 데이터 전체 삭제
+      console.log("기존 데이터 삭제 중...");
       for (const bookmark of bookmarks) {
         if (bookmark.id) await deleteBookmark(bookmark.id);
       }
       for (const collection of collections) {
         if (collection.id) await deleteCollection(collection.id);
       }
-      // 백업 데이터로 복원
-      if (backupData.bookmarks && Array.isArray(backupData.bookmarks)) {
-        for (const bookmark of backupData.bookmarks) {
-          const exists = bookmarks.some((b) => b.url === bookmark.url);
-          if (!exists) {
-            await addBookmark({
-              title: bookmark.title,
-              url: bookmark.url,
-              description: bookmark.description ?? "",
-              favicon: bookmark.favicon,
-              collection: bookmark.collection ?? "",
-              tags: bookmark.tags ?? [],
-              isFavorite: bookmark.isFavorite ?? false,
-            });
-          }
-        }
-      }
+
+      // 컬렉션 ID 매핑을 위한 맵 생성
+      const collectionIdMap = new Map<string, string>();
+
+      // 1단계: 컬렉션 먼저 복원 (부모 컬렉션부터)
       if (backupData.collections && Array.isArray(backupData.collections)) {
-        for (const collection of backupData.collections) {
-          const exists = collections.some((c) => c.name === collection.name);
-          if (!exists) {
-            await addCollection({
-              name: collection.name,
-              description: collection.description ?? "",
-              icon: collection.icon ?? "Folder",
-              parentId: collection.parentId ?? null,
-            });
+        console.log("컬렉션 복원 중...");
+
+        // 부모 컬렉션을 먼저 복원하기 위해 정렬
+        const sortedCollections = [...backupData.collections].sort((a, b) => {
+          // parentId가 null이거나 undefined인 컬렉션을 먼저
+          if (!a.parentId && b.parentId) return -1;
+          if (a.parentId && !b.parentId) return 1;
+          return 0;
+        });
+
+        for (const collection of sortedCollections) {
+          // 부모 컬렉션의 새 ID로 매핑
+          const newParentId = collection.parentId
+            ? collectionIdMap.get(collection.parentId) || null
+            : null;
+
+          const newCollectionId = await addCollection({
+            name: collection.name,
+            description: collection.description ?? "",
+            icon: collection.icon ?? "Folder",
+            parentId: newParentId,
+          });
+
+          // 원본 ID와 새 ID 매핑 저장
+          if (collection.id) {
+            collectionIdMap.set(collection.id, newCollectionId);
+            console.log(
+              `컬렉션 ID 매핑: ${collection.id} -> ${newCollectionId} (${collection.name})`
+            );
           }
         }
       }
+
+      // 2단계: 북마크 복원 (컬렉션 ID 매핑 적용)
+      if (backupData.bookmarks && Array.isArray(backupData.bookmarks)) {
+        console.log("북마크 복원 중...");
+
+        for (const bookmark of backupData.bookmarks) {
+          // 컬렉션 ID 매핑 적용
+          const newCollectionId = bookmark.collection
+            ? collectionIdMap.get(bookmark.collection) || null
+            : null;
+
+          await addBookmark({
+            title: bookmark.title,
+            url: bookmark.url,
+            description: bookmark.description ?? "",
+            favicon: bookmark.favicon,
+            collection: newCollectionId ?? "",
+            tags: bookmark.tags ?? [],
+            isFavorite: bookmark.isFavorite ?? false,
+            order: bookmark.order ?? 0,
+          });
+        }
+      }
+
+      console.log("백업 복원 완료");
     } catch (error) {
       console.error("Restore error:", error);
       throw error;
+    } finally {
+      setIsRestoring(false);
     }
   };
 
@@ -138,6 +184,7 @@ export const SettingsPage: React.FC = () => {
         onBack={() => window.history.back()}
         onImportData={handleImportData}
         onRestoreBackup={handleRestoreBackup}
+        isRestoring={isRestoring}
       />
     </Drawer>
   );
