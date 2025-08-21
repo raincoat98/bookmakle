@@ -19,6 +19,8 @@ export const BookmarksPage: React.FC = () => {
   // 상태 관리
   const [selectedCollection, setSelectedCollection] = useState("all");
 
+  const { collections, addCollection, updateCollection, deleteCollection } =
+    useCollections(user?.uid || "");
   const {
     bookmarks,
     addBookmark,
@@ -27,9 +29,7 @@ export const BookmarksPage: React.FC = () => {
     reorderBookmarks,
     toggleFavorite,
     updateBookmarkFavicon, // 파비콘 새로고침 함수 추가
-  } = useBookmarks(user?.uid || "", selectedCollection);
-  const { collections, addCollection, updateCollection, deleteCollection } =
-    useCollections(user?.uid || "");
+  } = useBookmarks(user?.uid || "", selectedCollection, collections);
 
   // 나머지 상태 관리
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -128,7 +128,7 @@ export const BookmarksPage: React.FC = () => {
     }
   };
 
-  // 필터링된 북마크
+  // 필터링된 북마크 (검색 및 태그 필터링만)
   const filteredBookmarksData = useMemo(() => {
     const filtered = bookmarks.filter((bookmark) => {
       const matchesSearch = searchTerm
@@ -144,30 +144,10 @@ export const BookmarksPage: React.FC = () => {
         ? bookmark.tags && bookmark.tags.includes(selectedTag)
         : true;
 
-      if (selectedCollection === "all") {
-        return matchesSearch && matchesTag;
-      } else if (selectedCollection === "none") {
-        // collection이 undefined, null, '' 모두 포함
-        return (
-          matchesSearch &&
-          matchesTag &&
-          (!bookmark.collection ||
-            bookmark.collection === "" ||
-            bookmark.collection === null)
-        );
-      } else {
-        const childCollectionIds = getChildCollectionIds(selectedCollection);
-        const targetCollectionIds = [selectedCollection, ...childCollectionIds];
-        // collection이 string이 아닐 수도 있으니 String 변환
-        return (
-          matchesSearch &&
-          matchesTag &&
-          bookmark.collection &&
-          targetCollectionIds.includes(String(bookmark.collection))
-        );
-      }
+      return matchesSearch && matchesTag;
     });
 
+    // 하위 컬렉션이 있는 경우 그룹화
     if (
       selectedCollection !== "all" &&
       selectedCollection !== "none" &&
@@ -521,6 +501,11 @@ export const BookmarksPage: React.FC = () => {
                 collections={collections}
                 searchTerm="" // 이미 필터링된 북마크를 전달하므로 빈 문자열
                 viewMode={viewMode}
+                groupedBookmarks={
+                  filteredBookmarksData.isGrouped
+                    ? filteredBookmarksData
+                    : undefined
+                }
               />
             );
           })()}

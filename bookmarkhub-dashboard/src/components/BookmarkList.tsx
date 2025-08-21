@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Folder } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 interface BookmarkListProps {
@@ -32,6 +32,17 @@ interface BookmarkListProps {
   collections?: Collection[];
   searchTerm: string;
   viewMode: "grid" | "list";
+  // 그룹화된 북마크 데이터 추가
+  groupedBookmarks?: {
+    isGrouped: boolean;
+    selectedCollectionBookmarks?: Bookmark[];
+    selectedCollectionName?: string;
+    groupedBookmarks?: {
+      collectionId: string;
+      collectionName: string;
+      bookmarks: Bookmark[];
+    }[];
+  };
 }
 
 export const BookmarkList: React.FC<BookmarkListProps> = ({
@@ -44,6 +55,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   collections = [],
   searchTerm,
   viewMode,
+  groupedBookmarks,
 }) => {
   const [faviconLoadingStates, setFaviconLoadingStates] = useState<
     Record<string, boolean>
@@ -94,18 +106,26 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     }
 
     if (active.id !== over.id) {
-      const oldIndex = filteredBookmarks.findIndex(
+      // 그룹화된 뷰인지 확인
+      const bookmarksToUse = groupedBookmarks?.isGrouped
+        ? [
+            ...(groupedBookmarks.selectedCollectionBookmarks || []),
+            ...(groupedBookmarks.groupedBookmarks?.flatMap(
+              (group) => group.bookmarks
+            ) || []),
+          ]
+        : filteredBookmarks;
+
+      const oldIndex = bookmarksToUse.findIndex(
         (item) => item.id === active.id
       );
-      const newIndex = filteredBookmarks.findIndex(
-        (item) => item.id === over.id
-      );
+      const newIndex = bookmarksToUse.findIndex((item) => item.id === over.id);
 
       console.log("Moving from index", oldIndex, "to", newIndex); // 디버깅 로그
-      console.log("Active bookmark:", filteredBookmarks[oldIndex]?.title); // 이동하는 북마크
-      console.log("Over bookmark:", filteredBookmarks[newIndex]?.title); // 대상 북마크
+      console.log("Active bookmark:", bookmarksToUse[oldIndex]?.title); // 이동하는 북마크
+      console.log("Over bookmark:", bookmarksToUse[newIndex]?.title); // 대상 북마크
 
-      const newBookmarks = arrayMove(filteredBookmarks, oldIndex, newIndex);
+      const newBookmarks = arrayMove(bookmarksToUse, oldIndex, newIndex);
       console.log("New bookmarks array length:", newBookmarks.length); // 새로운 배열 길이
 
       // 부모 컴포넌트에 알림
@@ -192,6 +212,192 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     }
   };
 
+  // 북마크 섹션 렌더링 함수
+  const renderBookmarkSection = (
+    bookmarks: Bookmark[],
+    sectionTitle?: string,
+    sectionIcon?: string,
+    isSubSection: boolean = false
+  ) => {
+    if (bookmarks.length === 0) return null;
+
+    return (
+      <div
+        className={`space-y-4 ${
+          isSubSection
+            ? "ml-4 border-l-2 border-purple-200 dark:border-purple-700 pl-6"
+            : ""
+        }`}
+      >
+        {/* 섹션 헤더 */}
+        {sectionTitle && (
+          <div
+            className={`flex items-center gap-3 ${isSubSection ? "mt-6" : ""}`}
+          >
+            <div
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                isSubSection
+                  ? "bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border border-purple-200 dark:border-purple-700"
+                  : "bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800"
+              }`}
+            >
+              {sectionIcon && <span className="text-lg">{sectionIcon}</span>}
+              <h3
+                className={`font-semibold text-sm ${
+                  isSubSection
+                    ? "text-purple-700 dark:text-purple-300"
+                    : "text-slate-700 dark:text-slate-300"
+                }`}
+              >
+                {sectionTitle}
+              </h3>
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  isSubSection
+                    ? "bg-purple-200 dark:bg-purple-700 text-purple-700 dark:text-purple-300"
+                    : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
+                }`}
+              >
+                {bookmarks.length}개
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 북마크 그리드/리스트 */}
+        <div
+          className={
+            viewMode === "grid"
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+              : "space-y-4"
+          }
+        >
+          {bookmarks.map((bookmark, idx) =>
+            viewMode === "grid" ? (
+              <SortableBookmarkCard
+                key={bookmark.id}
+                bookmark={bookmark}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onRefreshFavicon={
+                  onRefreshFavicon ? handleRefreshFavicon : async () => {}
+                }
+                faviconLoading={faviconLoadingStates[bookmark.id] || false}
+                collections={collections}
+                onToggleFavorite={onToggleFavorite}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+                isFirst={idx === 0}
+                isLast={idx === bookmarks.length - 1}
+                isMoving={movingBookmarkId === bookmark.id}
+                moveDirection={moveDirection}
+              />
+            ) : (
+              <SortableBookmarkListItem
+                key={bookmark.id}
+                bookmark={bookmark}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onRefreshFavicon={
+                  onRefreshFavicon ? handleRefreshFavicon : undefined
+                }
+                faviconLoading={faviconLoadingStates[bookmark.id] || false}
+                collections={collections}
+                onToggleFavorite={onToggleFavorite}
+                onMoveUp={handleMoveUp}
+                onMoveDown={handleMoveDown}
+                isFirst={idx === 0}
+                isLast={idx === bookmarks.length - 1}
+                isMoving={movingBookmarkId === bookmark.id}
+                moveDirection={moveDirection}
+              />
+            )
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // 그룹화된 북마크가 있는 경우 그룹화된 뷰 렌더링
+  if (groupedBookmarks?.isGrouped) {
+    // 그룹화된 뷰에서 사용할 모든 북마크 목록 (드래그 앤 드롭용)
+    const allGroupedBookmarks = [
+      ...(groupedBookmarks.selectedCollectionBookmarks || []),
+      ...(groupedBookmarks.groupedBookmarks?.flatMap(
+        (group) => group.bookmarks
+      ) || []),
+    ];
+
+    return (
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        onDragStart={(event) => {
+          console.log("Drag start event:", event);
+        }}
+        onDragOver={(event) => {
+          console.log("Drag over event:", event);
+        }}
+      >
+        <SortableContext
+          items={allGroupedBookmarks.map((item) => item.id)}
+          strategy={
+            viewMode === "grid"
+              ? rectSortingStrategy
+              : verticalListSortingStrategy
+          }
+        >
+          <div className="space-y-8">
+            {/* 상위 컬렉션 북마크 */}
+            {groupedBookmarks.selectedCollectionBookmarks &&
+              groupedBookmarks.selectedCollectionBookmarks.length > 0 && (
+                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                  {renderBookmarkSection(
+                    groupedBookmarks.selectedCollectionBookmarks,
+                    groupedBookmarks.selectedCollectionName,
+                    collections.find(
+                      (col) =>
+                        col.name === groupedBookmarks.selectedCollectionName
+                    )?.icon,
+                    false
+                  )}
+                </div>
+              )}
+
+            {/* 하위 컬렉션 북마크들 */}
+            {groupedBookmarks.groupedBookmarks &&
+              groupedBookmarks.groupedBookmarks.length > 0 && (
+                <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 shadow-sm border border-purple-200 dark:border-purple-700">
+                  <div className="mb-4">
+                    <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                      <Folder className="w-5 h-5" />
+                      하위 컬렉션 북마크
+                    </h2>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">
+                      이 컬렉션의 하위 컬렉션에 속한 북마크들입니다.
+                    </p>
+                  </div>
+                  <div className="space-y-6">
+                    {groupedBookmarks.groupedBookmarks.map((group) =>
+                      renderBookmarkSection(
+                        group.bookmarks,
+                        group.collectionName,
+                        collections.find((col) => col.id === group.collectionId)
+                          ?.icon,
+                        true
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
+          </div>
+        </SortableContext>
+      </DndContext>
+    );
+  }
+
+  // 일반 북마크 리스트 렌더링
   return (
     <div className="space-y-6">
       {/* 북마크 그리드/리스트 */}

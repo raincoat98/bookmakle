@@ -16,10 +16,25 @@ import { getFaviconUrl, refreshFavicon } from "../utils/favicon";
 
 export const useBookmarks = (
   userId: string,
-  selectedCollection: string = "all"
+  selectedCollection: string = "all",
+  collections: any[] = [] // 컬렉션 목록을 받아서 하위 컬렉션 ID를 계산
 ) => {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 하위 컬렉션 ID들을 재귀적으로 가져오는 함수
+  const getChildCollectionIds = (parentId: string): string[] => {
+    const childIds: string[] = [];
+    const getChildren = (id: string) => {
+      const children = collections.filter((col) => col.parentId === id);
+      children.forEach((child) => {
+        childIds.push(child.id);
+        getChildren(child.id);
+      });
+    };
+    getChildren(parentId);
+    return childIds;
+  };
 
   useEffect(() => {
     if (!userId) {
@@ -44,12 +59,8 @@ export const useBookmarks = (
       // 모든 북마크
       q = query(collection(db, "bookmarks"), where("userId", "==", userId));
     } else {
-      // 특정 컬렉션의 북마크들
-      q = query(
-        collection(db, "bookmarks"),
-        where("userId", "==", userId),
-        where("collection", "==", selectedCollection)
-      );
+      // 특정 컬렉션의 북마크들 - 하위 컬렉션도 포함하기 위해 모든 북마크를 가져온 후 클라이언트에서 필터링
+      q = query(collection(db, "bookmarks"), where("userId", "==", userId));
     }
 
     const unsubscribe = onSnapshot(
@@ -77,9 +88,10 @@ export const useBookmarks = (
           });
         });
 
-        // "none" 컬렉션의 경우 클라이언트에서 필터링
+        // 컬렉션별 필터링
         let filteredBookmarks = bookmarkList;
         if (selectedCollection === "none") {
+          // 컬렉션이 없는 북마크들
           filteredBookmarks = bookmarkList.filter(
             (bookmark) =>
               !bookmark.collection ||
@@ -90,6 +102,29 @@ export const useBookmarks = (
             "컬렉션 없음 필터링 결과:",
             filteredBookmarks.length,
             "개"
+          );
+        } else if (selectedCollection !== "all") {
+          // 특정 컬렉션의 북마크들 (하위 컬렉션 포함)
+          const childCollectionIds = getChildCollectionIds(selectedCollection);
+          const targetCollectionIds = [
+            selectedCollection,
+            ...childCollectionIds,
+          ];
+          console.log("대상 컬렉션 ID들:", targetCollectionIds);
+
+          filteredBookmarks = bookmarkList.filter(
+            (bookmark) =>
+              bookmark.collection &&
+              targetCollectionIds.includes(String(bookmark.collection))
+          );
+          console.log(
+            "컬렉션 필터링 결과:",
+            filteredBookmarks.length,
+            "개 (상위:",
+            selectedCollection,
+            ", 하위:",
+            childCollectionIds,
+            ")"
           );
         }
 
@@ -131,7 +166,7 @@ export const useBookmarks = (
     );
 
     return () => unsubscribe();
-  }, [userId, selectedCollection]);
+  }, [userId, selectedCollection, collections]); // collections 의존성 추가
 
   // favicon 필드 마이그레이션 함수
   const migrateFavicons = async () => {
