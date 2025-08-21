@@ -22,14 +22,7 @@ import {
   verticalListSortingStrategy,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import {
-  BookOpen,
-  Folder,
-  ChevronDown,
-  ChevronRight,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { BookOpen, Folder, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 interface BookmarkListProps {
