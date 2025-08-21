@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Bookmark, Collection, SortOption } from "../types";
 import { SortableBookmarkCard } from "./SortableBookmarkCard";
 import { SortableBookmarkListItem } from "./SortableBookmarkListItem";
@@ -21,7 +22,14 @@ import {
   verticalListSortingStrategy,
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
-import { BookOpen, Folder } from "lucide-react";
+import {
+  BookOpen,
+  Folder,
+  ChevronDown,
+  ChevronRight,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 
 interface BookmarkListProps {
@@ -74,6 +82,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
     null
   );
 
+  // 하위 컬렉션 북마크 보기 토글 상태
+  const [showSubCollections, setShowSubCollections] = useState(true);
+
   // 필터링 및 정렬된 북마크
   const filteredAndSortedBookmarks = useMemo(() => {
     let filtered = bookmarks;
@@ -102,12 +113,14 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
         groupedBookmarks.selectedCollectionBookmarks || [],
         currentSort
       ),
-      groupedBookmarks: groupedBookmarks.groupedBookmarks?.map((group) => ({
-        ...group,
-        bookmarks: sortBookmarks(group.bookmarks, currentSort),
-      })),
+      groupedBookmarks: showSubCollections
+        ? groupedBookmarks.groupedBookmarks?.map((group) => ({
+            ...group,
+            bookmarks: sortBookmarks(group.bookmarks, currentSort),
+          }))
+        : [],
     };
-  }, [groupedBookmarks, currentSort]);
+  }, [groupedBookmarks, currentSort, showSubCollections]);
 
   // 드래그 앤 드롭 센서 설정
   const sensors = useSensors(
@@ -361,7 +374,37 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
           <div className="text-sm text-gray-600 dark:text-gray-400">
             총 {allGroupedBookmarks.length}개의 북마크
           </div>
-          <BookmarkSort currentSort={currentSort} onSortChange={onSortChange} />
+          <div className="flex items-center gap-3">
+            {/* 하위 컬렉션 토글 버튼 */}
+            {groupedBookmarks?.groupedBookmarks &&
+              groupedBookmarks.groupedBookmarks.length > 0 && (
+                <button
+                  onClick={() => setShowSubCollections(!showSubCollections)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                  title={
+                    showSubCollections
+                      ? "하위 컬렉션 숨기기"
+                      : "하위 컬렉션 보기"
+                  }
+                >
+                  {showSubCollections ? (
+                    <>
+                      <EyeOff className="w-4 h-4" />
+                      <span>하위 컬렉션 숨기기</span>
+                    </>
+                  ) : (
+                    <>
+                      <Eye className="w-4 h-4" />
+                      <span>하위 컬렉션 보기</span>
+                    </>
+                  )}
+                </button>
+              )}
+            <BookmarkSort
+              currentSort={currentSort}
+              onSortChange={onSortChange}
+            />
+          </div>
         </div>
 
         <DndContext
@@ -384,48 +427,91 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
             }
           >
             <div className="space-y-8">
-            {/* 상위 컬렉션 북마크 */}
-            {sortedGroupedBookmarks.selectedCollectionBookmarks &&
-              sortedGroupedBookmarks.selectedCollectionBookmarks.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                  {renderBookmarkSection(
-                    sortedGroupedBookmarks.selectedCollectionBookmarks,
-                    sortedGroupedBookmarks.selectedCollectionName,
-                    collections.find(
-                      (col) =>
-                        col.name === sortedGroupedBookmarks.selectedCollectionName
-                    )?.icon,
-                    false
-                  )}
-                </div>
-              )}
-
-            {/* 하위 컬렉션 북마크들 */}
-            {sortedGroupedBookmarks.groupedBookmarks &&
-              sortedGroupedBookmarks.groupedBookmarks.length > 0 && (
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 shadow-sm border border-purple-200 dark:border-purple-700">
-                  <div className="mb-4">
-                    <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
-                      <Folder className="w-5 h-5" />
-                      하위 컬렉션 북마크
-                    </h2>
-                    <p className="text-sm text-purple-600 dark:text-purple-400">
-                      이 컬렉션의 하위 컬렉션에 속한 북마크들입니다.
-                    </p>
-                  </div>
-                  <div className="space-y-6">
-                    {sortedGroupedBookmarks.groupedBookmarks.map((group) =>
-                      renderBookmarkSection(
-                        group.bookmarks,
-                        group.collectionName,
-                        collections.find((col) => col.id === group.collectionId)
-                          ?.icon,
-                        true
-                      )
+              {/* 상위 컬렉션 북마크 */}
+              {sortedGroupedBookmarks.selectedCollectionBookmarks &&
+                sortedGroupedBookmarks.selectedCollectionBookmarks.length >
+                  0 && (
+                  <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                    {renderBookmarkSection(
+                      sortedGroupedBookmarks.selectedCollectionBookmarks,
+                      sortedGroupedBookmarks.selectedCollectionName,
+                      collections.find(
+                        (col) =>
+                          col.name ===
+                          sortedGroupedBookmarks.selectedCollectionName
+                      )?.icon,
+                      false
                     )}
                   </div>
-                </div>
-              )}
+                )}
+
+              {/* 하위 컬렉션 북마크들 */}
+              <AnimatePresence>
+                {!showSubCollections &&
+                  groupedBookmarks?.groupedBookmarks &&
+                  groupedBookmarks.groupedBookmarks.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                          <Folder className="w-4 h-4" />
+                          <span className="text-sm">
+                            하위 컬렉션 북마크{" "}
+                            {groupedBookmarks.groupedBookmarks.length}개가
+                            숨겨져 있습니다
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setShowSubCollections(true)}
+                          className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+                        >
+                          보기
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                {sortedGroupedBookmarks.groupedBookmarks &&
+                  sortedGroupedBookmarks.groupedBookmarks.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-6 shadow-sm border border-purple-200 dark:border-purple-700 overflow-hidden"
+                    >
+                      <div className="mb-4">
+                        <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
+                          <Folder className="w-5 h-5" />
+                          하위 컬렉션 북마크
+                        </h2>
+                        <p className="text-sm text-purple-600 dark:text-purple-400">
+                          이 컬렉션의 하위 컬렉션에 속한 북마크들입니다.
+                        </p>
+                      </div>
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1, duration: 0.2 }}
+                        className="space-y-6"
+                      >
+                        {sortedGroupedBookmarks.groupedBookmarks.map((group) =>
+                          renderBookmarkSection(
+                            group.bookmarks,
+                            group.collectionName,
+                            collections.find(
+                              (col) => col.id === group.collectionId
+                            )?.icon,
+                            true
+                          )
+                        )}
+                      </motion.div>
+                    </motion.div>
+                  )}
+              </AnimatePresence>
             </div>
           </SortableContext>
         </DndContext>
