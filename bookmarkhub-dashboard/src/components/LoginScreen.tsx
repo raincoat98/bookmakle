@@ -138,12 +138,6 @@ export const LoginScreen = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-100 to-accent-100 dark:from-gray-900 dark:via-brand-900 dark:to-gray-800 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            북마클
-          </h1>
-        </div>
-
         <div className="card p-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">

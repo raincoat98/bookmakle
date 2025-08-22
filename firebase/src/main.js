@@ -48,6 +48,7 @@ const statusEl = document.getElementById("status");
 const signinBtn = document.getElementById("signin-btn");
 const signoutBtn = document.getElementById("signout-btn");
 const userInfoEl = document.getElementById("user-info");
+const loginFormEl = document.getElementById("login-form");
 
 // 인증 상태 변경 감지
 onAuthStateChanged(auth, async (user) => {
@@ -55,19 +56,28 @@ onAuthStateChanged(auth, async (user) => {
 
   if (user) {
     // 로그인된 상태
-    statusEl.textContent = "로그인됨";
-    statusEl.className = "status authenticated";
-    signinBtn.style.display = "none";
-    signoutBtn.style.display = "inline-block";
+    statusEl.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+      로그인됨
+    `;
+    statusEl.className = "status-badge authenticated";
+
+    // 로그인 폼 숨기기
+    loginFormEl.style.display = "none";
 
     // 사용자 정보 표시
     userInfoEl.style.display = "block";
     userInfoEl.innerHTML = `
       <img src="${
-        user.photoURL || "https://via.placeholder.com/50"
+        user.photoURL || "https://via.placeholder.com/48"
       }" alt="프로필">
-      <strong>${user.displayName}</strong><br>
-      <small>${user.email}</small>
+      <div class="user-details">
+        <strong>${user.displayName}</strong>
+        <small>${user.email}</small>
+      </div>
+      <button id="signout-btn" class="logout-btn">로그아웃</button>
     `;
 
     // 사용자 정보를 부모 창에 전송
@@ -87,10 +97,16 @@ onAuthStateChanged(auth, async (user) => {
     }
   } else {
     // 로그아웃된 상태
-    statusEl.textContent = "로그아웃됨";
-    statusEl.className = "status unauthenticated";
-    signinBtn.style.display = "inline-block";
-    signoutBtn.style.display = "none";
+    statusEl.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+      로그아웃됨
+    `;
+    statusEl.className = "status-badge unauthenticated";
+
+    // 로그인 폼 보이기
+    loginFormEl.style.display = "block";
     userInfoEl.style.display = "none";
 
     // 로그아웃 상태를 부모 창에 전송
@@ -110,32 +126,56 @@ signinBtn.addEventListener("click", async () => {
   console.log("Manual sign-in button clicked");
   try {
     signinBtn.disabled = true;
-    signinBtn.textContent = "로그인 중...";
+    signinBtn.innerHTML = `
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      로그인 중...
+    `;
     const result = await signInWithPopup(auth, PROVIDER);
     console.log("Manual sign-in successful:", result);
   } catch (error) {
     console.error("Manual sign-in error:", error);
-    statusEl.textContent = `로그인 실패: ${error.message}`;
-    statusEl.className = "status unauthenticated";
+    statusEl.innerHTML = `
+      <svg viewBox="0 0 24 24">
+        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      </svg>
+      로그인 실패: ${error.message}
+    `;
+    statusEl.className = "status-badge unauthenticated";
   } finally {
     signinBtn.disabled = false;
-    signinBtn.textContent = "Google로 로그인";
+    signinBtn.innerHTML = `
+      <svg class="google-icon" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Google로 로그인
+    `;
   }
 });
 
-// 로그아웃 버튼 클릭
-signoutBtn.addEventListener("click", async () => {
-  console.log("Manual sign-out button clicked");
-  try {
-    signoutBtn.disabled = true;
-    signoutBtn.textContent = "로그아웃 중...";
-    await signOut(auth);
-    console.log("Manual sign-out successful");
-  } catch (error) {
-    console.error("Manual sign-out error:", error);
-  } finally {
-    signoutBtn.disabled = false;
-    signoutBtn.textContent = "로그아웃";
+// 로그아웃 버튼 클릭 (이벤트 위임 사용)
+document.addEventListener("click", async (event) => {
+  if (event.target && event.target.id === "signout-btn") {
+    console.log("Manual sign-out button clicked");
+    const logoutBtn = event.target;
+    try {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = "로그아웃 중...";
+      await signOut(auth);
+      console.log("Manual sign-out successful");
+    } catch (error) {
+      console.error("Manual sign-out error:", error);
+    } finally {
+      logoutBtn.disabled = false;
+      logoutBtn.textContent = "로그아웃";
+    }
   }
 });
 

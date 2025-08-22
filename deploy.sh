@@ -52,8 +52,15 @@ else
     handle_error "Dashboard 빌드 실패"
 fi
 
-# 3. Firebase 디렉토리로 이동
+# 3. Firebase 빌드
+info_msg "Firebase 빌드 중..."
 cd ../firebase || handle_error "firebase 디렉토리를 찾을 수 없습니다"
+
+if npm run build; then
+    success_msg "Firebase 빌드 완료"
+else
+    handle_error "Firebase 빌드 실패"
+fi
 
 # 4. Firebase 프로젝트 확인
 info_msg "Firebase 프로젝트 확인 중..."
@@ -78,17 +85,13 @@ else
     handle_error "Dashboard 배포 실패"
 fi
 
-# 7. Webapp 배포 (선택사항)
-read -p "Webapp도 배포하시겠습니까? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    info_msg "Webapp 배포 중..."
-    if npx firebase-tools@13.0.0 deploy --only hosting:webapp; then
-        success_msg "Webapp 배포 완료"
-        echo -e "${GREEN}🌐 Webapp URL: https://bookmarkhub-5ea6c.web.app${NC}"
-    else
-        warn_msg "Webapp 배포 실패"
-    fi
+# 7. Firebase Webapp(메인) 배포
+info_msg "Firebase Webapp(메인) 배포 중..."
+if npx firebase-tools@13.0.0 deploy --only hosting:webapp; then
+    success_msg "Firebase Webapp(메인) 배포 완료"
+    echo -e "${GREEN}🌐 Webapp URL: https://bookmarkhub-5ea6c.web.app${NC}"
+else
+    warn_msg "Firebase Webapp(메인) 배포 실패"
 fi
 
 # 8. 완료 메시지
@@ -97,9 +100,6 @@ success_msg "배포가 완료되었습니다!"
 echo -e "${BLUE}📋 배포된 서비스:${NC}"
 echo -e "  • Extension: ${GREEN}~/Documents/chromeExtension/${NC}"
 echo -e "  • Dashboard: ${GREEN}https://bookmarkhub-5ea6c-dashboard.web.app${NC}"
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo -e "  • Webapp: ${GREEN}https://bookmarkhub-5ea6c.web.app${NC}"
-fi
+echo -e "  • Webapp: ${GREEN}https://bookmarkhub-5ea6c.web.app${NC}"
 echo
 info_msg "Firebase Console: https://console.firebase.google.com/project/bookmarkhub-5ea6c/overview" 
-
