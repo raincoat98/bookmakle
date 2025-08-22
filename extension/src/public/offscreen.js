@@ -33,16 +33,24 @@ if (document.getElementById("status")) {
 let iframeLoaded = false;
 let iframeReady = false;
 let iframeReadyPromise = null;
+let iframeReadyTimeout = null;
 
-// iframe 준비 상태를 기다리는 함수
+// iframe 준비 상태를 기다리는 함수 (개선된 버전)
 function waitForIframeReady() {
   if (!iframeReadyPromise) {
-    iframeReadyPromise = new Promise((resolve) => {
+    iframeReadyPromise = new Promise((resolve, reject) => {
+      // 타임아웃 설정 (30초)
+      iframeReadyTimeout = setTimeout(() => {
+        console.error("=== IFRAME READY TIMEOUT ===");
+        reject(new Error("iframe 준비 시간이 초과되었습니다."));
+      }, 30000);
+
       const checkReady = () => {
         if (iframeLoaded && iframeReady) {
+          clearTimeout(iframeReadyTimeout);
           resolve();
         } else {
-          setTimeout(checkReady, 100);
+          setTimeout(checkReady, 200);
         }
       };
       checkReady();
@@ -51,19 +59,19 @@ function waitForIframeReady() {
   return iframeReadyPromise;
 }
 
+// iframe 로드 이벤트 처리 (개선된 버전)
 iframe.addEventListener("load", () => {
   console.log("=== FIREBASE IFRAME LOADED SUCCESSFULLY ===");
   iframeLoaded = true;
 
-  // iframe 로딩 후 ready 메시지 대기
+  // iframe 로딩 후 ready 메시지 대기 (타임아웃 단축)
   const readyTimeout = setTimeout(() => {
     console.log("=== IFRAME READY TIMEOUT, ASSUMING READY ===");
     iframeReady = true;
-  }, 5000);
+  }, 3000);
 
   // ready 메시지 수신 시 타임아웃 취소
-  const originalMessageHandler = window.onmessage;
-  window.addEventListener("message", function (event) {
+  const messageHandler = function (event) {
     if (event.origin === FIREBASE_HOSTING_URL) {
       try {
         const data =
@@ -72,13 +80,15 @@ iframe.addEventListener("load", () => {
           console.log("=== IFRAME READY MESSAGE RECEIVED ===");
           clearTimeout(readyTimeout);
           iframeReady = true;
-          window.removeEventListener("message", arguments.callee);
+          window.removeEventListener("message", messageHandler);
         }
       } catch (e) {
         // JSON 파싱 실패는 무시
       }
     }
-  });
+  };
+
+  window.addEventListener("message", messageHandler);
 });
 
 iframe.addEventListener("error", (error) => {
@@ -90,8 +100,22 @@ iframe.addEventListener("error", (error) => {
   }
 });
 
-// 디버깅을 위한 모든 메시지 로깅
+// 디버깅을 위한 모든 메시지 로깅 (개선된 버전)
 window.addEventListener("message", (event) => {
+  // Firebase 내부 메시지 필터링
+  if (
+    typeof event.data === "string" &&
+    (event.data.startsWith("!_{") ||
+      event.data.includes('"h":""') ||
+      event.data.includes('"type":"keep-alive"') ||
+      event.data.includes('"type":"ping"') ||
+      event.data.includes('"type":"pong"') ||
+      event.data.includes('"type":"ack"') ||
+      event.data.includes('"type":"heartbeat"'))
+  ) {
+    return; // Firebase 내부 메시지는 로깅하지 않음
+  }
+
   console.log("=== OFFScreen.js RECEIVED MESSAGE ===", {
     data: event.data,
     origin: event.origin,
@@ -102,7 +126,7 @@ window.addEventListener("message", (event) => {
   });
 });
 
-// Background.js와의 통신 설정
+// Background.js와의 통신 설정 (개선된 버전)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("=== OFFScreen.js RECEIVED MESSAGE FROM BACKGROUND ===", message);
 
@@ -131,11 +155,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then(() => {
         console.log("=== IFRAME IS READY, STARTING AUTH PROCESS ===");
 
-        // 인증 처리 (기존 코드 유지)
+        // 인증 처리 (개선된 버전)
         let timeoutId;
         let messageHandler;
         let messageCount = 0;
-        const MAX_MESSAGES = 50;
+        const MAX_MESSAGES = 30; // 메시지 수 제한
         let authRequestSent = false;
         let authResponseReceived = false;
 
@@ -161,6 +185,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
 
           if (typeof data === "string") {
+            // Firebase 내부 메시지 필터링
             if (
               data.startsWith("!_{") ||
               data.startsWith("!") ||
@@ -262,6 +287,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         messageHandler = handleIframeMessage;
         window.addEventListener("message", messageHandler);
 
+        // 타임아웃 시간 단축 (60초)
         timeoutId = setTimeout(() => {
           console.log("=== AUTHENTICATION TIMEOUT REACHED ===");
           if (!authResponseReceived) {
@@ -270,14 +296,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               error: "인증 요청 시간이 초과되었습니다. 다시 시도해주세요.",
             });
           }
-        }, 120000);
+        }, 60000);
 
         // iframe이 이미 준비되었으므로 바로 인증 요청 전송
         sendAuthRequest();
       })
       .catch((error) => {
         console.error("=== ERROR WAITING FOR IFRAME READY ===", error);
-        sendResponse({ error: "iframe 준비 중 오류가 발생했습니다." });
+        sendResponse({
+          error: "iframe 준비 중 오류가 발생했습니다: " + error.message,
+        });
       });
 
     return true;
@@ -295,7 +323,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       .catch((error) => {
         console.error("=== ERROR WAITING FOR IFRAME READY ===", error);
-        sendResponse({ error: "iframe 준비 중 오류가 발생했습니다." });
+        sendResponse({
+          error: "iframe 준비 중 오류가 발생했습니다: " + error.message,
+        });
       });
 
     function sendBookmarkToIframe() {
@@ -364,7 +394,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
 
-      // 타임아웃 처리
+      // 타임아웃 처리 (30초)
       const timeoutId = setTimeout(() => {
         console.log("=== BOOKMARK SAVE TIMEOUT ===");
         window.removeEventListener("message", handleIframeResponse);
@@ -387,7 +417,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       .catch((error) => {
         console.error("=== ERROR WAITING FOR IFRAME READY ===", error);
-        sendResponse({ error: "iframe 준비 중 오류가 발생했습니다." });
+        sendResponse({
+          error: "iframe 준비 중 오류가 발생했습니다: " + error.message,
+        });
       });
 
     function sendCollectionsRequestToIframe() {
@@ -453,7 +485,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return;
       }
 
-      // 타임아웃 처리
+      // 타임아웃 처리 (30초)
       const timeoutId = setTimeout(() => {
         console.log("=== COLLECTIONS REQUEST TIMEOUT ===");
         window.removeEventListener("message", handleIframeResponse);
@@ -463,48 +495,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true;
   } else if (
-    message.action === "createDefaultCollections" &&
+    message.action === "createCollection" &&
     message.target === "offscreen"
   ) {
     console.log(
-      "=== PROCESSING CREATEDEFAULTCOLLECTIONS REQUEST ===",
-      message.userId
+      "=== PROCESSING CREATECOLLECTION REQUEST ===",
+      message.collection
     );
 
     // iframe이 준비될 때까지 대기
     waitForIframeReady()
       .then(() => {
         console.log(
-          "=== IFRAME IS READY, SENDING CREATE DEFAULT COLLECTIONS REQUEST ==="
+          "=== IFRAME IS READY, SENDING CREATE COLLECTION REQUEST ==="
         );
-        sendCreateDefaultCollectionsRequestToIframe();
+        sendCreateCollectionRequestToIframe();
       })
       .catch((error) => {
         console.error("=== ERROR WAITING FOR IFRAME READY ===", error);
-        sendResponse({ error: "iframe 준비 중 오류가 발생했습니다." });
+        sendResponse({
+          error: "iframe 준비 중 오류가 발생했습니다: " + error.message,
+        });
       });
 
-    function sendCreateDefaultCollectionsRequestToIframe() {
+    function sendCreateCollectionRequestToIframe() {
       const msgId =
-        "createDefaultCollections-" +
+        "createCollection-" +
         Date.now() +
         "-" +
         Math.random().toString(36).substr(2, 9);
-      const createDefaultCollectionsMsg = {
-        createDefaultCollections: true,
-        userId: message.userId,
+      const createCollectionMsg = {
+        createCollection: true,
+        collection: message.collection,
         msgId: msgId,
       };
 
       console.log(
-        "=== PREPARING CREATE DEFAULT COLLECTIONS REQUEST ===",
-        createDefaultCollectionsMsg
+        "=== PREPARING CREATE COLLECTION REQUEST ===",
+        createCollectionMsg
       );
 
       // 응답 핸들러
       function handleIframeResponse(event) {
         console.log(
-          "=== RECEIVED MESSAGE IN CREATE DEFAULT COLLECTIONS HANDLER ===",
+          "=== RECEIVED MESSAGE IN CREATE COLLECTION HANDLER ===",
           event
         );
 
@@ -521,10 +555,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             typeof event.data === "string"
               ? JSON.parse(event.data)
               : event.data;
-          console.log(
-            "=== PARSED CREATE DEFAULT COLLECTIONS RESPONSE ===",
-            data
-          );
+          console.log("=== PARSED CREATE COLLECTION RESPONSE ===", data);
 
           if (data && data.msgId === msgId) {
             console.log("=== MATCHING MSGID FOUND, SENDING RESPONSE ===", data);
@@ -538,10 +569,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
           }
         } catch (e) {
-          console.error(
-            "=== ERROR PARSING CREATE DEFAULT COLLECTIONS RESPONSE ===",
-            e
-          );
+          console.error("=== ERROR PARSING CREATE COLLECTION RESPONSE ===", e);
         }
       }
 
@@ -549,34 +577,111 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       // 실제 요청 전송
       try {
-        console.log(
-          "=== SENDING CREATE DEFAULT COLLECTIONS REQUEST TO IFRAME ==="
-        );
+        console.log("=== SENDING CREATE COLLECTION REQUEST TO IFRAME ===");
         iframe.contentWindow.postMessage(
-          createDefaultCollectionsMsg,
+          createCollectionMsg,
           FIREBASE_HOSTING_URL
         );
-        console.log(
-          "=== CREATE DEFAULT COLLECTIONS REQUEST SENT SUCCESSFULLY ==="
-        );
+        console.log("=== CREATE COLLECTION REQUEST SENT SUCCESSFULLY ===");
       } catch (e) {
-        console.error(
-          "=== ERROR SENDING CREATE DEFAULT COLLECTIONS REQUEST ===",
-          e
-        );
+        console.error("=== ERROR SENDING CREATE COLLECTION REQUEST ===", e);
         window.removeEventListener("message", handleIframeResponse);
         sendResponse({ error: "iframe 통신 오류: " + e.message });
         return;
       }
 
-      // 타임아웃 처리
+      // 타임아웃 처리 (30초)
       const timeoutId = setTimeout(() => {
-        console.log("=== CREATE DEFAULT COLLECTIONS REQUEST TIMEOUT ===");
+        console.log("=== CREATE COLLECTION REQUEST TIMEOUT ===");
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({ error: "컬렉션 생성 요청 응답 시간이 초과되었습니다." });
+      }, 30000);
+    }
+
+    return true;
+  } else if (message.action === "signOut" && message.target === "offscreen") {
+    console.log("=== PROCESSING SIGNOUT REQUEST ===");
+
+    // iframe이 준비될 때까지 대기
+    waitForIframeReady()
+      .then(() => {
+        console.log("=== IFRAME IS READY, SENDING SIGNOUT REQUEST ===");
+        sendSignOutRequestToIframe();
+      })
+      .catch((error) => {
+        console.error("=== ERROR WAITING FOR IFRAME READY ===", error);
+        sendResponse({
+          error: "iframe 준비 중 오류가 발생했습니다: " + error.message,
+        });
+      });
+
+    function sendSignOutRequestToIframe() {
+      const msgId =
+        "signOut-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
+      const signOutMsg = {
+        signOut: true,
+        msgId: msgId,
+      };
+
+      console.log("=== PREPARING SIGNOUT REQUEST ===", signOutMsg);
+
+      // 응답 핸들러
+      function handleIframeResponse(event) {
+        console.log("=== RECEIVED MESSAGE IN SIGNOUT HANDLER ===", event);
+
+        if (!event.origin.startsWith(FIREBASE_HOSTING_URL)) {
+          console.log(
+            "=== IGNORING MESSAGE FROM WRONG ORIGIN ===",
+            event.origin
+          );
+          return;
+        }
+
+        try {
+          const data =
+            typeof event.data === "string"
+              ? JSON.parse(event.data)
+              : event.data;
+          console.log("=== PARSED SIGNOUT RESPONSE ===", data);
+
+          if (data && data.msgId === msgId) {
+            console.log("=== MATCHING MSGID FOUND, SENDING RESPONSE ===", data);
+            window.removeEventListener("message", handleIframeResponse);
+            clearTimeout(timeoutId);
+            sendResponse(data);
+          } else {
+            console.log("=== MSGID MISMATCH OR NO MSGID ===", {
+              receivedMsgId: data?.msgId,
+              expectedMsgId: msgId,
+            });
+          }
+        } catch (e) {
+          console.error("=== ERROR PARSING SIGNOUT RESPONSE ===", e);
+        }
+      }
+
+      window.addEventListener("message", handleIframeResponse);
+
+      // 실제 요청 전송
+      try {
+        console.log("=== SENDING SIGNOUT REQUEST TO IFRAME ===");
+        iframe.contentWindow.postMessage(signOutMsg, FIREBASE_HOSTING_URL);
+        console.log("=== SIGNOUT REQUEST SENT SUCCESSFULLY ===");
+      } catch (e) {
+        console.error("=== ERROR SENDING SIGNOUT REQUEST ===", e);
+        window.removeEventListener("message", handleIframeResponse);
+        sendResponse({ error: "iframe 통신 오류: " + e.message });
+        return;
+      }
+
+      // 타임아웃 처리 (10초)
+      const timeoutId = setTimeout(() => {
+        console.log("=== SIGNOUT REQUEST TIMEOUT ===");
         window.removeEventListener("message", handleIframeResponse);
         sendResponse({
-          error: "기본 컬렉션 생성 요청 응답 시간이 초과되었습니다.",
+          error: "로그아웃 요청 응답 시간이 초과되었습니다.",
         });
-      }, 30000);
+      }, 10000);
     }
 
     return true;

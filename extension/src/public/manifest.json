@@ -11,7 +11,8 @@
     "tabs",
     "activeTab",
     "clipboardWrite",
-    "contextMenus"
+    "contextMenus",
+    "scripting"
   ],
   "host_permissions": [
     "https://*.firebaseapp.com/*",

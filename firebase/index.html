@@ -281,6 +281,35 @@
         cursor: not-allowed;
       }
 
+      .close-page-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .close-page-btn:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+      }
+
+      .close-page-btn:active {
+        transform: translateY(0);
+      }
+
       .bookmarks-list {
         margin-top: 24px;
         text-align: left;
@@ -364,26 +393,28 @@
           <div class="input-group">
             <input
               type="email"
+              id="email-input"
               class="input-field"
               placeholder="이메일 주소"
-              disabled
             />
           </div>
           <div class="input-group">
             <input
               type="password"
+              id="password-input"
               class="input-field"
               placeholder="비밀번호"
-              disabled
             />
           </div>
-          <button class="email-login-btn" disabled>이메일로 로그인</button>
+          <button id="email-login-btn" class="email-login-btn">
+            이메일로 로그인
+          </button>
         </div>
 
         <!-- 링크들 -->
         <div class="links">
           <a href="#" class="link">비밀번호를 잊으셨나요?</a>
-          <a href="#" class="link"
+          <a href="#" id="signup-link" class="link"
             >계정이 없으신가요? <span class="signup-link">회원가입</span></a
           >
         </div>

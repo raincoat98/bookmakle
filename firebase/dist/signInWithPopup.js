@@ -102,11 +102,12 @@ signoutBtn.addEventListener("click", async () => {
   }
 });
 
-// Chrome Extension 통신
+// Chrome Extension 통신 (개선된 버전)
 let PARENT_FRAME = null;
 let isProcessingAuth = false; // 중복 요청 방지
+let readyMessageSent = false; // 준비 메시지 전송 상태
 
-// 부모 프레임 origin을 찾는 함수
+// 부모 프레임 origin을 찾는 함수 (개선된 버전)
 function findParentFrame() {
   try {
     // 여러 방법으로 부모 프레임을 찾기
@@ -132,6 +133,7 @@ console.log("Current location:", window.location.href);
 console.log("Ancestor origins:", document.location.ancestorOrigins);
 findParentFrame();
 
+// 응답 전송 함수 (개선된 버전)
 function sendResponse(result) {
   if (PARENT_FRAME) {
     try {
@@ -154,21 +156,29 @@ function sendResponse(result) {
         const responseData = { user: userData };
         console.log("Sending success response:", responseData);
 
-        // 재시도 로직으로 안정성 향상
-        for (let i = 0; i < 3; i++) {
+        // 재시도 로직으로 안정성 향상 (최대 3회)
+        let sent = false;
+        for (let i = 0; i < 3 && !sent; i++) {
           try {
             window.parent.postMessage(
               JSON.stringify(responseData),
               PARENT_FRAME
             );
             console.log(`Success response sent (attempt ${i + 1})`);
-            break;
+            sent = true;
           } catch (e) {
             console.error(
               `Failed to send success response (attempt ${i + 1}):`,
               e
             );
-            if (i === 2) throw e;
+            if (i === 2) {
+              // 마지막 시도에서도 실패하면 오류 응답 전송
+              const errorResponse = { error: "응답 전송에 실패했습니다." };
+              window.parent.postMessage(
+                JSON.stringify(errorResponse),
+                PARENT_FRAME
+              );
+            }
           }
         }
       } else {
@@ -178,47 +188,61 @@ function sendResponse(result) {
         const responseData = { error: errorMessage };
         console.log("Sending error response:", responseData);
 
-        // 재시도 로직으로 안정성 향상
-        for (let i = 0; i < 3; i++) {
+        // 재시도 로직으로 안정성 향상 (최대 3회)
+        let sent = false;
+        for (let i = 0; i < 3 && !sent; i++) {
           try {
             window.parent.postMessage(
               JSON.stringify(responseData),
               PARENT_FRAME
             );
             console.log(`Error response sent (attempt ${i + 1})`);
-            break;
+            sent = true;
           } catch (e) {
             console.error(
               `Failed to send error response (attempt ${i + 1}):`,
               e
             );
-            if (i === 2) throw e;
+            if (i === 2) {
+              // 마지막 시도에서도 실패하면 일반 오류 응답 전송
+              const errorResponse = { error: "응답 전송에 실패했습니다." };
+              window.parent.postMessage(
+                JSON.stringify(errorResponse),
+                PARENT_FRAME
+              );
+            }
           }
         }
       }
     } catch (e) {
       console.error("Error sending response:", e);
       const errorResponse = { error: "응답 전송 중 오류가 발생했습니다." };
-      window.parent.postMessage(JSON.stringify(errorResponse), PARENT_FRAME);
+      try {
+        window.parent.postMessage(JSON.stringify(errorResponse), PARENT_FRAME);
+      } catch (sendError) {
+        console.error("Failed to send error response:", sendError);
+      }
     }
   } else {
     console.log("No parent frame detected, running in standalone mode");
   }
 }
 
-// 준비 메시지 전송 함수
+// 준비 메시지 전송 함수 (개선된 버전)
 function sendReadyMessage() {
-  if (PARENT_FRAME) {
+  if (PARENT_FRAME && !readyMessageSent) {
     try {
       console.log("Sending ready message to parent frame");
       window.parent.postMessage(JSON.stringify({ ready: true }), PARENT_FRAME);
       console.log("Ready message sent successfully");
+      readyMessageSent = true;
     } catch (e) {
       console.error("Could not send ready message to parent frame:", e);
     }
   }
 }
 
+// 메시지 수신 처리 (개선된 버전)
 window.addEventListener("message", async function ({ data, origin }) {
   console.log("Received message:", {
     data: data,
@@ -300,6 +324,57 @@ window.addEventListener("message", async function ({ data, origin }) {
         case "auth/unauthorized-domain":
           errorMessage = "이 도메인에서 인증이 허용되지 않습니다.";
           break;
+        case "auth/account-exists-with-different-credential":
+          errorMessage = "다른 방법으로 가입된 계정입니다.";
+          break;
+        case "auth/credential-already-in-use":
+          errorMessage = "이미 사용 중인 계정입니다.";
+          break;
+        case "auth/weak-password":
+          errorMessage = "비밀번호가 너무 약합니다.";
+          break;
+        case "auth/user-not-found":
+          errorMessage = "존재하지 않는 계정입니다.";
+          break;
+        case "auth/wrong-password":
+          errorMessage = "잘못된 비밀번호입니다.";
+          break;
+        case "auth/email-already-in-use":
+          errorMessage = "이미 사용 중인 이메일입니다.";
+          break;
+        case "auth/invalid-credential":
+          errorMessage = "잘못된 인증 정보입니다.";
+          break;
+        case "auth/invalid-verification-code":
+          errorMessage = "잘못된 인증 코드입니다.";
+          break;
+        case "auth/invalid-verification-id":
+          errorMessage = "잘못된 인증 ID입니다.";
+          break;
+        case "auth/quota-exceeded":
+          errorMessage = "요청 한도를 초과했습니다.";
+          break;
+        case "auth/app-not-authorized":
+          errorMessage = "앱이 인증되지 않았습니다.";
+          break;
+        case "auth/captcha-check-failed":
+          errorMessage = "캡차 확인에 실패했습니다.";
+          break;
+        case "auth/invalid-app-credential":
+          errorMessage = "잘못된 앱 인증 정보입니다.";
+          break;
+        case "auth/session-expired":
+          errorMessage = "세션이 만료되었습니다.";
+          break;
+        case "auth/tenant-id-mismatch":
+          errorMessage = "테넌트 ID가 일치하지 않습니다.";
+          break;
+        case "auth/unsupported-persistence-type":
+          errorMessage = "지원되지 않는 지속성 유형입니다.";
+          break;
+        case "auth/requires-recent-login":
+          errorMessage = "최근 로그인이 필요합니다.";
+          break;
         default:
           errorMessage =
             error.message || "알 수 없는 인증 오류가 발생했습니다.";
@@ -312,10 +387,13 @@ window.addEventListener("message", async function ({ data, origin }) {
   }
 });
 
-// 페이지 로드 완료 시 준비 상태 알림
+// 페이지 로드 완료 시 준비 상태 알림 (개선된 버전)
 window.addEventListener("load", () => {
   console.log("Firebase auth page loaded and ready");
-  sendReadyMessage();
+  // 약간의 지연 후 준비 메시지 전송
+  setTimeout(() => {
+    sendReadyMessage();
+  }, 500);
 });
 
 // DOMContentLoaded 이벤트에서도 준비 상태 알림
@@ -324,10 +402,10 @@ document.addEventListener("DOMContentLoaded", () => {
   sendReadyMessage();
 });
 
-// 추가로 1초 후에도 준비 메시지 전송
+// 추가로 2초 후에도 준비 메시지 전송 (중복 방지)
 setTimeout(() => {
   console.log("Sending delayed ready message");
   sendReadyMessage();
-}, 1000);
+}, 2000);
 
 console.log("Firebase auth script loaded completely");
