@@ -247,7 +247,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     chrome.runtime.sendMessage({ action: "signIn" }, function (response) {
       // 버튼 상태 복원
       signInButton.disabled = false;
-      signInButton.textContent = "Google 로그인";
+      signInButton.textContent = "로그인 하기";
 
       if (response && response.user) {
         chrome.storage.local.set({ user: response.user }, () => {
