@@ -49,7 +49,7 @@ const signinBtn = document.getElementById("signin-btn");
 const signoutBtn = document.getElementById("signout-btn");
 const userInfoEl = document.getElementById("user-info");
 
-// 인증 상태 변경 감지
+// 인증 상태 변경 감지 (자동 로그인 비활성화)
 onAuthStateChanged(auth, (user) => {
   console.log("Auth state changed:", user);
 
@@ -69,6 +69,9 @@ onAuthStateChanged(auth, (user) => {
       <strong>${user.displayName}</strong><br>
       <small>${user.email}</small>
     `;
+
+    // 자동 로그인 처리 제거 - 수동 로그인 버튼 클릭 시에만 확장 프로그램으로 메시지 전송
+    console.log("사용자 로그인 상태 확인됨 - 자동 처리하지 않음");
   } else {
     // 로그아웃된 상태
     statusEl.textContent = "로그아웃됨";

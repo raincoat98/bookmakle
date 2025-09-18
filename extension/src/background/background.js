@@ -421,10 +421,10 @@ async function signOutFromFirebaseHosting() {
         "No Firebase hosting tabs found, creating new tab for signout"
       );
 
-      // Firebase 호스팅 탭을 새로 열어서 로그아웃 처리
+      // Firebase 호스팅 탭을 새로 열어서 로그아웃 처리 (강제 로그아웃 파라미터 추가)
       try {
         const newTab = await chrome.tabs.create({
-          url: "https://bookmarkhub-5ea6c.web.app/",
+          url: "https://bookmarkhub-5ea6c.web.app/?forceLogout=true",
           active: false, // 백그라운드에서 열기
         });
 
@@ -449,6 +449,9 @@ async function signOutFromFirebaseHosting() {
             {
               target: { tabId: newTab.id },
               func: () => {
+                // 강제 로그아웃 플래그 설정
+                localStorage.setItem("extensionLoggedOut", "true");
+                sessionStorage.setItem("extensionLoggedOut", "true");
                 try {
                   console.log("Starting Firebase Auth signout in new tab...");
 
@@ -492,7 +495,12 @@ async function signOutFromFirebaseHosting() {
                         keysToRemove.forEach((key) =>
                           localStorage.removeItem(key)
                         );
-                        console.log("localStorage cleaned after signout");
+
+                        // 확장 프로그램 로그아웃 플래그 설정
+                        localStorage.setItem("extensionLoggedOut", "true");
+                        console.log(
+                          "localStorage cleaned after signout and logout flag set"
+                        );
                         return Promise.resolve();
                       })
                       .catch((error) => {
@@ -511,6 +519,12 @@ async function signOutFromFirebaseHosting() {
                         }
                         keysToRemove.forEach((key) =>
                           localStorage.removeItem(key)
+                        );
+
+                        // 확장 프로그램 로그아웃 플래그 설정
+                        localStorage.setItem("extensionLoggedOut", "true");
+                        console.log(
+                          "localStorage cleaned after error and logout flag set"
                         );
                         return Promise.resolve();
                       });
@@ -531,7 +545,12 @@ async function signOutFromFirebaseHosting() {
                       }
                     }
                     keysToRemove.forEach((key) => localStorage.removeItem(key));
-                    console.log("localStorage cleaned (no auth found)");
+
+                    // 확장 프로그램 로그아웃 플래그 설정
+                    localStorage.setItem("extensionLoggedOut", "true");
+                    console.log(
+                      "localStorage cleaned (no auth found) and logout flag set"
+                    );
                     return Promise.resolve();
                   }
                 } catch (error) {
@@ -549,7 +568,12 @@ async function signOutFromFirebaseHosting() {
                     }
                   }
                   keysToRemove.forEach((key) => localStorage.removeItem(key));
-                  console.log("localStorage cleaned after error");
+
+                  // 확장 프로그램 로그아웃 플래그 설정
+                  localStorage.setItem("extensionLoggedOut", "true");
+                  console.log(
+                    "localStorage cleaned after error and logout flag set"
+                  );
                   return Promise.resolve();
                 }
               },
@@ -580,11 +604,27 @@ async function signOutFromFirebaseHosting() {
     const signoutPromises = tabs.map(async (tab) => {
       console.log("Executing signout script in Firebase hosting tab:", tab.id);
 
+      // 탭 URL에 강제 로그아웃 파라미터 추가
+      try {
+        const currentUrl = new URL(tab.url);
+        currentUrl.searchParams.set("forceLogout", "true");
+        await chrome.tabs.update(tab.id, { url: currentUrl.toString() });
+        console.log("Updated tab URL with forceLogout parameter:", tab.id);
+
+        // URL 업데이트 후 잠시 대기
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.log("Failed to update tab URL:", error);
+      }
+
       return new Promise((resolve) => {
         chrome.scripting.executeScript(
           {
             target: { tabId: tab.id },
             func: () => {
+              // 강제 로그아웃 플래그 설정
+              localStorage.setItem("extensionLoggedOut", "true");
+              sessionStorage.setItem("extensionLoggedOut", "true");
               try {
                 console.log(
                   "Starting Firebase Auth signout in existing tab..."
@@ -630,7 +670,12 @@ async function signOutFromFirebaseHosting() {
                       keysToRemove.forEach((key) =>
                         localStorage.removeItem(key)
                       );
-                      console.log("localStorage cleaned after signout");
+
+                      // 확장 프로그램 로그아웃 플래그 설정
+                      localStorage.setItem("extensionLoggedOut", "true");
+                      console.log(
+                        "localStorage cleaned after signout and logout flag set"
+                      );
                       return Promise.resolve();
                     })
                     .catch((error) => {
@@ -649,6 +694,12 @@ async function signOutFromFirebaseHosting() {
                       }
                       keysToRemove.forEach((key) =>
                         localStorage.removeItem(key)
+                      );
+
+                      // 확장 프로그램 로그아웃 플래그 설정
+                      localStorage.setItem("extensionLoggedOut", "true");
+                      console.log(
+                        "localStorage cleaned after error and logout flag set"
                       );
                       return Promise.resolve();
                     });
@@ -669,7 +720,12 @@ async function signOutFromFirebaseHosting() {
                     }
                   }
                   keysToRemove.forEach((key) => localStorage.removeItem(key));
-                  console.log("localStorage cleaned (no auth found)");
+
+                  // 확장 프로그램 로그아웃 플래그 설정
+                  localStorage.setItem("extensionLoggedOut", "true");
+                  console.log(
+                    "localStorage cleaned (no auth found) and logout flag set"
+                  );
                   return Promise.resolve();
                 }
               } catch (error) {
@@ -687,7 +743,12 @@ async function signOutFromFirebaseHosting() {
                   }
                 }
                 keysToRemove.forEach((key) => localStorage.removeItem(key));
-                console.log("localStorage cleaned after error");
+
+                // 확장 프로그램 로그아웃 플래그 설정
+                localStorage.setItem("extensionLoggedOut", "true");
+                console.log(
+                  "localStorage cleaned after error and logout flag set"
+                );
                 return Promise.resolve();
               }
             },

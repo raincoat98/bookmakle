@@ -38,10 +38,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const PROVIDER = new GoogleAuthProvider();
 
-// Google 로그인 설정
+// Google 로그인 설정 (COOP 오류 방지)
 PROVIDER.setCustomParameters({
   prompt: "select_account",
 });
+
+// 팝업 설정 개선
+PROVIDER.addScope("email");
+PROVIDER.addScope("profile");
 
 console.log("Firebase Auth initialized:", auth);
 
@@ -225,7 +229,7 @@ function sendReadyMessage() {
   }
 }
 
-// 인증 상태 변경 감지
+// 인증 상태 변경 감지 (자동 로그인 비활성화)
 onAuthStateChanged(auth, async (user) => {
   console.log("=== AUTH STATE CHANGED ===", user);
   console.log("Current URL:", window.location.href);
@@ -260,90 +264,8 @@ onAuthStateChanged(auth, async (user) => {
       <button id="signout-btn" class="logout-btn">로그아웃</button>
     `;
 
-    // 확장 프로그램에서 온 요청인 경우 URL 파라미터 업데이트
-    const urlParams = new URLSearchParams(window.location.search);
-    const source = urlParams.get("source");
-    const action = urlParams.get("action");
-
-    if (source === "extension" && action === "login") {
-      console.log("=== 확장 프로그램 요청 감지 - 로그인된 상태 ===");
-      console.log("User data:", {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-      });
-
-      // 사용자 데이터 준비
-      const userData = {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || "",
-        photoURL: user.photoURL || "",
-        emailVerified: user.emailVerified,
-      };
-
-      // 확장 프로그램으로 직접 메시지 전달 시도
-      try {
-        // Chrome Extension API를 통해 메시지 전송
-        if (window.chrome && window.chrome.runtime) {
-          chrome.runtime.sendMessage(
-            {
-              action: "loginSuccess",
-              user: userData,
-            },
-            (response) => {
-              console.log("Chrome Extension API 응답:", response);
-            }
-          );
-        }
-      } catch (error) {
-        console.log("Chrome Extension API 직접 호출 실패:", error);
-      }
-
-      // localStorage를 통한 메시지 전달 (백업 방법)
-      try {
-        localStorage.setItem(
-          "extensionLoginSuccess",
-          JSON.stringify({
-            action: "loginSuccess",
-            user: userData,
-            timestamp: Date.now(),
-          })
-        );
-        console.log("localStorage에 로그인 성공 메시지 저장");
-      } catch (error) {
-        console.log("localStorage 저장 실패:", error);
-      }
-
-      // 성공 메시지 표시
-      statusEl.innerHTML = `
-        <svg viewBox="0 0 24 24">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-        </svg>
-        로그인 성공! 확장 프로그램으로 돌아가세요
-      `;
-      statusEl.className = "status-badge authenticated";
-
-      // 닫기 버튼 표시
-      showCloseButton();
-    }
-
-    // 사용자 정보를 부모 창에 전송
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage(
-        {
-          user: {
-            uid: user.uid,
-            displayName: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL,
-            emailVerified: user.emailVerified,
-          },
-        },
-        "*"
-      );
-    }
+    // 자동 로그인 처리 제거 - 수동 로그인 버튼 클릭 시에만 확장 프로그램으로 메시지 전송
+    console.log("사용자 로그인 상태 확인됨 - 자동 처리하지 않음");
   } else {
     // 로그아웃된 상태
     statusEl.innerHTML = `
@@ -383,12 +305,54 @@ signinBtn.addEventListener("click", async () => {
       로그인 중...
     `;
 
-    const result = await signInWithPopup(auth, PROVIDER);
-    console.log("로그인 성공:", result);
+    // 안전한 로그인 처리 (팝업 방식만 사용, 리다이렉트 제거)
+    let result;
+    try {
+      result = await signInWithPopup(auth, PROVIDER);
+      console.log("로그인 성공:", result);
+    } catch (popupError) {
+      console.error("로그인 팝업 오류:", popupError);
 
-    // 확장 프로그램에서 온 요청인 경우
+      // 팝업 관련 오류 처리
+      if (popupError.code === "auth/popup-blocked") {
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          팝업이 차단되었습니다. 브라우저에서 팝업을 허용해주세요.
+        `;
+        statusEl.className = "status-badge unauthenticated";
+        throw popupError;
+      } else if (popupError.code === "auth/popup-closed-by-user") {
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          로그인 창이 닫혔습니다. 다시 시도해주세요.
+        `;
+        statusEl.className = "status-badge unauthenticated";
+        throw popupError;
+      } else if (
+        popupError.message &&
+        popupError.message.includes("Cross-Origin-Opener-Policy")
+      ) {
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          브라우저 보안 정책으로 인해 로그인에 실패했습니다. 페이지를 새로고침 후 다시 시도해주세요.
+        `;
+        statusEl.className = "status-badge unauthenticated";
+        throw popupError;
+      }
+
+      // 다른 오류는 그대로 throw
+      throw popupError;
+    }
+
+    // 확장 프로그램에서 온 요청인 경우에만 메시지 전달
     if (source === "extension" && action === "login") {
-      console.log("확장 프로그램 로그인 요청 처리");
+      console.log("확장 프로그램 로그인 요청 처리 - 수동 로그인 성공");
 
       // 로그인 성공 후 확장 프로그램으로 결과 전달
       const userData = {
@@ -398,6 +362,26 @@ signinBtn.addEventListener("click", async () => {
         photoURL: result.user.photoURL,
         emailVerified: result.user.emailVerified,
       };
+
+      // Chrome Extension API를 통해 메시지 전송 시도
+      try {
+        if (window.chrome && window.chrome.runtime) {
+          chrome.runtime.sendMessage(
+            {
+              action: "loginSuccess",
+              user: userData,
+            },
+            (response) => {
+              console.log("Chrome Extension API 응답 (수동 로그인):", response);
+            }
+          );
+        }
+      } catch (error) {
+        console.log(
+          "Chrome Extension API 직접 호출 실패 (수동 로그인):",
+          error
+        );
+      }
 
       // localStorage를 통한 메시지 전달 (백업 방법)
       try {
@@ -409,11 +393,13 @@ signinBtn.addEventListener("click", async () => {
             timestamp: Date.now(),
           })
         );
+        // 로그인 성공 시 로그아웃 플래그 제거
+        localStorage.removeItem("extensionLoggedOut");
         console.log(
-          "localStorage에 로그인 성공 메시지 저장 (로그인 버튼 클릭)"
+          "localStorage에 로그인 성공 메시지 저장 및 로그아웃 플래그 제거 (수동 로그인)"
         );
       } catch (error) {
-        console.log("localStorage 저장 실패 (로그인 버튼 클릭):", error);
+        console.log("localStorage 저장 실패 (수동 로그인):", error);
       }
 
       // URL 파라미터로 로그인 성공 알림
@@ -436,10 +422,15 @@ signinBtn.addEventListener("click", async () => {
       `;
       statusEl.className = "status-badge authenticated";
 
+      // 닫기 버튼 표시
+      showCloseButton();
+
       // 3초 후 페이지 닫기
       setTimeout(() => {
         window.close();
       }, 3000);
+    } else {
+      console.log("일반 로그인 완료 - 확장 프로그램으로 메시지 전송하지 않음");
     }
   } catch (error) {
     console.error("로그인 오류:", error);
@@ -487,17 +478,93 @@ if (emailLoginBtn) {
       );
       console.log("이메일 로그인 성공:", userCredential);
 
-      // 성공 메시지 표시
-      statusEl.innerHTML = `
-        <svg viewBox="0 0 24 24">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-        </svg>
-        이메일 로그인 성공! 확장 프로그램으로 돌아가세요
-      `;
-      statusEl.className = "status-badge authenticated";
+      // URL 파라미터 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const source = urlParams.get("source");
+      const action = urlParams.get("action");
 
-      // 닫기 버튼 표시
-      showCloseButton();
+      // 확장 프로그램에서 온 요청인 경우에만 메시지 전달
+      if (source === "extension" && action === "login") {
+        console.log("확장 프로그램 이메일 로그인 요청 처리");
+
+        const userData = {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          emailVerified: userCredential.user.emailVerified,
+        };
+
+        // Chrome Extension API를 통해 메시지 전송 시도
+        try {
+          if (window.chrome && window.chrome.runtime) {
+            chrome.runtime.sendMessage(
+              {
+                action: "loginSuccess",
+                user: userData,
+              },
+              (response) => {
+                console.log(
+                  "Chrome Extension API 응답 (이메일 로그인):",
+                  response
+                );
+              }
+            );
+          }
+        } catch (error) {
+          console.log(
+            "Chrome Extension API 직접 호출 실패 (이메일 로그인):",
+            error
+          );
+        }
+
+        // localStorage를 통한 메시지 전달 (백업 방법)
+        try {
+          localStorage.setItem(
+            "extensionLoginSuccess",
+            JSON.stringify({
+              action: "loginSuccess",
+              user: userData,
+              timestamp: Date.now(),
+            })
+          );
+          // 로그인 성공 시 로그아웃 플래그 제거
+          localStorage.removeItem("extensionLoggedOut");
+          console.log(
+            "localStorage에 로그인 성공 메시지 저장 및 로그아웃 플래그 제거 (이메일 로그인)"
+          );
+        } catch (error) {
+          console.log("localStorage 저장 실패 (이메일 로그인):", error);
+        }
+
+        // 성공 메시지 표시
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          이메일 로그인 성공! 확장 프로그램으로 돌아가세요
+        `;
+        statusEl.className = "status-badge authenticated";
+
+        // 닫기 버튼 표시
+        showCloseButton();
+
+        // 3초 후 페이지 닫기
+        setTimeout(() => {
+          window.close();
+        }, 3000);
+      } else {
+        console.log(
+          "일반 이메일 로그인 완료 - 확장 프로그램으로 메시지 전송하지 않음"
+        );
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          이메일 로그인 성공!
+        `;
+        statusEl.className = "status-badge authenticated";
+      }
     } catch (error) {
       console.error("이메일 로그인 오류:", error);
 
@@ -558,17 +625,87 @@ if (signupLink) {
       );
       console.log("회원가입 성공:", userCredential);
 
-      // 성공 메시지 표시
-      statusEl.innerHTML = `
-        <svg viewBox="0 0 24 24">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-        </svg>
-        회원가입 성공! 자동으로 로그인되었습니다. 확장 프로그램으로 돌아가세요
-      `;
-      statusEl.className = "status-badge authenticated";
+      // URL 파라미터 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const source = urlParams.get("source");
+      const action = urlParams.get("action");
 
-      // 닫기 버튼 표시
-      showCloseButton();
+      // 확장 프로그램에서 온 요청인 경우에만 메시지 전달
+      if (source === "extension" && action === "login") {
+        console.log("확장 프로그램 회원가입 요청 처리");
+
+        const userData = {
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName: userCredential.user.displayName,
+          photoURL: userCredential.user.photoURL,
+          emailVerified: userCredential.user.emailVerified,
+        };
+
+        // Chrome Extension API를 통해 메시지 전송 시도
+        try {
+          if (window.chrome && window.chrome.runtime) {
+            chrome.runtime.sendMessage(
+              {
+                action: "loginSuccess",
+                user: userData,
+              },
+              (response) => {
+                console.log("Chrome Extension API 응답 (회원가입):", response);
+              }
+            );
+          }
+        } catch (error) {
+          console.log("Chrome Extension API 직접 호출 실패 (회원가입):", error);
+        }
+
+        // localStorage를 통한 메시지 전달 (백업 방법)
+        try {
+          localStorage.setItem(
+            "extensionLoginSuccess",
+            JSON.stringify({
+              action: "loginSuccess",
+              user: userData,
+              timestamp: Date.now(),
+            })
+          );
+          // 로그인 성공 시 로그아웃 플래그 제거
+          localStorage.removeItem("extensionLoggedOut");
+          console.log(
+            "localStorage에 로그인 성공 메시지 저장 및 로그아웃 플래그 제거 (회원가입)"
+          );
+        } catch (error) {
+          console.log("localStorage 저장 실패 (회원가입):", error);
+        }
+
+        // 성공 메시지 표시
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          회원가입 성공! 자동으로 로그인되었습니다. 확장 프로그램으로 돌아가세요
+        `;
+        statusEl.className = "status-badge authenticated";
+
+        // 닫기 버튼 표시
+        showCloseButton();
+
+        // 3초 후 페이지 닫기
+        setTimeout(() => {
+          window.close();
+        }, 3000);
+      } else {
+        console.log(
+          "일반 회원가입 완료 - 확장 프로그램으로 메시지 전송하지 않음"
+        );
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          회원가입 성공! 자동으로 로그인되었습니다.
+        `;
+        statusEl.className = "status-badge authenticated";
+      }
     } catch (error) {
       console.error("회원가입 오류:", error);
 
@@ -1076,78 +1213,146 @@ window.addEventListener("message", async function ({ data, origin }) {
   }
 });
 
-// 페이지 로드 완료 시 준비 상태 알림 (개선된 버전)
-window.addEventListener("load", () => {
+// 페이지 로드 완료 시 준비 상태 알림 (자동 로그인 비활성화)
+window.addEventListener("load", async () => {
   console.log("Firebase auth page loaded and ready");
 
-  // 현재 로그인 상태 확인
+  // 리다이렉트 로그인 결과 확인
+  try {
+    const { getRedirectResult } = await import(
+      "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"
+    );
+    const redirectResult = await getRedirectResult(auth);
+    if (redirectResult) {
+      console.log("리다이렉트 로그인 성공:", redirectResult);
+
+      // 확장 프로그램 요청인 경우 처리
+      const urlParams = new URLSearchParams(window.location.search);
+      const source = urlParams.get("source");
+      const action = urlParams.get("action");
+
+      if (source === "extension" && action === "login") {
+        console.log("확장 프로그램 리다이렉트 로그인 요청 처리");
+
+        const userData = {
+          uid: redirectResult.user.uid,
+          email: redirectResult.user.email,
+          displayName: redirectResult.user.displayName,
+          photoURL: redirectResult.user.photoURL,
+          emailVerified: redirectResult.user.emailVerified,
+        };
+
+        // Chrome Extension API를 통해 메시지 전송 시도
+        try {
+          if (window.chrome && window.chrome.runtime) {
+            chrome.runtime.sendMessage(
+              {
+                action: "loginSuccess",
+                user: userData,
+              },
+              (response) => {
+                console.log(
+                  "Chrome Extension API 응답 (리다이렉트 로그인):",
+                  response
+                );
+              }
+            );
+          }
+        } catch (error) {
+          console.log(
+            "Chrome Extension API 직접 호출 실패 (리다이렉트 로그인):",
+            error
+          );
+        }
+
+        // localStorage를 통한 메시지 전달
+        try {
+          localStorage.setItem(
+            "extensionLoginSuccess",
+            JSON.stringify({
+              action: "loginSuccess",
+              user: userData,
+              timestamp: Date.now(),
+            })
+          );
+          localStorage.removeItem("extensionLoggedOut");
+          console.log("localStorage에 리다이렉트 로그인 성공 메시지 저장");
+        } catch (error) {
+          console.log("localStorage 저장 실패 (리다이렉트 로그인):", error);
+        }
+
+        // 성공 메시지 표시
+        statusEl.innerHTML = `
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          로그인 성공! 확장 프로그램으로 돌아가세요
+        `;
+        statusEl.className = "status-badge authenticated";
+
+        // 닫기 버튼 표시
+        showCloseButton();
+      }
+    }
+  } catch (error) {
+    console.log("리다이렉트 결과 확인 중 오류:", error);
+  }
+
+  // 확장 프로그램의 로그아웃 상태 확인 (여러 방법으로 시도)
+  try {
+    let shouldForceLogout = false;
+
+    // 1. localStorage에서 플래그 확인
+    const extensionLogoutFlag = localStorage.getItem("extensionLoggedOut");
+    if (extensionLogoutFlag === "true") {
+      console.log("localStorage에서 확장 프로그램 로그아웃 플래그 발견");
+      shouldForceLogout = true;
+    }
+
+    // 2. sessionStorage에서도 확인
+    const sessionLogoutFlag = sessionStorage.getItem("extensionLoggedOut");
+    if (sessionLogoutFlag === "true") {
+      console.log("sessionStorage에서 확장 프로그램 로그아웃 플래그 발견");
+      shouldForceLogout = true;
+    }
+
+    // 3. URL 파라미터로 강제 로그아웃 확인
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("forceLogout") === "true") {
+      console.log("URL 파라미터로 강제 로그아웃 요청됨");
+      shouldForceLogout = true;
+    }
+
+    if (shouldForceLogout) {
+      console.log("강제 로그아웃 실행 시작");
+
+      // Firebase에서 로그아웃
+      if (auth.currentUser) {
+        await signOut(auth);
+        console.log("Firebase 로그아웃 완료");
+      }
+
+      // 모든 Firebase 관련 데이터 완전 정리
+      await clearAllFirebaseData();
+
+      // URL에서 forceLogout 파라미터 제거
+      if (urlParams.get("forceLogout") === "true") {
+        urlParams.delete("forceLogout");
+        const newUrl = new URL(window.location.href);
+        newUrl.search = urlParams.toString();
+        window.history.replaceState({}, "", newUrl.toString());
+      }
+
+      console.log("강제 로그아웃 완료");
+    }
+  } catch (error) {
+    console.log("확장 프로그램 로그아웃 상태 확인 중 오류:", error);
+  }
+
+  // 현재 로그인 상태 확인만 하고 자동 처리하지 않음
   const currentUser = auth.currentUser;
   console.log("Current user on page load:", currentUser);
-
-  // 확장 프로그램 요청인 경우 즉시 처리
-  const urlParams = new URLSearchParams(window.location.search);
-  const source = urlParams.get("source");
-  const action = urlParams.get("action");
-
-  if (source === "extension" && action === "login" && currentUser) {
-    console.log(
-      "=== 페이지 로드 시 확장 프로그램 요청 감지 - 이미 로그인됨 ==="
-    );
-
-    // 사용자 데이터 준비
-    const userData = {
-      uid: currentUser.uid,
-      email: currentUser.email,
-      displayName: currentUser.displayName || "",
-      photoURL: currentUser.photoURL || "",
-      emailVerified: currentUser.emailVerified,
-    };
-
-    // 확장 프로그램으로 직접 메시지 전달 시도
-    try {
-      // Chrome Extension API를 통해 메시지 전송
-      if (window.chrome && window.chrome.runtime) {
-        chrome.runtime.sendMessage(
-          {
-            action: "loginSuccess",
-            user: userData,
-          },
-          (response) => {
-            console.log("Chrome Extension API 응답 (페이지 로드):", response);
-          }
-        );
-      }
-    } catch (error) {
-      console.log("Chrome Extension API 직접 호출 실패 (페이지 로드):", error);
-    }
-
-    // localStorage를 통한 메시지 전달 (백업 방법)
-    try {
-      localStorage.setItem(
-        "extensionLoginSuccess",
-        JSON.stringify({
-          action: "loginSuccess",
-          user: userData,
-          timestamp: Date.now(),
-        })
-      );
-      console.log("localStorage에 로그인 성공 메시지 저장 (페이지 로드)");
-    } catch (error) {
-      console.log("localStorage 저장 실패 (페이지 로드):", error);
-    }
-
-    // 성공 메시지 표시
-    statusEl.innerHTML = `
-        <svg viewBox="0 0 24 24">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-        </svg>
-        로그인 성공! 확장 프로그램으로 돌아가세요
-      `;
-    statusEl.className = "status-badge authenticated";
-
-    // 닫기 버튼 표시
-    showCloseButton();
-  }
+  console.log("자동 로그인 처리 비활성화됨 - 수동 로그인 버튼 클릭 필요");
 
   // 약간의 지연 후 준비 메시지 전송
   setTimeout(() => {
@@ -1166,5 +1371,93 @@ setTimeout(() => {
   console.log("Sending delayed ready message");
   sendReadyMessage();
 }, 2000);
+
+// Firebase 관련 데이터 완전 정리 함수
+async function clearAllFirebaseData() {
+  console.log("모든 Firebase 데이터 정리 시작");
+
+  // localStorage 정리 (더 포괄적으로)
+  const localKeysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (
+      key &&
+      (key.includes("firebase:") ||
+        key.includes("extensionLogin") ||
+        key.includes("extensionLoggedOut") ||
+        key.startsWith("firebase") ||
+        key.includes("authUser") ||
+        key.includes("heartbeat") ||
+        key.includes("host:") ||
+        key.includes("appCheck") ||
+        key.includes("analytics"))
+    ) {
+      localKeysToRemove.push(key);
+    }
+  }
+  localKeysToRemove.forEach((key) => {
+    localStorage.removeItem(key);
+    console.log("localStorage에서 제거:", key);
+  });
+
+  // sessionStorage 정리
+  const sessionKeysToRemove = [];
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (
+      key &&
+      (key.includes("firebase:") ||
+        key.includes("extensionLogin") ||
+        key.includes("extensionLoggedOut") ||
+        key.startsWith("firebase"))
+    ) {
+      sessionKeysToRemove.push(key);
+    }
+  }
+  sessionKeysToRemove.forEach((key) => {
+    sessionStorage.removeItem(key);
+    console.log("sessionStorage에서 제거:", key);
+  });
+
+  // IndexedDB 정리 시도
+  try {
+    if (window.indexedDB && indexedDB.databases) {
+      const databases = await indexedDB.databases();
+      for (const db of databases) {
+        if (
+          db.name &&
+          (db.name.includes("firebase") ||
+            db.name.includes("firebaseLocalStorage"))
+        ) {
+          indexedDB.deleteDatabase(db.name);
+          console.log("IndexedDB 삭제:", db.name);
+        }
+      }
+    }
+  } catch (error) {
+    console.log("IndexedDB 정리 중 오류:", error);
+  }
+
+  // 쿠키 정리 시도
+  try {
+    if (document.cookie) {
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        const eqPos = cookie.indexOf("=");
+        const name =
+          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        if (name.includes("firebase") || name.includes("__session")) {
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
+          document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+          console.log("쿠키 삭제:", name);
+        }
+      }
+    }
+  } catch (error) {
+    console.log("쿠키 정리 중 오류:", error);
+  }
+
+  console.log("모든 Firebase 데이터 정리 완료");
+}
 
 console.log("Firebase auth script loaded completely");
