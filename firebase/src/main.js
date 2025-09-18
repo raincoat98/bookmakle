@@ -722,20 +722,48 @@ async function loadCollections(userId) {
   console.log("=== LOADING COLLECTIONS ===", userId);
 
   try {
+    // Firebase 초기화 상태 확인
+    if (!db) {
+      throw new Error("Firestore database is not initialized");
+    }
+
     // 사용자 인증 확인
     const user = auth.currentUser;
     if (!user) {
+      console.error("=== NO CURRENT USER ===");
       throw new Error("사용자가 로그인되지 않았습니다.");
     }
 
+    // 사용자 ID 일치 확인
+    if (user.uid !== userId) {
+      console.error("=== USER ID MISMATCH ===", {
+        currentUserUid: user.uid,
+        requestedUserId: userId,
+      });
+      throw new Error("사용자 ID가 일치하지 않습니다.");
+    }
+
+    console.log("=== USER AUTHENTICATED ===", {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+    });
+
     // 컬렉션 쿼리
+    console.log("=== CREATING FIRESTORE QUERY ===");
     const q = query(
       collection(db, "collections"),
       where("userId", "==", userId),
       orderBy("createdAt", "desc")
     );
 
+    console.log("=== EXECUTING FIRESTORE QUERY ===");
     const querySnapshot = await getDocs(q);
+    console.log("=== QUERY EXECUTED ===", {
+      size: querySnapshot.size,
+      empty: querySnapshot.empty,
+    });
+
     const collections = [];
 
     querySnapshot.forEach((doc) => {
@@ -750,11 +778,19 @@ async function loadCollections(userId) {
       });
     });
 
-    console.log("=== COLLECTIONS LOADED SUCCESSFULLY ===", collections);
+    console.log("=== COLLECTIONS LOADED SUCCESSFULLY ===", {
+      count: collections.length,
+      collections: collections,
+    });
 
     return collections;
   } catch (error) {
-    console.error("=== COLLECTIONS LOAD ERROR ===", error);
+    console.error("=== COLLECTIONS LOAD ERROR ===", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name,
+    });
     return [];
   }
 }
@@ -814,8 +850,17 @@ window.addEventListener("message", async function ({ data, origin }) {
     timestamp: new Date().toISOString(),
   });
 
-  // 보안을 위해 origin 확인
-  if (origin !== PARENT_FRAME) {
+  // Chrome Extension의 React DevTools나 기타 내부 메시지 필터링
+  if (
+    data &&
+    (data.source === "react-devtools-content-script" || data.hello === true)
+  ) {
+    console.log("Ignoring React DevTools or internal message");
+    return;
+  }
+
+  // 보안을 위해 origin 확인 (standalone 모드에서는 PARENT_FRAME이 null일 수 있음)
+  if (PARENT_FRAME && origin !== PARENT_FRAME) {
     console.log(
       "Ignoring message from unauthorized origin:",
       origin,
@@ -823,6 +868,11 @@ window.addEventListener("message", async function ({ data, origin }) {
       PARENT_FRAME
     );
     return;
+  }
+
+  // Standalone 모드 (Firebase 호스팅에서 직접 실행)에서는 origin 검사를 완화
+  if (!PARENT_FRAME && !origin.includes("chrome-extension://")) {
+    console.log("Running in standalone mode, accepting message from:", origin);
   }
 
   if (data.initAuth) {

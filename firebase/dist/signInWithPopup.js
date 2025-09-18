@@ -6,6 +6,16 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
 // Firebase 설정
 const firebaseConfig = {
@@ -23,6 +33,7 @@ console.log("Initializing Firebase with config:", firebaseConfig);
 // Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const PROVIDER = new GoogleAuthProvider();
 
 // Google 로그인 설정
@@ -252,8 +263,17 @@ window.addEventListener("message", async function ({ data, origin }) {
     timestamp: new Date().toISOString(),
   });
 
-  // 보안을 위해 origin 확인
-  if (origin !== PARENT_FRAME) {
+  // Chrome Extension의 React DevTools나 기타 내부 메시지 필터링
+  if (
+    data &&
+    (data.source === "react-devtools-content-script" || data.hello === true)
+  ) {
+    console.log("Ignoring React DevTools or internal message");
+    return;
+  }
+
+  // 보안을 위해 origin 확인 (standalone 모드에서는 PARENT_FRAME이 null일 수 있음)
+  if (PARENT_FRAME && origin !== PARENT_FRAME) {
     console.log(
       "Ignoring message from unauthorized origin:",
       origin,
@@ -261,6 +281,11 @@ window.addEventListener("message", async function ({ data, origin }) {
       PARENT_FRAME
     );
     return;
+  }
+
+  // Standalone 모드 (Firebase 호스팅에서 직접 실행)에서는 origin 검사를 완화
+  if (!PARENT_FRAME && !origin.includes("chrome-extension://")) {
+    console.log("Running in standalone mode, accepting message from:", origin);
   }
 
   if (data.initAuth) {
@@ -384,8 +409,251 @@ window.addEventListener("message", async function ({ data, origin }) {
     } finally {
       isProcessingAuth = false;
     }
+  } else if (data.signOut) {
+    console.log("Received signOut request");
+
+    try {
+      // Firebase Auth에서 로그아웃
+      await signOut(auth);
+      console.log("Sign out successful");
+
+      // localStorage 정리
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          (key.includes("firebase:authUser:") ||
+            key.includes("extensionLoginSuccess"))
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      console.log("localStorage cleaned after signout");
+
+      sendResponse({ success: true });
+    } catch (error) {
+      console.error("Sign out error:", error);
+      sendResponse({
+        error: "로그아웃 중 오류가 발생했습니다: " + error.message,
+      });
+    }
+  } else if (data.saveBookmark) {
+    console.log("Received saveBookmark request", data);
+    let result;
+    try {
+      result = await saveBookmark(data.bookmark);
+      result.msgId = data.msgId; // 응답 식별자 포함
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
+  } else if (data.getCollections) {
+    console.log("Received getCollections request", data);
+    let result;
+    try {
+      const collections = await loadCollections(data.userId);
+      result = {
+        success: true,
+        collections: collections,
+        msgId: data.msgId,
+      };
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
+  } else if (data.createCollection) {
+    console.log("Received createCollection request", data);
+    let result;
+    try {
+      const collection = await createCollection(data.collection);
+      result = {
+        success: true,
+        collection: collection,
+        msgId: data.msgId,
+      };
+    } catch (error) {
+      result = { error: error.message, msgId: data.msgId };
+    }
+    // 응답 전송
+    window.parent.postMessage(JSON.stringify(result), PARENT_FRAME);
+    return;
   }
 });
+
+// 북마크 저장 함수
+async function saveBookmark(bookmarkData) {
+  console.log("=== SAVING BOOKMARK ===", bookmarkData);
+
+  try {
+    // 사용자 인증 확인
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("사용자가 로그인되지 않았습니다.");
+    }
+
+    // 북마크 데이터 준비
+    const bookmark = {
+      title: bookmarkData.title || "",
+      description: bookmarkData.description || "",
+      url: bookmarkData.url || "",
+      pageTitle: bookmarkData.pageTitle || bookmarkData.title || "",
+      userId: user.uid,
+      collection: bookmarkData.collection || "",
+      tags: bookmarkData.tags || [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    console.log("=== PREPARED BOOKMARK DATA ===", bookmark);
+
+    // Firestore에 저장
+    const docRef = await addDoc(collection(db, "bookmarks"), bookmark);
+    console.log("=== BOOKMARK SAVED SUCCESSFULLY ===", docRef.id);
+
+    // 저장된 북마크 반환
+    return {
+      success: true,
+      bookmark: {
+        id: docRef.id,
+        ...bookmark,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    console.error("=== BOOKMARK SAVE ERROR ===", error);
+    throw new Error("북마크 저장에 실패했습니다: " + error.message);
+  }
+}
+
+// 컬렉션 로드 함수
+async function loadCollections(userId) {
+  console.log("=== LOADING COLLECTIONS ===", userId);
+
+  try {
+    // Firebase 초기화 상태 확인
+    if (!db) {
+      throw new Error("Firestore database is not initialized");
+    }
+
+    // 사용자 인증 확인
+    const user = auth.currentUser;
+    if (!user) {
+      console.error("=== NO CURRENT USER ===");
+      throw new Error("사용자가 로그인되지 않았습니다.");
+    }
+
+    // 사용자 ID 일치 확인
+    if (user.uid !== userId) {
+      console.error("=== USER ID MISMATCH ===", {
+        currentUserUid: user.uid,
+        requestedUserId: userId,
+      });
+      throw new Error("사용자 ID가 일치하지 않습니다.");
+    }
+
+    console.log("=== USER AUTHENTICATED ===", {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+    });
+
+    // 컬렉션 쿼리
+    console.log("=== CREATING FIRESTORE QUERY ===");
+    const q = query(
+      collection(db, "collections"),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
+    );
+
+    console.log("=== EXECUTING FIRESTORE QUERY ===");
+    const querySnapshot = await getDocs(q);
+    console.log("=== QUERY EXECUTED ===", {
+      size: querySnapshot.size,
+      empty: querySnapshot.empty,
+    });
+
+    const collections = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      collections.push({
+        id: doc.id,
+        name: data.name || "",
+        icon: data.icon || "",
+        userId: data.userId,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      });
+    });
+
+    console.log("=== COLLECTIONS LOADED SUCCESSFULLY ===", {
+      count: collections.length,
+      collections: collections,
+    });
+
+    return collections;
+  } catch (error) {
+    console.error("=== COLLECTIONS LOAD ERROR ===", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      name: error.name,
+    });
+    return [];
+  }
+}
+
+// 컬렉션 생성 함수
+async function createCollection(collectionData) {
+  console.log("=== CREATING COLLECTION ===", collectionData);
+
+  try {
+    // 사용자 인증 확인
+    const user = auth.currentUser;
+    if (!user) {
+      throw new Error("사용자가 로그인되지 않았습니다.");
+    }
+
+    // 필수 필드 검증
+    if (!collectionData.name || collectionData.name.trim() === "") {
+      throw new Error("컬렉션 이름은 필수입니다.");
+    }
+
+    // 컬렉션 데이터 준비
+    const newCollection = {
+      name: collectionData.name.trim(),
+      icon: collectionData.icon || "📁",
+      userId: user.uid,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    // Firestore에 컬렉션 추가
+    const docRef = await addDoc(collection(db, "collections"), newCollection);
+
+    const createdCollection = {
+      id: docRef.id,
+      name: newCollection.name,
+      icon: newCollection.icon,
+      userId: newCollection.userId,
+      createdAt: newCollection.createdAt,
+      updatedAt: newCollection.updatedAt,
+    };
+
+    console.log("=== COLLECTION CREATED SUCCESSFULLY ===", createdCollection);
+    return createdCollection;
+  } catch (error) {
+    console.error("=== COLLECTION CREATION ERROR ===", error);
+    throw new Error("컬렉션 생성에 실패했습니다: " + error.message);
+  }
+}
 
 // 페이지 로드 완료 시 준비 상태 알림 (개선된 버전)
 window.addEventListener("load", () => {

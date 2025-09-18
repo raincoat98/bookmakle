@@ -159,14 +159,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     return tab;
   }
 
-  // 컬렉션 목록 가져오기
-  async function loadCollections() {
+  // 컬렉션 목록 가져오기 (재시도 로직 포함)
+  async function loadCollections(retryCount = 0) {
     if (!user) return;
+
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1초
 
     try {
       // 로딩 상태 표시
       collectionSelect.innerHTML =
         '<option value="">🔄 컬렉션 로딩 중...</option>';
+
+      console.log(`컬렉션 로딩 시도 ${retryCount + 1}/${maxRetries + 1}`, {
+        userId: user.uid,
+        userEmail: user.email,
+      });
 
       // 백그라운드 스크립트를 통해 컬렉션 가져오기
       chrome.runtime.sendMessage(
@@ -177,6 +185,18 @@ document.addEventListener("DOMContentLoaded", async function () {
               "Runtime error during getCollections:",
               chrome.runtime.lastError
             );
+
+            // 재시도 로직
+            if (retryCount < maxRetries) {
+              console.log(
+                `컬렉션 로딩 재시도 예정 (${retryCount + 1}/${maxRetries})`
+              );
+              setTimeout(() => {
+                loadCollections(retryCount + 1);
+              }, retryDelay * (retryCount + 1)); // 점진적 지연
+              return;
+            }
+
             showToast("컬렉션 로드 중 연결 오류가 발생했습니다.", "error");
             collections = [];
             updateCollectionSelect();
@@ -186,6 +206,19 @@ document.addEventListener("DOMContentLoaded", async function () {
           if (response && response.success) {
             collections = response.collections;
             console.log("Loaded collections from Firebase:", collections);
+
+            // 컬렉션이 비어있고 재시도 가능한 경우
+            if (collections.length === 0 && retryCount < maxRetries) {
+              console.log(
+                `컬렉션이 비어있음. 재시도 예정 (${
+                  retryCount + 1
+                }/${maxRetries})`
+              );
+              setTimeout(() => {
+                loadCollections(retryCount + 1);
+              }, retryDelay * (retryCount + 1));
+              return;
+            }
 
             updateCollectionSelect();
 
@@ -200,6 +233,20 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
           } else {
             console.error("Failed to load collections:", response?.error);
+
+            // 재시도 로직
+            if (retryCount < maxRetries) {
+              console.log(
+                `컬렉션 로딩 실패. 재시도 예정 (${
+                  retryCount + 1
+                }/${maxRetries})`
+              );
+              setTimeout(() => {
+                loadCollections(retryCount + 1);
+              }, retryDelay * (retryCount + 1));
+              return;
+            }
+
             showToast(
               "컬렉션 로드에 실패했습니다: " +
                 (response?.error || "알 수 없는 오류"),
@@ -213,6 +260,18 @@ document.addEventListener("DOMContentLoaded", async function () {
       );
     } catch (error) {
       console.error("Error loading collections:", error);
+
+      // 재시도 로직
+      if (retryCount < maxRetries) {
+        console.log(
+          `컬렉션 로딩 오류. 재시도 예정 (${retryCount + 1}/${maxRetries})`
+        );
+        setTimeout(() => {
+          loadCollections(retryCount + 1);
+        }, retryDelay * (retryCount + 1));
+        return;
+      }
+
       showToast("컬렉션 로드 중 오류가 발생했습니다.", "error");
       // 기본 컬렉션으로 폴백
       collections = [];
@@ -443,8 +502,10 @@ document.addEventListener("DOMContentLoaded", async function () {
         `;
       }
 
-      // 컬렉션 로드
-      loadCollections();
+      // 컬렉션 로드 (Firebase 인증 완료 후 약간의 지연)
+      setTimeout(() => {
+        loadCollections();
+      }, 500);
     } else {
       // 로그아웃된 상태
       console.log("User is not logged in, showing login section");
