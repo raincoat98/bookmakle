@@ -3,11 +3,14 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App.tsx";
 import { DrawerProvider } from "./contexts/DrawerContext";
+import { AuthProvider } from "./contexts/AuthContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <DrawerProvider>
-      <App />
-    </DrawerProvider>
+    <AuthProvider>
+      <DrawerProvider>
+        <App />
+      </DrawerProvider>
+    </AuthProvider>
   </StrictMode>
 );

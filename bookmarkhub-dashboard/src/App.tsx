@@ -8,6 +8,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LoginScreen } from "./components/LoginScreen";
+import ExtensionBridge from "./components/ExtensionBridge";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState, useRef } from "react";
@@ -123,6 +124,7 @@ function App() {
 
   return (
     <ThemeProvider>
+      <ExtensionBridge />
       <Router>
         <Routes>
           <Route

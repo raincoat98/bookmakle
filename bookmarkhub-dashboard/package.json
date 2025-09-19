@@ -15,7 +15,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "emoji-picker-react": "^4.12.3",
-    "firebase": "^11.10.0",
+    "firebase": "^12.3.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.525.0",
     "react": "^19.1.0",
