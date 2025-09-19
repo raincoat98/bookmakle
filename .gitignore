@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+*/dist/
+*/build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*/.env
+*/.env.local
+
+# Firebase
+.firebase/
+*/.firebase/
+firebase-debug.log
+firebase-debug.*.log
+
+# Configuration files (contains sensitive data)
+my-app/.env*
+signin-popup/config.js
+my-extension/firebase-config.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Chrome Extension builds
+*.zip
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>북마클</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        width: 400px;
+        height: 550px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #toast {
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+      }
+
+      #toast.show {
+        transform: translateX(0);
+      }
+
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gradient-to-br from-violet-400 via-purple-400 to-blue-300 flex items-center justify-center"
+  >
+    <div class="w-full max-w-md mx-auto p-3">
+      <div
+        class="bg-white bg-opacity-90 rounded-2xl px-5 py-4 relative shadow-2xl"
+      >
+        <!-- 앱 헤더 -->
+        <div class="flex flex-col items-center mb-3">
+          <div
+            class="w-10 h-10 mb-2 flex items-center justify-center bg-indigo-100 rounded-full"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-indigo-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 5v14l7-7 7 7V5a2 2 0 00-2-2H7a2 2 0 00-2 2z"
+              />
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-gray-800 mb-2">북마클</h3>
+
+          <!-- 사용자 정보 영역 -->
+          <div
+            id="user"
+            class="text-sm text-gray-700 font-medium mb-2 text-center"
+          ></div>
+
+          <!-- 로그인 버튼 -->
+          <button
+            id="login"
+            class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center justify-center transition-all duration-200 transform hover:scale-105"
+          >
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063c.632 1.896 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"
+              />
+            </svg>
+            Google 로그인
+          </button>
+        </div>
+
+        <!-- 메인 콘텐츠 (로그인 후) -->
+        <div id="mainContent" style="display: none">
+          <!-- 로그아웃 버튼 -->
+          <button
+            id="signOutButton"
+            class="absolute top-3 right-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg shadow text-xs transition-colors duration-200"
+            style="display: none"
+          >
+            로그아웃
+          </button>
+
+          <!-- 현재 페이지 정보 -->
+          <div class="mb-4">
+            <label class="block text-xs text-gray-500 mb-1 font-medium"
+              >현재 페이지</label
+            >
+            <div
+              class="flex items-center bg-gray-100 rounded-lg px-3 py-2 border border-gray-200"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400 mr-2 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+              <span
+                class="truncate text-sm font-semibold text-indigo-600"
+                id="currentPageUrl"
+              >
+                URL
+              </span>
+            </div>
+          </div>
+
+          <!-- 메모 입력 -->
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1 font-medium"
+              >메모 (선택사항)</label
+            >
+            <textarea
+              id="memoInput"
+              rows="2"
+              class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all duration-200"
+              placeholder="이 페이지에 대한 메모를 작성하세요..."
+            ></textarea>
+          </div>
+
+          <!-- 빠른 실행 모드 체크박스 -->
+          <div class="mb-2">
+            <label class="flex items-center cursor-pointer group">
+              <input
+                type="checkbox"
+                id="quickModeCheckbox"
+                class="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2 transition-colors duration-200"
+              />
+              <span
+                class="ml-2 text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-200"
+                >⚡ 빠른 실행 모드</span
+              >
+              <span
+                class="ml-1 text-xs text-gray-500 group-hover:text-gray-600 transition-colors duration-200"
+                >(아이콘 클릭시 바로 저장)</span
+              >
+            </label>
+          </div>
+
+          <!-- 컬렉션 선택 -->
+          <div class="mb-2" id="collectionSection">
+            <label class="block text-xs text-gray-500 mb-1 font-medium"
+              >컬렉션 (선택사항)</label
+            >
+            <select
+              id="collectionSelect"
+              class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all duration-200"
+            >
+              <option value="">📄 컬렉션 없음</option>
+              <!-- 컬렉션 옵션들이 동적으로 로드됩니다 -->
+            </select>
+          </div>
+
+          <!-- 태그 입력 -->
+          <div class="mb-2">
+            <label class="block text-xs text-gray-500 mb-1 font-medium"
+              >태그 (선택사항)</label
+            >
+            <input
+              id="tagInput"
+              class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all duration-200"
+              placeholder="엔터로 태그 추가 (쉼표로 구분)"
+            />
+            <div id="tagList" class="flex flex-wrap gap-2 mt-1"></div>
+          </div>
+
+          <!-- 북마크 저장 버튼 -->
+          <button
+            id="saveBookmarkButton"
+            class="w-full bg-gradient-to-r from-indigo-500 to-purple-400 hover:from-indigo-600 hover:to-purple-500 text-white font-bold py-2 rounded-xl shadow-lg text-sm transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2"
+          >
+            북마크 저장
+          </button>
+        </div>
+
+        <!-- 로그인 안내 메시지 -->
+        <div id="loginGuide" class="text-center py-2" style="display: none">
+          <div class="text-xs text-gray-500">
+            <p>• 북마크는 Firebase에 안전하게 저장됩니다</p>
+            <p>• 여러 기기에서 동기화됩니다</p>
+            <p>• 개인정보는 보호됩니다</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 토스트 메시지 -->
+    <div
+      id="toast"
+      class="fixed top-4 right-4 z-50 hidden min-w-[200px] max-w-[300px] bg-gray-800 text-white text-sm rounded-lg px-4 py-3 shadow-xl border-l-4 border-green-400"
+    ></div>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

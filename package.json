@@ -1,0 +1,48 @@
+{
+  "name": "fireauth-suite",
+  "version": "1.0.0",
+  "description": "🔥 FireAuth Suite - 통합 Firebase Authentication 보일러플레이트",
+  "scripts": {
+    "setup": "./setup-env.sh",
+    "deploy": "./deploy.sh all",
+    "deploy:signin": "./deploy.sh signin-popup",
+    "deploy:app": "./deploy.sh my-app",
+    "deploy:extension": "./deploy.sh my-extension",
+    "build": "./build.sh all",
+    "build:signin": "./build.sh signin-popup",
+    "build:app": "./build.sh my-app",
+    "build:extension": "./build.sh my-extension",
+    "dev": "./dev.sh signin-popup",
+    "dev:all": "./dev.sh all",
+    "dev:signin": "./dev.sh signin-popup",
+    "dev:app": "./dev.sh my-app",
+    "dev:extension": "./dev.sh my-extension",
+    "serve": "./serve.sh signin-popup",
+    "start": "./dev.sh signin-popup"
+  },
+  "keywords": [
+    "firebase",
+    "authentication",
+    "chrome-extension",
+    "react",
+    "typescript",
+    "boilerplate",
+    "vite",
+    "manifest-v3",
+    "popup",
+    "signin"
+  ],
+  "author": "FireAuth Suite Team",
+  "license": "MIT",
+  "homepage": "https://github.com/fireauth-suite/fireauth-suite",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fireauth-suite/fireauth-suite.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fireauth-suite/fireauth-suite/issues"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

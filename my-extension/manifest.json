@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "북마클",
+  "version": "1.0.0",
+  "description": "웹 페이지를 쉽게 저장하고 관리하는 북마크 확장 프로그램",
+  "icons": {
+    "16": "public/bookmark.png",
+    "32": "public/bookmark.png",
+    "48": "public/bookmark.png",
+    "128": "public/bookmark.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "public/bookmark.png",
+      "32": "public/bookmark.png",
+      "48": "public/bookmark.png",
+      "128": "public/bookmark.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["offscreen", "storage", "tabs", "activeTab", "contextMenus"],
+  "host_permissions": [
+    "https://apis.google.com/*",
+    "https://www.gstatic.com/*",
+    "https://www.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://bookmarkhub-5ea6c-sign.web.app/*",
+    "https://bookmarkhub-5ea6c.web.app/*"
+  ],
+  "externally_connectable": {
+    "matches": ["https://bookmarkhub-5ea6c.web.app/*"]
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://bookmarkhub-5ea6c-sign.web.app; connect-src 'self' https://apis.google.com https://www.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com https://identitytoolkit.googleapis.com;"
+  },
+  "minimum_chrome_version": "109"
+}
