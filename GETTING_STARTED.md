@@ -1,6 +1,6 @@
-# 🚀 FireAuth Suite - 시작하기
+# 🚀 북마크 허브 - 시작하기
 
-이 가이드는 FireAuth Suite를 사용하여 새로운 프로젝트를 시작하는 방법을 설명합니다.
+이 가이드는 북마크 허브를 설정하고 사용하는 방법을 설명합니다.
 
 ## 📋 사전 요구사항
 
@@ -40,7 +40,7 @@
 
 #### 📝 **수동 설정 방법**
 
-##### React 앱 환경변수 (`my-app/.env.local`)
+##### 북마크 허브 대시보드 환경변수 (`bookmarkhub-dashboard/.env.local`)
 
 ```bash
 VITE_FIREBASE_API_KEY=your_api_key_here
@@ -95,9 +95,9 @@ firebase hosting:sites:create YOUR_PROJECT_ID-sign
 npm run dev:all
 
 # 개별 실행
-npm run dev:app      # React 앱 (포트 3000)
-npm run dev:signin   # SignIn Popup (포트 8000)
-npm run serve        # Firebase 로컬 서버 (포트 5000)
+npm run dev:dashboard # 북마크 허브 대시보드 (포트 3000)
+npm run dev:signin    # SignIn Popup (포트 8000)
+npm run serve         # Firebase 로컬 서버 (포트 5000)
 ```
 
 ### Chrome Extension 개발
@@ -116,7 +116,7 @@ npm run serve        # Firebase 로컬 서버 (포트 5000)
 npm run deploy
 
 # 개별 배포
-npm run deploy:app        # React 앱
+npm run deploy:dashboard  # 북마크 허브 대시보드
 npm run deploy:signin     # SignIn Popup
 npm run deploy:extension  # Chrome Extension (ZIP 생성)
 ```
@@ -132,19 +132,19 @@ npm run deploy:extension  # Chrome Extension (ZIP 생성)
 
 ### 기능 확장
 
-#### React 앱에 새 페이지 추가
+#### 북마크 허브 대시보드에 새 페이지 추가
 
 ```tsx
-// src/pages/Dashboard.tsx
+// src/pages/NewPage.tsx
 import { useAuth } from "../hooks/useAuth";
 
-export default function Dashboard() {
+export default function NewPage() {
   const { user } = useAuth();
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <p>Welcome, {user?.displayName}!</p>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">새 페이지</h1>
+      <p>안녕하세요, {user?.displayName}님!</p>
     </div>
   );
 }
@@ -192,7 +192,7 @@ firebase projects:list
 ```bash
 # 로그 확인
 # - Extension: chrome://extensions/ → Service Worker 클릭
-# - React 앱: 브라우저 개발자 도구
+# - 북마크 허브 대시보드: 브라우저 개발자 도구
 # - SignIn Popup: https://YOUR_PROJECT_ID-sign.web.app 직접 접속
 ```
 

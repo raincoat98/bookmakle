@@ -2,7 +2,7 @@
 
 # 통합 배포 스크립트
 # 사용법: ./deploy.sh [프로젝트] [메시지]
-# 프로젝트: signin-popup, my-app, my-extension, all (기본값)
+# 프로젝트: signin-popup, dashboard, my-extension, all (기본값)
 
 set -e  # 에러 발생 시 스크립트 중단
 
@@ -38,7 +38,7 @@ echo -e "${NC}"
 
 # 프로젝트 및 메시지 파라미터 처리
 PROJECT="${1:-all}"
-if [[ "$1" =~ ^[^-] ]] && [[ ! "$1" =~ ^(signin-popup|my-app|my-extension|all)$ ]]; then
+if [[ "$1" =~ ^[^-] ]] && [[ ! "$1" =~ ^(signin-popup|dashboard|my-extension|all)$ ]]; then
     # 첫 번째 파라미터가 프로젝트명이 아니면 메시지로 간주
     PROJECT="all"
     DEPLOY_MESSAGE="$1"
@@ -111,16 +111,16 @@ deploy_signin_popup() {
     return 0
 }
 
-# React 앱 배포 함수
-deploy_my_app() {
-    log_info "⚛️  React 앱 빌드 및 준비..."
+# 북마크 허브 대시보드 배포 함수
+deploy_dashboard() {
+    log_info "📊 북마크 허브 대시보드 빌드 및 준비..."
     
-    if [ ! -d "my-app" ]; then
-        log_error "my-app 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkhub-dashboard" ]; then
+        log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd my-app
+    cd bookmarkhub-dashboard
     
     # package.json 확인
     if [ ! -f "package.json" ]; then
@@ -136,9 +136,9 @@ deploy_my_app() {
     fi
     
     # 빌드 실행
-    log_info "React 앱 빌드 중..."
+    log_info "북마크 허브 대시보드 빌드 중..."
     if npm run build; then
-        log_success "React 앱 빌드 완료!"
+        log_success "북마크 허브 대시보드 빌드 완료!"
         log_info "빌드된 파일은 dist/ 디렉토리에 있습니다"
         
         # Firebase CLI 설치 확인
@@ -151,18 +151,18 @@ deploy_my_app() {
         # Firebase Hosting에 배포
         log_info "Firebase Hosting에 배포 중..."
         if firebase deploy --only hosting --message "$DEPLOY_MESSAGE"; then
-            log_success "React 앱 배포 완료!"
+            log_success "북마크 허브 대시보드 배포 완료!"
             
             # 배포 URL 출력
             HOSTING_URL="https://bookmarkhub-5ea6c.web.app"
             echo -e "${GREEN}🌐 배포된 사이트: ${BLUE}$HOSTING_URL${NC}"
         else
-            log_error "React 앱 배포 실패!"
+            log_error "북마크 허브 대시보드 배포 실패!"
             cd "$ROOT_DIR"
             return 1
         fi
     else
-        log_error "React 앱 빌드 실패!"
+        log_error "북마크 허브 대시보드 빌드 실패!"
         cd "$ROOT_DIR"
         return 1
     fi
@@ -227,8 +227,8 @@ case $PROJECT in
     "signin-popup")
         deploy_signin_popup
         ;;
-    "my-app")
-        deploy_my_app
+    "dashboard")
+        deploy_dashboard
         ;;
     "my-extension")
         deploy_my_extension
@@ -243,7 +243,7 @@ case $PROJECT in
             SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         fi
         
-        if deploy_my_app; then
+        if deploy_dashboard; then
             SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         fi
         
@@ -260,7 +260,7 @@ case $PROJECT in
         ;;
     *)
         log_error "알 수 없는 프로젝트: $PROJECT"
-        log_info "사용 가능한 프로젝트: signin-popup, my-app, my-extension, all"
+        log_info "사용 가능한 프로젝트: signin-popup, dashboard, my-extension, all"
         exit 1
         ;;
 esac

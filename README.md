@@ -1,8 +1,8 @@
-# 🔥 FireAuth Suite
+# 📚 북마크 허브 (Bookmark Hub)
 
-**통합 Firebase Authentication 보일러플레이트**
+**통합 북마크 관리 시스템**
 
-Authentication Made Simple, Integration Made Seamless
+북마크를 한 곳에서 관리하고, Chrome Extension과 웹 대시보드를 통해 어디서나 접근하세요
 
 [![Firebase](https://img.shields.io/badge/Firebase-12.x-orange?logo=firebase)](https://firebase.google.com/)
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://reactjs.org/)
@@ -13,19 +13,20 @@ Authentication Made Simple, Integration Made Seamless
 ## 📁 프로젝트 구조
 
 ```
-🔥 FireAuth Suite/
+📚 북마크 허브/
 ├── 🧩 my-extension/         # Chrome Extension (Manifest V3)
 │   ├── popup.html/js       # Extension Popup UI
 │   ├── background.js       # Service Worker
 │   ├── offscreen.js        # Offscreen Document
 │   └── manifest.json       # Extension Configuration
 │
-├── ⚛️ my-app/               # React Web Application
+├── 📊 bookmarkhub-dashboard/ # 북마크 허브 웹 대시보드
 │   ├── src/
-│   │   ├── components/     # UI Components (AuthButtons, EmailLogin, EmailSignup)
-│   │   ├── hooks/         # Custom Hooks (useAuth)
-│   │   ├── contexts/      # React Contexts (AuthContext)
-│   │   └── lib/          # Firebase Configuration & Auth Functions
+│   │   ├── components/     # UI Components (북마크 관리, 인증 등)
+│   │   ├── hooks/         # Custom Hooks (useAuth, useBookmarks 등)
+│   │   ├── contexts/      # React Contexts (AuthContext, ThemeContext)
+│   │   ├── pages/         # 페이지 컴포넌트 (대시보드, 북마크, 설정)
+│   │   └── utils/         # 유틸리티 함수들
 │   ├── dist/             # Build Output
 │   └── firebase.json     # Firebase Hosting Config
 │
@@ -48,6 +49,15 @@ Authentication Made Simple, Integration Made Seamless
 
 ## ✨ 주요 기능
 
+### 📚 **북마크 관리**
+
+- **북마크 추가/편집/삭제** - 직관적인 북마크 관리
+- **컬렉션 기반 분류** - 카테고리별로 북마크 정리
+- **드래그 앤 드롭** - 쉬운 순서 변경 및 분류
+- **검색 및 필터링** - 빠른 북마크 찾기
+- **아이콘 자동 감지** - 웹사이트 파비콘 자동 수집
+- **실시간 동기화** - 모든 기기에서 동일한 북마크
+
 ### 🔐 **Firebase Authentication**
 
 - **Google OAuth 로그인** - 간편한 소셜 로그인
@@ -59,16 +69,18 @@ Authentication Made Simple, Integration Made Seamless
 
 ### 🧩 **Chrome Extension (Manifest V3)**
 
-- Extension ↔ React App 통신
-- Offscreen Document 기반 Firebase Auth
-- 팝업 UI 및 백그라운드 처리
+- **원클릭 북마크 추가** - 현재 페이지를 바로 북마크
+- **빠른 북마크 접근** - 팝업에서 북마크 검색 및 접근
+- **Extension ↔ 웹 대시보드 동기화** - 실시간 데이터 동기화
+- **Offscreen Document 기반 Firebase Auth** - 안전한 인증 처리
 
-### ⚛️ **React Web Application**
+### 📊 **웹 대시보드**
 
-- TypeScript + Vite 기반
-- 모던 React Hooks 패턴
-- 반응형 UI 컴포넌트
-- 환경변수 기반 설정
+- **반응형 UI** - 모바일, 태블릿, 데스크톱 지원
+- **다크/라이트 테마** - 사용자 선호에 맞는 테마
+- **위젯 시스템** - 날씨, 명언 등 다양한 위젯
+- **자동 백업** - 주기적인 북마크 데이터 백업
+- **내보내기/가져오기** - JSON 형태로 데이터 관리
 
 ### 🔐 **Standalone Auth Popup**
 
@@ -112,16 +124,16 @@ npm run build:signin
 npm run deploy:signin
 ```
 
-#### React 앱 (my-app)
+#### 북마크 허브 대시보드 (bookmarkhub-dashboard)
 
 ```bash
 # 개발 서버
-npm run dev:app
-./dev.sh my-app 3000
+npm run dev:dashboard
+./dev.sh dashboard 3000
 
 # 빌드
-npm run build:app
-./build.sh my-app
+npm run build:dashboard
+./build.sh dashboard
 ```
 
 #### Chrome Extension (my-extension)
@@ -155,13 +167,13 @@ npm run build:extension
 | `npm run deploy`           | 모든 프로젝트 배포             |
 | `npm run dev:all`          | 모든 프로젝트 개발 서버 (병렬) |
 | `npm run dev:signin`       | SignIn Popup 개발 서버         |
-| `npm run dev:app`          | React 앱 개발 서버             |
+| `npm run dev:dashboard`    | 북마크 허브 대시보드 개발 서버 |
 | `npm run dev:extension`    | Extension 개발 환경            |
 | `npm run build:signin`     | SignIn Popup 빌드              |
-| `npm run build:app`        | React 앱 빌드                  |
+| `npm run build:dashboard`  | 북마크 허브 대시보드 빌드      |
 | `npm run build:extension`  | Extension 빌드 & 패키징        |
 | `npm run deploy:signin`    | SignIn Popup 배포              |
-| `npm run deploy:app`       | React 앱 배포 준비             |
+| `npm run deploy:dashboard` | 북마크 허브 대시보드 배포      |
 | `npm run deploy:extension` | Extension 패키징               |
 
 ## 🔧 각 프로젝트별 상세 정보
@@ -172,11 +184,11 @@ npm run build:extension
 - Chrome Extension에서 사용
 - 배포 URL: https://bookmarkhub-5ea6c.web.app
 
-### 2. React 앱 (`my-app/`)
+### 2. 북마크 허브 대시보드 (`bookmarkhub-dashboard/`)
 
-- React + TypeScript + Vite
-- Firebase Authentication 통합
-- 컴포넌트 기반 아키텍처
+- React + TypeScript + Vite 기반 웹 대시보드
+- Firebase Authentication 및 Firestore 통합
+- 북마크 관리, 컬렉션 시스템, 위젯 등 완전한 기능
 
 ### 3. Chrome Extension (`my-extension/`)
 

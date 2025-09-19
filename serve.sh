@@ -2,7 +2,7 @@
 
 # 통합 Firebase 서버 실행 스크립트
 # 사용법: ./serve.sh [프로젝트] [포트번호]
-# 프로젝트: signin-popup (기본값), my-app (미지원)
+# 프로젝트: signin-popup (기본값), dashboard (미지원)
 
 set -e  # 에러 발생 시 스크립트 중단
 
@@ -170,16 +170,16 @@ serve_signin_popup() {
     firebase serve --only hosting --port $PORT
 }
 
-# React 앱 Firebase 서버 함수 (미지원 안내)
-serve_my_app() {
-    log_warning "⚛️  React 앱은 Firebase 서버를 지원하지 않습니다"
+# 북마크 허브 대시보드 Firebase 서버 함수 (미지원 안내)
+serve_dashboard() {
+    log_warning "📊 북마크 허브 대시보드는 Firebase 서버를 지원하지 않습니다"
     echo ""
-    echo -e "${YELLOW}React 앱 개발 서버를 실행하려면:${NC}"
-    echo "• ./dev.sh my-app"
-    echo "• cd my-app && npm run dev"
+    echo -e "${YELLOW}북마크 허브 대시보드 개발 서버를 실행하려면:${NC}"
+    echo "• ./dev.sh dashboard"
+    echo "• cd bookmarkhub-dashboard && npm run dev"
     echo ""
-    echo -e "${YELLOW}React 앱을 Firebase Hosting에 배포하려면:${NC}"
-    echo "• ./build.sh my-app (빌드 먼저)"
+    echo -e "${YELLOW}북마크 허브 대시보드를 Firebase Hosting에 배포하려면:${NC}"
+    echo "• ./build.sh dashboard (빌드 먼저)"
     echo "• Firebase 콘솔에서 새 호스팅 사이트 설정"
     echo ""
     return 1
@@ -190,8 +190,8 @@ case $PROJECT in
     "signin-popup")
         serve_signin_popup
         ;;
-    "my-app")
-        serve_my_app
+    "dashboard")
+        serve_dashboard
         ;;
     "my-extension")
         log_warning "🧩 Chrome Extension은 Firebase 서버를 사용하지 않습니다"
