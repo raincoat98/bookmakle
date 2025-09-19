@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface ExtensionBridgeProps {
   extensionId?: string;
@@ -8,22 +9,28 @@ interface ExtensionBridgeProps {
 export default function ExtensionBridge({}: ExtensionBridgeProps) {
   const { user, logout } = useAuth();
   const [isFromExtension, setIsFromExtension] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    // URL 파라미터 확인
-    const urlParams = new URLSearchParams(window.location.search);
+    // URL 파라미터 확인 (location.search 사용)
+    const urlParams = new URLSearchParams(location.search);
     const source = urlParams.get("source");
     const extId = urlParams.get("extensionId");
 
     if (source === "extension" && extId) {
       setIsFromExtension(true);
 
-      // 이미 로그인된 상태라면 Extension에 알림
-      if (user) {
+      // 로그인된 상태이고 Extension 성공 페이지에 있다면 Extension에 메시지 전송
+      if (user && location.pathname === "/extension-login-success") {
         sendToExtension(extId, "LOGIN_SUCCESS", user);
       }
+      // 이미 로그인된 상태이지만 성공 페이지가 아니라면 리다이렉트
+      else if (user && location.pathname !== "/extension-login-success") {
+        navigate("/extension-login-success" + location.search);
+      }
     }
-  }, [user]);
+  }, [user, navigate, location.pathname, location.search]);
 
   const sendToExtension = (extensionId: string, type: string, data?: any) => {
     if (
@@ -58,7 +65,7 @@ export default function ExtensionBridge({}: ExtensionBridgeProps) {
   };
 
   const handleBackToExtension = () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const extId = urlParams.get("extensionId");
 
     if (extId && user) {
@@ -70,7 +77,7 @@ export default function ExtensionBridge({}: ExtensionBridgeProps) {
   };
 
   const handleLogoutAndReturn = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const extId = urlParams.get("extensionId");
 
     try {
@@ -86,8 +93,8 @@ export default function ExtensionBridge({}: ExtensionBridgeProps) {
     }
   };
 
-  if (!isFromExtension) {
-    return null; // Extension에서 온 요청이 아니면 렌더링하지 않음
+  if (!isFromExtension || location.pathname !== "/extension-login-success") {
+    return null; // Extension에서 온 요청이 아니거나 성공 페이지가 아니면 렌더링하지 않음
   }
 
   return (

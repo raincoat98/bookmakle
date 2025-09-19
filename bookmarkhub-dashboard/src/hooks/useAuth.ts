@@ -1,17 +1,7 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { useContext } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
-import {
-  signInWithPopup,
-  signOut,
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  updateProfile,
-} from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import {
-  auth,
-  googleProvider,
   db,
   loginWithGoogle,
   loginWithEmail as fbLoginWithEmail,

@@ -7,6 +7,7 @@ import {
 import { DashboardPage } from "./pages/DashboardPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { ExtensionLoginSuccessPage } from "./pages/ExtensionLoginSuccessPage";
 import { LoginScreen } from "./components/LoginScreen";
 import ExtensionBridge from "./components/ExtensionBridge";
 import { useAuth } from "./hooks/useAuth";
@@ -118,29 +119,33 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <LoginScreen />;
-  }
-
   return (
     <ThemeProvider>
-      <ExtensionBridge />
       <Router>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Navigate
-                to={defaultPage === "bookmarks" ? "/bookmarks" : "/dashboard"}
-                replace
-              />
-            }
-          />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/bookmarks" element={<BookmarksPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+        <ExtensionBridge />
+        {!user ? (
+          <LoginScreen />
+        ) : (
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Navigate
+                  to={defaultPage === "bookmarks" ? "/bookmarks" : "/dashboard"}
+                  replace
+                />
+              }
+            />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/bookmarks" element={<BookmarksPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route
+              path="/extension-login-success"
+              element={<ExtensionLoginSuccessPage />}
+            />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        )}
         <Toaster
           position="top-right"
           toastOptions={{
