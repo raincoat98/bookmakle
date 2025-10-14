@@ -479,10 +479,91 @@
       .hidden {
         display: none !important;
       }
+
+      /* 브라우저 호환성 경고 스타일 */
+      .browser-warning {
+        background: #f59e0b;
+        border: 1px solid #d97706;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 20px;
+        color: #92400e;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .browser-warning.hidden {
+        display: none;
+      }
+
+      .browser-warning-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .browser-warning-content {
+        margin-bottom: 8px;
+      }
+
+      .browser-warning-tip {
+        background: #fbbf24;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-top: 8px;
+      }
+
+      .recommended-browsers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 6px;
+      }
+
+      .browser-tag {
+        background: #fef3c7;
+        border: 1px solid #d97706;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 500;
+      }
     </style>
   </head>
   <body>
     <div class="container">
+      <!-- 브라우저 호환성 경고 -->
+      <div id="browserWarning" class="browser-warning hidden">
+        <div class="browser-warning-title">
+          <i data-lucide="alert-triangle" style="width: 14px; height: 14px"></i>
+          브라우저 호환성 안내
+        </div>
+        <div class="browser-warning-content" id="browserWarningContent">
+          <!-- 동적으로 메시지가 삽입됩니다 -->
+        </div>
+        <div class="browser-warning-content">
+          <strong>권장 브라우저:</strong>
+          <div class="recommended-browsers">
+            <span class="browser-tag">Chrome</span>
+            <span class="browser-tag">Safari</span>
+            <span class="browser-tag">Firefox</span>
+            <span class="browser-tag">Edge</span>
+          </div>
+        </div>
+        <div
+          class="browser-warning-tip"
+          id="browserWarningTip"
+          style="display: none"
+        >
+          <strong>💡 팁:</strong> 현재 앱에서
+          <strong>"브라우저에서 열기"</strong> 또는
+          <strong>"외부 브라우저로 열기"</strong> 옵션을 찾아보세요.
+        </div>
+      </div>
+
       <!-- 상태 뱃지 -->
       <div id="authStatus" class="auth-status status-logged-out">
         <i data-lucide="x-circle" style="width: 12px; height: 12px"></i>

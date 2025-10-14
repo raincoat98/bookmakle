@@ -3,6 +3,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { FirebaseError } from "firebase/app";
+import { BrowserCompatibilityWarning } from "./BrowserCompatibilityWarning";
+import {
+  detectBrowser,
+  getBrowserCompatibilityMessage,
+} from "../utils/browserDetection";
 
 export const LoginScreen = () => {
   const { login, loginWithEmail, signup, user } = useAuth();
@@ -43,15 +48,48 @@ export const LoginScreen = () => {
       await login();
     } catch (error: unknown) {
       const firebaseError = error as FirebaseError;
+      const browserInfo = detectBrowser();
+
       if (firebaseError.code === "auth/popup-closed-by-user") {
-        toast.error("로그인이 취소되었습니다.");
+        if (browserInfo.isInAppBrowser) {
+          toast.error(
+            "팝업이 닫혔습니다. " + getBrowserCompatibilityMessage(browserInfo)
+          );
+        } else {
+          toast.error("로그인이 취소되었습니다.");
+        }
       } else if (firebaseError.code === "auth/popup-blocked") {
-        toast.error("팝업이 차단되었습니다. 팝업 차단을 해제해주세요.");
+        if (browserInfo.isInAppBrowser) {
+          toast.error(
+            "팝업이 차단되었습니다. " +
+              getBrowserCompatibilityMessage(browserInfo)
+          );
+        } else {
+          toast.error("팝업이 차단되었습니다. 팝업 차단을 해제해주세요.");
+        }
       } else if (firebaseError.code === "auth/cancelled-popup-request") {
         toast.error("로그인 요청이 취소되었습니다.");
+      } else if (firebaseError.code === "auth/network-request-failed") {
+        if (browserInfo.isInAppBrowser) {
+          toast.error(
+            "네트워크 오류가 발생했습니다. " +
+              getBrowserCompatibilityMessage(browserInfo)
+          );
+        } else {
+          toast.error(
+            "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요."
+          );
+        }
       } else {
         console.error("Google login error:", error);
-        toast.error("Google 로그인에 실패했습니다. 다시 시도해주세요.");
+        if (browserInfo.isInAppBrowser) {
+          toast.error(
+            "Google 로그인에 실패했습니다. " +
+              getBrowserCompatibilityMessage(browserInfo)
+          );
+        } else {
+          toast.error("Google 로그인에 실패했습니다. 다시 시도해주세요.");
+        }
       }
     } finally {
       setLoading(false);
@@ -155,6 +193,9 @@ export const LoginScreen = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-brand-100 to-accent-100 dark:from-gray-900 dark:via-brand-900 dark:to-gray-800 flex items-center justify-center px-4">
       <div className="max-w-md w-full space-y-8">
+        {/* 브라우저 호환성 경고 */}
+        <BrowserCompatibilityWarning />
+
         <div className="card p-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">

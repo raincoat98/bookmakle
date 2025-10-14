@@ -22,6 +22,71 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { firebaseConfig } from "./config.js";
 
+// 브라우저 감지 유틸리티
+function detectBrowser() {
+  const userAgent = navigator.userAgent.toLowerCase();
+
+  // 카카오톡 인앱 브라우저 감지
+  const isKakaoTalk = userAgent.includes("kakaotalk");
+
+  // 네이버 앱 브라우저 감지
+  const isNaverApp = userAgent.includes("naver") || userAgent.includes("whale");
+
+  // 라인 앱 브라우저 감지
+  const isLineApp = userAgent.includes("line");
+
+  // 페이스북 인앱 브라우저 감지
+  const isFacebookApp =
+    userAgent.includes("fbav") || userAgent.includes("fban");
+
+  // 인스타그램 인앱 브라우저 감지
+  const isInstagramApp = userAgent.includes("instagram");
+
+  // 기타 인앱 브라우저 감지 패턴
+  const isInAppBrowser =
+    isKakaoTalk ||
+    isNaverApp ||
+    isLineApp ||
+    isFacebookApp ||
+    isInstagramApp ||
+    userAgent.includes("wv") || // WebView 감지
+    (userAgent.includes("version") && userAgent.includes("mobile"));
+
+  // 브라우저 이름 결정
+  let browserName = "알 수 없는 브라우저";
+  if (isKakaoTalk) browserName = "카카오톡";
+  else if (isNaverApp) browserName = "네이버 앱";
+  else if (isLineApp) browserName = "라인";
+  else if (isFacebookApp) browserName = "페이스북";
+  else if (isInstagramApp) browserName = "인스타그램";
+  else if (userAgent.includes("chrome")) browserName = "Chrome";
+  else if (userAgent.includes("safari")) browserName = "Safari";
+  else if (userAgent.includes("firefox")) browserName = "Firefox";
+  else if (userAgent.includes("edge")) browserName = "Edge";
+
+  // 호환성 판단 - 인앱 브라우저는 대부분 구글 로그인에 제한이 있음
+  const isCompatible = !isInAppBrowser;
+
+  return {
+    name: browserName,
+    isCompatible,
+    isInAppBrowser,
+    userAgent: navigator.userAgent,
+  };
+}
+
+function getBrowserCompatibilityMessage(browserInfo) {
+  if (browserInfo.isCompatible) {
+    return "";
+  }
+
+  if (browserInfo.isInAppBrowser) {
+    return `${browserInfo.name}에서는 구글 로그인이 제한될 수 있습니다. 더 나은 경험을 위해 일반 브라우저(Chrome, Safari 등)에서 접속해주세요.`;
+  }
+
+  return "현재 브라우저에서는 구글 로그인이 제한될 수 있습니다. Chrome, Safari, Firefox, Edge 등의 브라우저를 사용해주세요.";
+}
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -379,12 +444,30 @@ async function safeSignInWithPopup() {
     return result;
   } catch (error) {
     // 팝업이 닫힌 경우 더 자세한 에러 정보 제공
+    const browserInfo = detectBrowser();
+
     if (error.code === "auth/popup-closed-by-user") {
-      throw new Error("로그인 팝업이 닫혔습니다. 다시 시도해주세요.");
+      if (browserInfo.isInAppBrowser) {
+        throw new Error(
+          `로그인 팝업이 닫혔습니다. ${getBrowserCompatibilityMessage(
+            browserInfo
+          )}`
+        );
+      } else {
+        throw new Error("로그인 팝업이 닫혔습니다. 다시 시도해주세요.");
+      }
     } else if (error.code === "auth/popup-blocked") {
-      throw new Error(
-        "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요."
-      );
+      if (browserInfo.isInAppBrowser) {
+        throw new Error(
+          `팝업이 차단되었습니다. ${getBrowserCompatibilityMessage(
+            browserInfo
+          )}`
+        );
+      } else {
+        throw new Error(
+          "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요."
+        );
+      }
     }
     throw error;
   }
@@ -519,6 +602,27 @@ if (document.readyState === "loading") {
 function initUI() {
   console.log("Initializing UI...");
 
+  // 브라우저 호환성 검사 및 경고 표시
+  const browserInfo = detectBrowser();
+  const browserWarningEl = document.getElementById("browserWarning");
+  const browserWarningContentEl = document.getElementById(
+    "browserWarningContent"
+  );
+  const browserWarningTipEl = document.getElementById("browserWarningTip");
+
+  if (browserWarningEl && browserWarningContentEl) {
+    if (!browserInfo.isCompatible) {
+      const message = getBrowserCompatibilityMessage(browserInfo);
+      browserWarningContentEl.textContent = message;
+      browserWarningEl.classList.remove("hidden");
+
+      // 인앱 브라우저인 경우 추가 팁 표시
+      if (browserInfo.isInAppBrowser && browserWarningTipEl) {
+        browserWarningTipEl.style.display = "block";
+      }
+    }
+  }
+
   // DOM 요소
   const authStatusEl = document.getElementById("authStatus");
   const userInfoEl = document.getElementById("userInfo");
@@ -650,7 +754,43 @@ function initUI() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      addLog(`로그인 실패: ${error.message}`, "error");
+      const browserInfo = detectBrowser();
+      let errorMessage = error.message;
+
+      // 브라우저 호환성을 고려한 에러 메시지 개선
+      if (error.code === "auth/popup-closed-by-user") {
+        if (browserInfo.isInAppBrowser) {
+          errorMessage = `팝업이 닫혔습니다. ${getBrowserCompatibilityMessage(
+            browserInfo
+          )}`;
+        } else {
+          errorMessage = "로그인 팝업이 닫혔습니다. 다시 시도해주세요.";
+        }
+      } else if (error.code === "auth/popup-blocked") {
+        if (browserInfo.isInAppBrowser) {
+          errorMessage = `팝업이 차단되었습니다. ${getBrowserCompatibilityMessage(
+            browserInfo
+          )}`;
+        } else {
+          errorMessage =
+            "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요.";
+        }
+      } else if (error.code === "auth/network-request-failed") {
+        if (browserInfo.isInAppBrowser) {
+          errorMessage = `네트워크 오류가 발생했습니다. ${getBrowserCompatibilityMessage(
+            browserInfo
+          )}`;
+        } else {
+          errorMessage =
+            "네트워크 오류가 발생했습니다. 인터넷 연결을 확인해주세요.";
+        }
+      } else if (browserInfo.isInAppBrowser) {
+        errorMessage = `로그인 실패: ${
+          error.message
+        }. ${getBrowserCompatibilityMessage(browserInfo)}`;
+      }
+
+      addLog(`로그인 실패: ${errorMessage}`, "error");
 
       // Extension에서 온 경우 특별한 안내
       if (isFromExtension && error.code === "auth/popup-closed-by-user") {
