@@ -1,54 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <title>SignIn Popup - Test Page</title>
+    <title>북마클 - 로그인</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+        background-attachment: fixed;
         min-height: 100vh;
-      }
-      .container {
-        background: white;
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-      }
-      h1 {
-        color: #667eea;
-        margin-top: 0;
-        border-bottom: 3px solid #667eea;
-        padding-bottom: 10px;
-      }
-      .section {
-        margin: 20px 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border-left: 4px solid #667eea;
+        overflow-x: hidden;
       }
-      .section h2 {
-        margin-top: 0;
-        color: #333;
-        font-size: 1.2em;
+
+      .container {
+        background: #2d3748;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 420px;
+        width: 100%;
+        position: relative;
       }
-      .status {
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-weight: bold;
-        margin: 10px 0;
-        display: inline-block;
+
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
       }
-      .logged-in {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        color: #155724;
-        border: 2px solid #c3e6cb;
-        font-size: 18px;
-        font-weight: bold;
+
+      .logo {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+
+      .title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 6px;
+      }
+
+      .subtitle {
+        color: #a0aec0;
+        font-size: 14px;
+      }
+
+      /* 인증 상태 */
+      .auth-section {
+        margin-bottom: 20px;
+      }
+
+      .auth-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        margin-bottom: 12px;
+        transition: all 0.3s ease;
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 10;
+      }
+
+      .status-logged-out {
+        background: #dc2626;
+        color: white;
+        box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+      }
+
+      .status-logged-in {
+        background: #16a34a;
+        color: white;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
         animation: successPulse 2s ease-in-out;
       }
 
@@ -57,128 +97,524 @@
           transform: scale(1);
         }
         50% {
-          transform: scale(1.05);
+          transform: scale(1.02);
         }
         100% {
           transform: scale(1);
         }
       }
-      .logged-out {
-        background: #f8d7da;
-        color: #721c24;
-        border: 2px solid #f5c6cb;
+
+      .user-info {
+        background: #4a5568;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        display: none;
       }
+
       .user-email {
-        color: #666;
-        margin: 10px 0;
-        font-size: 0.95em;
+        color: #e2e8f0;
+        font-size: 13px;
+        font-weight: 500;
       }
-      button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 12px 24px;
+
+      /* 버튼 스타일 */
+      .btn {
+        width: 100%;
+        padding: 12px 16px;
         border-radius: 8px;
-        cursor: pointer;
-        font-size: 1em;
+        border: none;
+        font-size: 14px;
         font-weight: 600;
-        margin: 5px;
-        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-bottom: 8px;
       }
-      button:hover {
+
+      .btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
       }
-      button:active {
+
+      .btn:active {
         transform: translateY(0);
       }
-      button:disabled {
-        background: #ccc;
+
+      .btn:disabled {
+        opacity: 0.6;
         cursor: not-allowed;
         transform: none;
       }
-      .collection-item {
-        background: white;
-        padding: 15px;
-        margin: 10px 0;
+
+      .btn-primary {
+        background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+        color: white;
+      }
+
+      .btn-secondary {
+        background: #4a5568;
+        color: #e2e8f0;
+        border: 1px solid #718096;
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+      }
+
+      /* 이메일 로그인 섹션 */
+      .email-login-section,
+      .signup-section {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #4a5568;
+      }
+
+      .divider {
+        position: relative;
+        text-align: center;
+        margin: 16px 0;
+      }
+
+      .divider::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: #4a5568;
+        z-index: 1;
+      }
+
+      .divider span {
+        background: #2d3748;
+        padding: 0 16px;
+        color: #a0aec0;
+        font-size: 14px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .email-form {
+        margin-top: 16px;
+      }
+
+      .form-group {
+        margin-bottom: 12px;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-bottom: 4px;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #4a5568;
         border-radius: 6px;
-        border: 1px solid #e0e0e0;
-        transition: box-shadow 0.2s;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: #4a5568;
+        color: #ffffff;
+        box-sizing: border-box;
       }
-      .collection-item:hover {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+      .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
       }
-      .loading {
-        color: #667eea;
-        font-weight: bold;
+
+      .form-input::placeholder {
+        color: #a0aec0;
       }
-      .error {
-        color: #dc3545;
-        font-weight: bold;
+
+      .auth-switch {
+        text-align: center;
+        margin-top: 12px;
       }
-      .success {
-        color: #28a745;
-        font-weight: bold;
+
+      .link-button {
+        background: none;
+        border: none;
+        color: #a78bfa;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px;
+        transition: color 0.2s ease;
       }
-      #debugLogs {
+
+      .link-button:hover {
+        color: #8b5cf6;
+      }
+
+      /* 디버그 패널 */
+      .debug-panel {
+        position: fixed;
+        overflow: hidden;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: #2d3748;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        border: 1px solid #4a5568;
+        max-width: 350px;
+        width: 350px;
+      }
+
+      .debug-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid #4a5568;
+        background: #374151;
+        border-radius: 12px 12px 0 0;
+      }
+
+      .debug-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #e2e8f0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .toggle-logs {
+        background: none;
+        border: 1px solid #4a5568;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #a0aec0;
+        transition: all 0.2s ease;
+      }
+
+      .toggle-logs:hover {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+      }
+
+      .debug-content {
+        background: #1f2937;
+        border-radius: 0 0 12px 12px;
+        display: none;
+      }
+
+      .debug-content.show {
+        display: block;
+      }
+
+      .logs-container {
         max-height: 300px;
         overflow-y: auto;
-        background: #1e1e1e;
-        color: #d4d4d4;
-        padding: 15px;
-        border-radius: 6px;
-        font-family: "Courier New", monospace;
-        font-size: 0.85em;
-        line-height: 1.6;
+        color: #f9fafb;
+        padding: 12px;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 11px;
+        line-height: 1.4;
+        border-top: 1px solid #374151;
       }
+
+      .debug-controls {
+        padding: 8px 12px;
+        border-top: 1px solid #4b5563;
+      }
+
+      .clear-logs-btn {
+        background: #4b5563;
+        color: #f9fafb;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .clear-logs-btn:hover {
+        background: #6b7280;
+      }
+
       .log-entry {
-        margin: 3px 0;
+        margin: 4px 0;
+        padding: 2px 0;
       }
+
       .log-info {
-        color: #4fc3f7;
+        color: #60a5fa;
       }
       .log-success {
-        color: #81c784;
+        color: #34d399;
       }
       .log-error {
-        color: #e57373;
+        color: #f87171;
+      }
+      .log-warning {
+        color: #fbbf24;
+      }
+
+      /* 반응형 */
+      @media (max-width: 640px) {
+        .container {
+          padding: 20px;
+          margin: 12px;
+        }
+
+        .title {
+          font-size: 22px;
+        }
+
+        .btn {
+          padding: 10px 14px;
+          font-size: 14px;
+        }
+
+        .debug-panel {
+          position: fixed;
+          top: 10px;
+          right: 10px;
+          left: 10px;
+          width: auto;
+          max-width: none;
+        }
+
+        .auth-status {
+          top: 10px;
+          right: 10px;
+          z-index: 1001;
+        }
+      }
+
+      /* 로딩 애니메이션 */
+      .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 숨김 클래스 */
+      .hidden {
+        display: none !important;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>🔐 SignIn Popup - Test Page</h1>
+      <!-- 상태 뱃지 -->
+      <div id="authStatus" class="auth-status status-logged-out">
+        <i data-lucide="x-circle" style="width: 12px; height: 12px"></i>
+        로그아웃
+      </div>
+
+      <!-- 헤더 -->
+      <div class="header">
+        <div class="logo">🔖</div>
+        <h1 class="title">북마클</h1>
+        <p class="subtitle">북마크를 스마트하게 관리하세요</p>
+      </div>
 
       <!-- 인증 상태 섹션 -->
-      <div class="section">
-        <h2>📊 인증 상태</h2>
-        <div id="authStatus" class="status logged-out">❌ 로그아웃 상태</div>
-        <div id="userEmail" class="user-email" style="display: none"></div>
-        <div style="margin-top: 15px">
-          <button id="loginBtn">Google 로그인</button>
-          <button id="refreshAuthBtn">상태 새로고침</button>
+      <div class="auth-section">
+        <div id="userInfo" class="user-info">
+          <div id="userEmail" class="user-email"></div>
+        </div>
+
+        <!-- 로그아웃 상태 버튼들 -->
+        <div id="loggedOutButtons">
+          <button id="loginBtn" class="btn btn-primary">
+            <i data-lucide="chrome" style="width: 16px; height: 16px"></i>
+            Google 로그인
+          </button>
+        </div>
+
+        <!-- 로그인 상태 버튼들 -->
+        <div id="loggedInButtons" class="hidden">
+          <button id="dashboardBtn" class="btn btn-success">
+            <i data-lucide="home" style="width: 16px; height: 16px"></i>
+            대시보드로 가기
+          </button>
+          <button id="logoutBtn" class="btn btn-danger">
+            <i data-lucide="log-out" style="width: 16px; height: 16px"></i>
+            로그아웃
+          </button>
+          <button id="closeTabBtn" class="btn btn-secondary">
+            <i data-lucide="x" style="width: 16px; height: 16px"></i>
+            탭 닫기
+          </button>
         </div>
       </div>
 
-      <!-- 컬렉션 테스트 섹션 -->
-      <div class="section">
-        <h2>📁 컬렉션 테스트</h2>
-        <div style="margin: 15px 0">
-          <button id="loadCollectionsBtn">컬렉션 불러오기</button>
-          <button id="clearCollectionsBtn">목록 지우기</button>
+      <!-- 이메일/패스워드 로그인 섹션 -->
+      <div class="email-login-section" id="emailLoginSection">
+        <div class="divider">
+          <span>또는</span>
         </div>
-        <div id="collectionsStatus"></div>
-        <div id="collectionsList"></div>
+
+        <form id="emailLoginForm" class="email-form">
+          <div class="form-group">
+            <label for="email" class="form-label">이메일</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="form-input"
+              placeholder="이메일을 입력하세요"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">비밀번호</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="form-input"
+              placeholder="비밀번호를 입력하세요"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="emailLoginBtn">
+            <i data-lucide="mail" style="width: 16px; height: 16px"></i>
+            이메일로 로그인
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          <button type="button" id="switchToSignupBtn" class="link-button">
+            계정이 없으신가요? 회원가입
+          </button>
+        </div>
       </div>
 
-      <!-- 디버그 로그 -->
-      <div class="section">
-        <h2>🐛 디버그 로그</h2>
-        <button id="clearLogsBtn">로그 지우기</button>
-        <div id="debugLogs"></div>
+      <!-- 회원가입 섹션 -->
+      <div class="signup-section hidden" id="signupSection">
+        <div class="divider">
+          <span>또는</span>
+        </div>
+
+        <form id="signupForm" class="email-form">
+          <div class="form-group">
+            <label for="signupName" class="form-label">사용자명</label>
+            <input
+              type="text"
+              id="signupName"
+              name="displayName"
+              class="form-input"
+              placeholder="사용자명을 입력하세요"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="signupEmail" class="form-label">이메일</label>
+            <input
+              type="email"
+              id="signupEmail"
+              name="email"
+              class="form-input"
+              placeholder="이메일을 입력하세요"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="signupPassword" class="form-label">비밀번호</label>
+            <input
+              type="password"
+              id="signupPassword"
+              name="password"
+              class="form-input"
+              placeholder="비밀번호를 입력하세요 (최소 6자)"
+              required
+              minlength="6"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label"
+              >비밀번호 확인</label
+            >
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              class="form-input"
+              placeholder="비밀번호를 다시 입력하세요"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="signupBtn">
+            <i data-lucide="user-plus" style="width: 16px; height: 16px"></i>
+            회원가입
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          <button type="button" id="switchToLoginBtn" class="link-button">
+            이미 계정이 있으신가요? 로그인
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 디버그 패널 -->
+    <div class="debug-panel">
+      <div class="debug-header">
+        <div class="debug-title">
+          <i data-lucide="bug" style="width: 14px; height: 14px"></i>
+          디버그 로그
+        </div>
+        <button id="toggleLogsBtn" class="toggle-logs">보기</button>
+      </div>
+      <div id="debugContent" class="debug-content">
+        <div id="debugLogs" class="logs-container"></div>
+        <div id="debugControls" class="debug-controls">
+          <button id="clearLogsBtn" class="clear-logs-btn">
+            <i data-lucide="trash-2" style="width: 12px; height: 12px"></i>
+            로그 지우기
+          </button>
+        </div>
       </div>
     </div>
 
     <script type="module" src="./signInWithPopup.js"></script>
+    <script>
+      // Lucide 아이콘 초기화
+      document.addEventListener("DOMContentLoaded", function () {
+        lucide.createIcons();
+      });
+    </script>
   </body>
 </html>

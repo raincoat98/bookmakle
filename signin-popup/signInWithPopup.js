@@ -6,6 +6,9 @@ import {
   setPersistence,
   browserLocalPersistence,
   signInWithCustomToken,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore,
@@ -488,20 +491,32 @@ function initUI() {
 
   // DOM 요소
   const authStatusEl = document.getElementById("authStatus");
+  const userInfoEl = document.getElementById("userInfo");
   const userEmailEl = document.getElementById("userEmail");
+  const loggedOutButtonsEl = document.getElementById("loggedOutButtons");
+  const loggedInButtonsEl = document.getElementById("loggedInButtons");
   const loginBtn = document.getElementById("loginBtn");
-  const refreshAuthBtn = document.getElementById("refreshAuthBtn");
-  const loadCollectionsBtn = document.getElementById("loadCollectionsBtn");
-  const clearCollectionsBtn = document.getElementById("clearCollectionsBtn");
-  const collectionsStatusEl = document.getElementById("collectionsStatus");
-  const collectionsListEl = document.getElementById("collectionsList");
-  const clearLogsBtn = document.getElementById("clearLogsBtn");
+  const dashboardBtn = document.getElementById("dashboardBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const closeTabBtn = document.getElementById("closeTabBtn");
+  const emailLoginSection = document.getElementById("emailLoginSection");
+  const signupSection = document.getElementById("signupSection");
+  const emailLoginForm = document.getElementById("emailLoginForm");
+  const signupForm = document.getElementById("signupForm");
+  const switchToSignupBtn = document.getElementById("switchToSignupBtn");
+  const switchToLoginBtn = document.getElementById("switchToLoginBtn");
+  const toggleLogsBtn = document.getElementById("toggleLogsBtn");
+  const debugContentEl = document.getElementById("debugContent");
   const debugLogsEl = document.getElementById("debugLogs");
+  const debugControlsEl = document.getElementById("debugControls");
+  const clearLogsBtn = document.getElementById("clearLogsBtn");
 
   if (!authStatusEl || !loginBtn) {
     console.error("UI elements not found!");
     return;
   }
+
+  let logsVisible = false;
 
   // 디버그 로그 함수
   function addLog(message, type = "info") {
@@ -519,192 +534,134 @@ function initUI() {
     const currentUser = auth.currentUser;
 
     if (currentUser) {
-      authStatusEl.className = "status logged-in";
-      authStatusEl.textContent = "✅ 로그인됨";
-      userEmailEl.textContent = `📧 ${
-        currentUser.email || "N/A"
-      } (UID: ${currentUser.uid.substring(0, 8)}...)`;
-      userEmailEl.style.display = "block";
-      loginBtn.textContent = "로그아웃";
+      authStatusEl.className = "auth-status status-logged-in";
+      authStatusEl.innerHTML = `<i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> 로그인`;
+      userEmailEl.textContent = `${currentUser.email || "N/A"}`;
+      userInfoEl.style.display = "block";
+      loggedOutButtonsEl.classList.add("hidden");
+      loggedInButtonsEl.classList.remove("hidden");
+      emailLoginSection.classList.add("hidden");
+      signupSection.classList.add("hidden");
       addLog(`로그인 확인: ${currentUser.email}`, "success");
+
+      // Lucide 아이콘 재초기화
+      if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+      }
     } else {
-      authStatusEl.className = "status logged-out";
-      authStatusEl.textContent = "❌ 로그아웃 상태";
-      userEmailEl.style.display = "none";
-      loginBtn.textContent = "Google 로그인";
+      authStatusEl.className = "auth-status status-logged-out";
+      authStatusEl.innerHTML = `<i data-lucide="x-circle" style="width: 12px; height: 12px;"></i> 로그아웃`;
+      userInfoEl.style.display = "none";
+      loggedOutButtonsEl.classList.remove("hidden");
+      loggedInButtonsEl.classList.add("hidden");
+      emailLoginSection.classList.remove("hidden");
+      signupSection.classList.add("hidden");
       addLog("로그인되지 않음", "error");
+
+      // Lucide 아이콘 재초기화
+      if (typeof lucide !== "undefined") {
+        lucide.createIcons();
+      }
     }
   }
 
-  // 컬렉션 표시 함수
-  function displayCollections(collections) {
-    if (!collections || collections.length === 0) {
-      collectionsStatusEl.innerHTML =
-        '<div class="loading">컬렉션이 없습니다.</div>';
-      return;
+  // 로그 토글
+  toggleLogsBtn.addEventListener("click", () => {
+    logsVisible = !logsVisible;
+    if (logsVisible) {
+      debugContentEl.classList.add("show");
+      toggleLogsBtn.textContent = "숨기기";
+    } else {
+      debugContentEl.classList.remove("show");
+      toggleLogsBtn.textContent = "보기";
     }
-
-    collectionsStatusEl.innerHTML = `<div class="success">✅ ${collections.length}개의 컬렉션 로드됨</div>`;
-
-    collectionsListEl.innerHTML = "";
-    collections.forEach((collection, index) => {
-      const item = document.createElement("div");
-      item.className = "collection-item";
-      item.innerHTML = `
-        <strong>${index + 1}. ${collection.icon || "📁"} ${
-        collection.name
-      }</strong><br>
-        <small style="color: #666;">ID: ${collection.id}</small>
-        ${
-          collection.description
-            ? `<br><small>${collection.description}</small>`
-            : ""
-        }
-      `;
-      collectionsListEl.appendChild(item);
-    });
-  }
+  });
 
   // 로그인 버튼 클릭
   loginBtn.addEventListener("click", async () => {
     const currentUser = auth.currentUser;
 
     if (currentUser) {
-      // 로그아웃
-      try {
-        await auth.signOut();
-        addLog("로그아웃 완료", "success");
-        updateAuthStatus();
-
-        // Extension에서 왔다면 로그아웃 알림
-        if (source === "extension" && extensionId) {
-          try {
-            await chrome.runtime.sendMessage(extensionId, {
-              type: "LOGOUT_SUCCESS",
-            });
-            addLog("Extension에 로그아웃 알림 전송", "success");
-          } catch (error) {
-            addLog(`Extension 통신 실패: ${error.message}`, "error");
-          }
-        }
-      } catch (error) {
-        addLog(`로그아웃 실패: ${error.message}`, "error");
-      }
-    } else {
-      // 로그인
-      try {
-        addLog("Google 로그인 시작...", "info");
-        const result = await signInWithPopup(auth, provider);
-        addLog(`로그인 성공: ${result.user.email}`, "success");
-
-        updateAuthStatus();
-
-        // Extension에서 왔다면 성공 페이지로 리다이렉트
-        console.log(
-          "Check redirect - source:",
-          source,
-          "extensionId:",
-          extensionId
-        );
-
-        if (source === "extension" && extensionId) {
-          addLog("Extension에 로그인 정보 전달 중...", "info");
-
-          try {
-            // ID 토큰 가져오기
-            const idToken = await result.user.getIdToken();
-            console.log("ID token obtained for extension");
-
-            // 컬렉션 가져오기
-            addLog("컬렉션 불러오는 중...", "info");
-            const collections = await fetchCollections(result.user.uid);
-            console.log(
-              "Collections fetched for extension:",
-              collections.length
-            );
-
-            // Extension에 로그인 정보 및 컬렉션 전달
-            const userData = {
-              uid: result.user.uid,
-              email: result.user.email,
-              displayName: result.user.displayName,
-              photoURL: result.user.photoURL,
-            };
-
-            console.log(
-              "Sending login info and collections to extension:",
-              extensionId
-            );
-            console.log("Collections to send:", collections);
-
-            const response = await chrome.runtime.sendMessage(extensionId, {
-              type: "LOGIN_SUCCESS",
-              user: userData,
-              idToken: idToken,
-              collections: collections,
-            });
-
-            console.log("Extension 응답:", response);
-            addLog(
-              `✅ 로그인 정보 및 ${collections.length}개의 컬렉션이 확장 프로그램에 전달되었습니다!`,
-              "success"
-            );
-
-            // 성공 후 현재 페이지에서 로그인 상태 유지 (리다이렉트 없음)
-            addLog(
-              "로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.",
-              "success"
-            );
-          } catch (error) {
-            console.error("Extension 통신 오류:", error);
-            addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
-          }
-        } else {
-          console.log("Not redirecting - source or extensionId missing");
-          console.log("Current URL:", window.location.href);
-        }
-      } catch (error) {
-        addLog(`로그인 실패: ${error.message}`, "error");
-      }
-    }
-  });
-
-  // 상태 새로고침 버튼
-  refreshAuthBtn.addEventListener("click", () => {
-    addLog("인증 상태 새로고침...", "info");
-    updateAuthStatus();
-  });
-
-  // 컬렉션 불러오기 버튼
-  loadCollectionsBtn.addEventListener("click", async () => {
-    const currentUser = auth.currentUser;
-
-    if (!currentUser) {
-      addLog("로그인이 필요합니다", "error");
-      collectionsStatusEl.innerHTML =
-        '<div class="error">❌ 로그인이 필요합니다</div>';
+      // 이미 로그인된 경우 (이 경우는 거의 없음)
+      updateAuthStatus();
       return;
     }
 
-    addLog("컬렉션 불러오기 시작...", "info");
-    collectionsStatusEl.innerHTML = '<div class="loading">⏳ 로딩 중...</div>';
-    collectionsListEl.innerHTML = "";
-
+    // 로그인
     try {
-      const collections = await fetchCollections(currentUser.uid);
-      displayCollections(collections);
-      addLog(`${collections.length}개의 컬렉션 로드 성공`, "success");
+      addLog("Google 로그인 시작...", "info");
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = `<div class="loading-spinner"></div> 로그인 중...`;
+
+      const result = await signInWithPopup(auth, provider);
+      addLog(`로그인 성공: ${result.user.email}`, "success");
+
+      updateAuthStatus();
+
+      // Extension에서 왔다면 로그인 정보 전달
+      console.log(
+        "Check redirect - source:",
+        source,
+        "extensionId:",
+        extensionId
+      );
+
+      if (source === "extension" && extensionId) {
+        await handleExtensionLogin(result.user);
+      } else {
+        console.log("Not redirecting - source or extensionId missing");
+        console.log("Current URL:", window.location.href);
+      }
     } catch (error) {
-      collectionsStatusEl.innerHTML = `<div class="error">❌ 오류: ${error.message}</div>`;
-      addLog(`컬렉션 로드 실패: ${error.message}`, "error");
+      addLog(`로그인 실패: ${error.message}`, "error");
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Google 로그인
+      `;
     }
   });
 
-  // 목록 지우기 버튼
-  clearCollectionsBtn.addEventListener("click", () => {
-    collectionsListEl.innerHTML = "";
-    collectionsStatusEl.innerHTML = "";
-    addLog("컬렉션 목록 지움", "info");
+  // 대시보드 버튼 클릭
+  dashboardBtn.addEventListener("click", () => {
+    addLog("대시보드로 이동 중...", "info");
+    window.open("https://bookmarkhub-5ea6c.web.app/", "_blank");
+  });
+
+  // 로그아웃 버튼 클릭
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      addLog("로그아웃 중...", "info");
+      await auth.signOut();
+      addLog("로그아웃 완료", "success");
+      updateAuthStatus();
+
+      // Extension에서 왔다면 로그아웃 알림
+      if (source === "extension" && extensionId) {
+        try {
+          await chrome.runtime.sendMessage(extensionId, {
+            type: "LOGOUT_SUCCESS",
+          });
+          addLog("Extension에 로그아웃 알림 전송", "success");
+        } catch (error) {
+          addLog(`Extension 통신 실패: ${error.message}`, "error");
+        }
+      }
+    } catch (error) {
+      addLog(`로그아웃 실패: ${error.message}`, "error");
+    }
+  });
+
+  // 탭 닫기 버튼 클릭
+  closeTabBtn.addEventListener("click", () => {
+    addLog("탭을 닫는 중...", "info");
+    window.close();
   });
 
   // 로그 지우기 버튼
@@ -713,8 +670,192 @@ function initUI() {
     addLog("로그 초기화됨", "info");
   });
 
+  // 이메일 로그인 폼 제출
+  emailLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    if (!email || !password) {
+      addLog("이메일과 비밀번호를 입력해주세요", "error");
+      return;
+    }
+
+    try {
+      addLog("이메일 로그인 시도 중...", "info");
+      const emailLoginBtn = document.getElementById("emailLoginBtn");
+      emailLoginBtn.disabled = true;
+      emailLoginBtn.innerHTML = `<div class="loading-spinner"></div> 로그인 중...`;
+
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      addLog(`이메일 로그인 성공: ${result.user.email}`, "success");
+
+      updateAuthStatus();
+
+      // Extension에서 왔다면 로그인 정보 전달
+      if (source === "extension" && extensionId) {
+        await handleExtensionLogin(result.user);
+      }
+    } catch (error) {
+      console.error("Email login error:", error);
+      let errorMessage = "로그인에 실패했습니다.";
+
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "등록되지 않은 이메일입니다.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "비밀번호가 올바르지 않습니다.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "올바른 이메일 형식이 아닙니다.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage =
+          "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.";
+      }
+
+      addLog(`이메일 로그인 실패: ${errorMessage}`, "error");
+    } finally {
+      const emailLoginBtn = document.getElementById("emailLoginBtn");
+      emailLoginBtn.disabled = false;
+      emailLoginBtn.innerHTML = "📧 이메일로 로그인";
+    }
+  });
+
+  // 회원가입 폼 제출
+  signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const displayName = formData.get("displayName");
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
+
+    if (!displayName || !email || !password || !confirmPassword) {
+      addLog("모든 필드를 입력해주세요", "error");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      addLog("비밀번호가 일치하지 않습니다", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      addLog("비밀번호는 최소 6자 이상이어야 합니다", "error");
+      return;
+    }
+
+    try {
+      addLog("회원가입 시도 중...", "info");
+      const signupBtn = document.getElementById("signupBtn");
+      signupBtn.disabled = true;
+      signupBtn.innerHTML = `<div class="loading-spinner"></div> 가입 중...`;
+
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      // 사용자명 업데이트
+      await updateProfile(result.user, {
+        displayName: displayName,
+      });
+
+      addLog(`회원가입 성공: ${result.user.email}`, "success");
+
+      updateAuthStatus();
+
+      // Extension에서 왔다면 로그인 정보 전달
+      if (source === "extension" && extensionId) {
+        await handleExtensionLogin(result.user);
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      let errorMessage = "회원가입에 실패했습니다.";
+
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "이미 가입된 이메일입니다.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "비밀번호는 최소 6자 이상이어야 합니다.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "올바른 이메일 형식이 아닙니다.";
+      }
+
+      addLog(`회원가입 실패: ${errorMessage}`, "error");
+    } finally {
+      const signupBtn = document.getElementById("signupBtn");
+      signupBtn.disabled = false;
+      signupBtn.innerHTML = "✍️ 회원가입";
+    }
+  });
+
+  // 회원가입 모드 전환
+  switchToSignupBtn.addEventListener("click", () => {
+    emailLoginSection.classList.add("hidden");
+    signupSection.classList.remove("hidden");
+    addLog("회원가입 모드로 전환", "info");
+  });
+
+  // 로그인 모드 전환
+  switchToLoginBtn.addEventListener("click", () => {
+    signupSection.classList.add("hidden");
+    emailLoginSection.classList.remove("hidden");
+    addLog("로그인 모드로 전환", "info");
+  });
+
+  // Extension 로그인 처리 함수
+  async function handleExtensionLogin(user) {
+    addLog("Extension에 로그인 정보 전달 중...", "info");
+
+    try {
+      // ID 토큰 가져오기
+      const idToken = await user.getIdToken();
+      console.log("ID token obtained for extension");
+
+      // 컬렉션 가져오기
+      addLog("컬렉션 불러오는 중...", "info");
+      const collections = await fetchCollections(user.uid);
+      console.log("Collections fetched for extension:", collections.length);
+
+      // Extension에 로그인 정보 및 컬렉션 전달
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+      };
+
+      console.log(
+        "Sending login info and collections to extension:",
+        extensionId
+      );
+      console.log("Collections to send:", collections);
+
+      const response = await chrome.runtime.sendMessage(extensionId, {
+        type: "LOGIN_SUCCESS",
+        user: userData,
+        idToken: idToken,
+        collections: collections,
+      });
+
+      console.log("Extension 응답:", response);
+      addLog(
+        `✅ 로그인 정보 및 ${collections.length}개의 컬렉션이 확장 프로그램에 전달되었습니다!`,
+        "success"
+      );
+
+      // 성공 후 현재 페이지에서 로그인 상태 유지 (리다이렉트 없음)
+      addLog("로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.", "success");
+    } catch (error) {
+      console.error("Extension 통신 오류:", error);
+      addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
+    }
+  }
+
   // 초기화
-  addLog("SignIn popup 페이지 초기화 완료", "success");
+  addLog("북마클 로그인 페이지 초기화 완료", "success");
 
   // 인증 상태 모니터링
   let hasRedirected = false; // 중복 리다이렉트 방지
@@ -733,54 +874,14 @@ function initUI() {
     addLog(`인증 상태 변경: ${user ? user.email : "로그아웃"}`, "info");
     updateAuthStatus();
 
-    // Extension에서 왔는데 이미 로그인되어 있으면 성공 페이지로
+    // Extension에서 왔는데 이미 로그인되어 있으면 정보 전달
     if (user && source === "extension" && extensionId && !hasRedirected) {
       hasRedirected = true;
       console.log("Already logged in - sending info to extension immediately");
       addLog("이미 로그인되어 있음 - Extension에 정보 전달", "info");
 
       try {
-        // ID 토큰 가져오기
-        const idToken = await user.getIdToken();
-        console.log("ID token obtained for extension (auto)");
-
-        // 컬렉션 가져오기
-        addLog("컬렉션 불러오는 중...", "info");
-        const collections = await fetchCollections(user.uid);
-        console.log(
-          "Collections fetched for extension (auto):",
-          collections.length
-        );
-
-        // Extension에 로그인 정보 및 컬렉션 전달
-        const userData = {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-        };
-
-        console.log(
-          "Auto sending login info and collections to extension:",
-          extensionId
-        );
-
-        const response = await chrome.runtime.sendMessage(extensionId, {
-          type: "LOGIN_SUCCESS",
-          user: userData,
-          idToken: idToken,
-          collections: collections,
-        });
-
-        console.log("Extension 응답 (auto):", response);
-        addLog(
-          `✅ 로그인 정보 및 ${collections.length}개의 컬렉션이 확장 프로그램에 전달되었습니다!`,
-          "success"
-        );
-        addLog(
-          "로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.",
-          "success"
-        );
+        await handleExtensionLogin(user);
       } catch (error) {
         console.error("Extension 통신 오류 (auto):", error);
         addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
