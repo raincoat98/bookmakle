@@ -42,8 +42,62 @@
       }
 
       .logo {
-        font-size: 40px;
         margin-bottom: 12px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .logo .w-8 {
+        width: 2rem;
+      }
+
+      .logo .h-8 {
+        height: 2rem;
+      }
+
+      .logo .bg-gradient-to-r {
+        background: linear-gradient(to right, #9333ea, #7c3aed);
+      }
+
+      .logo .from-brand-500 {
+        /* 그라데이션 시작 색상은 위에서 설정 */
+      }
+
+      .logo .to-accent-500 {
+        /* 그라데이션 끝 색상은 위에서 설정 */
+      }
+
+      .logo .rounded-xl {
+        border-radius: 0.75rem;
+      }
+
+      .logo .flex {
+        display: flex;
+      }
+
+      .logo .items-center {
+        align-items: center;
+      }
+
+      .logo .justify-center {
+        justify-content: center;
+      }
+
+      .logo .shadow-soft {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+
+      .logo .w-5 {
+        width: 1.25rem;
+      }
+
+      .logo .h-5 {
+        height: 1.25rem;
+      }
+
+      .logo .text-white {
+        color: white;
       }
 
       .title {
@@ -437,7 +491,19 @@
 
       <!-- 헤더 -->
       <div class="header">
-        <div class="logo">🔖</div>
+        <div class="logo">
+          <div
+            class="w-8 h-8 bg-gradient-to-r from-brand-500 to-accent-500 rounded-xl flex items-center justify-center shadow-soft"
+          >
+            <svg
+              class="w-5 h-5 text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+            </svg>
+          </div>
+        </div>
         <h1 class="title">북마클</h1>
         <p class="subtitle">북마크를 스마트하게 관리하세요</p>
       </div>
