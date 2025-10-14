@@ -8,59 +8,7 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
-    <style>
-      body {
-        width: 400px;
-        height: 550px;
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-      }
-
-      #toast {
-        transform: translateX(120%);
-        opacity: 0;
-        transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
-          opacity 0.4s ease-in-out;
-      }
-
-      #toast.show {
-        transform: translateX(0);
-        opacity: 1;
-      }
-
-      @keyframes slideInBounce {
-        0% {
-          transform: translateX(120%);
-          opacity: 0;
-        }
-        60% {
-          transform: translateX(-10px);
-          opacity: 1;
-        }
-        100% {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-
-      #toast.show {
-        animation: slideInBounce 0.5s ease-out forwards;
-      }
-
-      .animate-spin {
-        animation: spin 1s linear infinite;
-      }
-
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="popup.css" />
   </head>
   <body
     class="bg-gradient-to-br from-violet-400 via-purple-400 to-blue-300 flex items-center justify-center"
@@ -112,12 +60,11 @@
         </div>
 
         <!-- 메인 콘텐츠 (로그인 후) -->
-        <div id="mainContent" style="display: none">
+        <div id="mainContent" class="hidden">
           <!-- 로그아웃 버튼 -->
           <button
             id="signOutButton"
-            class="absolute top-3 right-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg shadow text-xs transition-colors duration-200"
-            style="display: none"
+            class="absolute top-3 right-3 bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg shadow text-xs transition-colors duration-200 hidden"
           >
             로그아웃
           </button>
@@ -219,7 +166,7 @@
         </div>
 
         <!-- 로그인 안내 메시지 -->
-        <div id="loginGuide" class="text-center py-2" style="display: none">
+        <div id="loginGuide" class="text-center py-2 hidden">
           <div class="text-xs text-gray-500">
             <p>• 북마크는 Firebase에 안전하게 저장됩니다</p>
             <p>• 여러 기기에서 동기화됩니다</p>

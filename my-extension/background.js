@@ -14,16 +14,16 @@ async function hasOffscreen() {
   );
 }
 
-async function setupOffscreen() {
+async function setupOffscreen(silent = false) {
   if (await hasOffscreen()) {
     // 이미 존재하면 준비 확인만
-    await waitForOffscreenReady();
+    await waitForOffscreenReady(5000, silent);
     return;
   }
 
   if (creatingOffscreen) {
     await creatingOffscreen;
-    await waitForOffscreenReady();
+    await waitForOffscreenReady(5000, silent);
     return;
   }
 
@@ -36,11 +36,11 @@ async function setupOffscreen() {
   creatingOffscreen = null;
 
   // offscreen이 준비될 때까지 대기
-  await waitForOffscreenReady();
+  await waitForOffscreenReady(5000, silent);
 }
 
 // offscreen이 준비될 때까지 대기 (ping 테스트)
-async function waitForOffscreenReady(maxWait = 5000) {
+async function waitForOffscreenReady(maxWait = 5000, silent = false) {
   const startTime = Date.now();
 
   while (Date.now() - startTime < maxWait) {
@@ -51,7 +51,9 @@ async function waitForOffscreenReady(maxWait = 5000) {
         type: "PING",
       });
       // 응답이 왔으면 준비된 것
-      console.log("Offscreen is ready");
+      if (!silent) {
+        console.log("Offscreen is ready");
+      }
       return;
     } catch (error) {
       // 아직 준비 안됨, 조금 더 대기
@@ -59,16 +61,22 @@ async function waitForOffscreenReady(maxWait = 5000) {
     }
   }
 
-  console.warn("Offscreen may not be ready after maximum wait time");
+  if (!silent) {
+    console.warn("Offscreen may not be ready after maximum wait time");
+  }
 }
 
 // offscreen으로 메시지를 보내고 재시도 로직 포함
 async function sendMessageToOffscreen(message, maxRetries = 3) {
+  console.log("🔥 sendMessageToOffscreen called with:", message);
   for (let i = 0; i < maxRetries; i++) {
     try {
+      console.log(`🔥 Attempt ${i + 1}: Sending message via chrome.runtime.sendMessage`);
       const result = await chrome.runtime.sendMessage(message);
+      console.log("🔥 Message sent successfully, result:", result);
       return result;
     } catch (error) {
+      console.error(`🔥 Attempt ${i + 1} failed:`, error);
       if (i === maxRetries - 1) {
         throw error;
       }
@@ -143,6 +151,8 @@ chrome.runtime.onMessageExternal.addListener(
 
 // popup → background 메시지 수신 (통합된 단일 리스너)
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  console.log("Background received message:", msg?.type);
+
   (async () => {
     try {
       if (msg?.type === "LOGIN_GOOGLE") {
@@ -171,16 +181,46 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
 
       if (msg?.type === "LOGOUT") {
-        // Chrome Storage에서 사용자 정보 제거
-        if (chrome.storage && chrome.storage.local) {
-          chrome.storage.local.remove(["currentUser"], () => {
+        console.log("로그아웃 요청 수신됨");
+
+        try {
+          // Chrome Storage에서 사용자 정보 제거 (Promise 기반)
+          if (chrome.storage && chrome.storage.local) {
+            await new Promise((resolve) => {
+              chrome.storage.local.remove(
+                ["currentUser", "currentIdToken", "cachedCollections"],
+                () => {
+                  console.log("Chrome Storage에서 사용자 정보 제거 완료");
+                  resolve();
+                }
+              );
+            });
+
+            // offscreen을 통해 signin-popup의 Firebase 세션도 로그아웃
+            try {
+              console.log("Firebase 세션 로그아웃 시작...");
+              await setupOffscreen(true); // silent 모드
+              console.log("🔥 Sending LOGOUT_FIREBASE message to offscreen...");
+              const logoutResult = await sendMessageToOffscreen({
+                target: "offscreen",
+                type: "LOGOUT_FIREBASE",
+              });
+              console.log("Firebase 세션 로그아웃 완료:", logoutResult);
+            } catch (error) {
+              console.error("Firebase 세션 로그아웃 실패:", error);
+            }
+
+            console.log("로그아웃 처리 완료, 성공 응답 전송");
             sendResponse({ success: true });
-          });
-        } else {
-          console.error("Chrome Storage API가 사용할 수 없습니다");
-          sendResponse({ success: false, error: "Storage API unavailable" });
+          } else {
+            console.error("Chrome Storage API가 사용할 수 없습니다");
+            sendResponse({ success: false, error: "Storage API unavailable" });
+          }
+        } catch (error) {
+          console.error("로그아웃 처리 중 오류:", error);
+          sendResponse({ success: false, error: error.message });
         }
-        return;
+        return true; // async 응답을 위해 true 반환
       }
 
       if (msg?.type === "GET_COLLECTIONS") {

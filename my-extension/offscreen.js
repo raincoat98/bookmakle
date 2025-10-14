@@ -38,6 +38,8 @@ if (chrome.storage && chrome.storage.local) {
 
 // background → offscreen 메시지 브리지
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  console.log("Offscreen received message:", msg?.type, msg);
+
   if (msg?.target !== "offscreen") return;
 
   // PING 응답 (준비 확인용)
@@ -94,11 +96,86 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type === "LOGOUT") {
     // 로그아웃 처리
     currentUser = null;
+    currentIdToken = null;
     if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.remove(["currentUser"]);
+      chrome.storage.local.remove(["currentUser", "currentIdToken"]);
     }
     sendResponse({ success: true });
     return true;
+  }
+
+  if (msg.type === "LOGOUT_FIREBASE") {
+    // signin-popup의 Firebase 세션도 로그아웃
+    const origin = new URL(PUBLIC_POPUP_URL).origin;
+    console.log("🔥 Firebase 로그아웃 요청을 signin-popup으로 전송");
+    console.log("🔥 Target origin:", origin);
+    console.log("🔥 Iframe exists:", !!iframe);
+    console.log("🔥 Iframe contentWindow:", !!iframe?.contentWindow);
+
+    // 타임아웃 설정 (10초)
+    const timeoutId = setTimeout(() => {
+      console.log("🔥 Firebase 로그아웃 타임아웃");
+      window.removeEventListener("message", handleLogoutMessage);
+
+      // 로컬 상태 정리
+      currentUser = null;
+      currentIdToken = null;
+      if (chrome.storage && chrome.storage.local) {
+        chrome.storage.local.remove(["currentUser", "currentIdToken"]);
+      }
+
+      sendResponse({
+        type: "LOGOUT_COMPLETE",
+        message: "Firebase logout completed (timeout)",
+      });
+    }, 10000);
+
+    function handleLogoutMessage(ev) {
+      // Firebase 내부 메시지 노이즈 필터
+      if (typeof ev.data === "string" && ev.data.startsWith("!_{")) return;
+
+      try {
+        const data =
+          typeof ev.data === "string" ? JSON.parse(ev.data) : ev.data;
+
+        // 로그아웃 완료 응답 처리
+        if (data.type === "LOGOUT_COMPLETE" || data.type === "LOGOUT_ERROR") {
+          clearTimeout(timeoutId);
+          window.removeEventListener("message", handleLogoutMessage);
+          console.log("Firebase 로그아웃 응답 수신:", data.type);
+
+          // 로컬 상태도 정리
+          currentUser = null;
+          currentIdToken = null;
+          if (chrome.storage && chrome.storage.local) {
+            chrome.storage.local.remove(["currentUser", "currentIdToken"]);
+          }
+
+          sendResponse(data);
+        }
+      } catch (e) {
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", handleLogoutMessage);
+        console.error("Firebase 로그아웃 응답 파싱 오류:", e);
+        sendResponse({
+          type: "LOGOUT_ERROR",
+          name: "ParseError",
+          message: e.message,
+        });
+      }
+    }
+
+    window.addEventListener("message", handleLogoutMessage, false);
+
+    console.log("🔥 Sending logout message to iframe...");
+    try {
+      iframe.contentWindow.postMessage({ logoutFirebase: true }, origin);
+      console.log("🔥 Logout message sent successfully");
+    } catch (error) {
+      console.error("🔥 Failed to send logout message:", error);
+    }
+
+    return true; // async 응답
   }
 
   if (msg.type === "GET_COLLECTIONS") {

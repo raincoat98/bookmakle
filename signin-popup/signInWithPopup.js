@@ -97,6 +97,63 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// 전역 상태 변수들
+let isLoggingOut = false; // 로그아웃 진행 중 플래그
+
+// Firebase 로컬 저장소 완전 클리어 함수
+async function clearFirebaseStorage() {
+  try {
+    console.log("Clearing Firebase local storage...");
+
+    // localStorage에서 Firebase 관련 키 제거
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith("firebase:") || key.startsWith("firebaseui:"))
+      ) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
+    console.log("localStorage cleared:", keysToRemove.length, "keys removed");
+
+    // IndexedDB에서 Firebase 데이터베이스 삭제
+    if ("indexedDB" in window) {
+      try {
+        const databases = await indexedDB.databases();
+        const firebaseDbs = databases.filter(
+          (db) =>
+            db.name &&
+            (db.name.includes("firebase") ||
+              db.name.includes("firebaseLocalStorageDb"))
+        );
+
+        for (const db of firebaseDbs) {
+          console.log("Deleting IndexedDB:", db.name);
+          const deleteReq = indexedDB.deleteDatabase(db.name);
+          await new Promise((resolve, reject) => {
+            deleteReq.onsuccess = () => resolve();
+            deleteReq.onerror = () => reject(deleteReq.error);
+          });
+        }
+        console.log(
+          "IndexedDB cleared:",
+          firebaseDbs.length,
+          "databases removed"
+        );
+      } catch (error) {
+        console.warn("IndexedDB clear failed:", error);
+      }
+    }
+
+    console.log("Firebase storage clearing completed");
+  } catch (error) {
+    console.error("Error clearing Firebase storage:", error);
+  }
+}
+
 // Provider 설정 - popup 관련 설정 추가
 provider.setCustomParameters({
   prompt: "select_account",
@@ -117,7 +174,7 @@ function send(result) {
 }
 
 window.addEventListener("message", async (ev) => {
-  console.log("Received message:", ev.data);
+  console.log("🔥 Message received in signin-popup:", ev.data);
 
   if (ev.data?.initAuth) {
     console.log("Starting Firebase Auth...");
@@ -419,6 +476,47 @@ window.addEventListener("message", async (ev) => {
         message: e.message,
       });
     }
+  }
+
+  // Firebase 로그아웃 요청 (Extension에서 로그아웃 시)
+  if (ev.data?.logoutFirebase) {
+    console.log("🔥 Firebase logout request received from extension");
+    try {
+      // 로그아웃 진행 중 플래그 설정
+      isLoggingOut = true;
+      console.log("🔥 Setting isLoggingOut = true");
+
+      // Firebase Auth에서 로그아웃
+      await auth.signOut();
+      console.log("🔥 Firebase logout successful");
+
+      // Firebase 로컬 저장소 완전 클리어
+      await clearFirebaseStorage();
+      console.log("🔥 Firebase storage cleared");
+
+      // UI 업데이트 (initUI가 있는 경우)
+      if (typeof updateAuthStatus === "function") {
+        updateAuthStatus();
+        console.log("🔥 Auth status updated after logout");
+      }
+
+      send({
+        type: "LOGOUT_COMPLETE",
+        message: "Firebase logout and storage clear completed",
+      });
+      console.log("🔥 Logout complete message sent");
+    } catch (e) {
+      console.error("🔥 Firebase logout error:", e);
+      // 에러 발생 시에도 플래그 리셋
+      isLoggingOut = false;
+      send({
+        type: "LOGOUT_ERROR",
+        name: e.name || "FirebaseError",
+        code: e.code,
+        message: e.message,
+      });
+    }
+    return;
   }
 });
 
@@ -825,8 +923,17 @@ function initUI() {
   logoutBtn.addEventListener("click", async () => {
     try {
       addLog("로그아웃 중...", "info");
+      // 로그아웃 진행 중 플래그 설정
+      isLoggingOut = true;
+      console.log("Setting isLoggingOut = true (manual logout)");
+
       await auth.signOut();
-      addLog("로그아웃 완료", "success");
+      addLog("Firebase 로그아웃 완료", "success");
+
+      // Firebase 로컬 저장소 완전 클리어
+      await clearFirebaseStorage();
+      addLog("로컬 저장소 클리어 완료", "success");
+
       updateAuthStatus();
 
       // Extension에서 왔다면 로그아웃 알림
@@ -842,6 +949,8 @@ function initUI() {
       }
     } catch (error) {
       addLog(`로그아웃 실패: ${error.message}`, "error");
+      // 에러 발생 시에도 플래그 리셋
+      isLoggingOut = false;
     }
   });
 
@@ -1071,10 +1180,24 @@ function initUI() {
       "extensionId:",
       extensionId,
       "hasRedirected:",
-      hasRedirected
+      hasRedirected,
+      "isLoggingOut:",
+      isLoggingOut
     );
     addLog(`인증 상태 변경: ${user ? user.email : "로그아웃"}`, "info");
     updateAuthStatus();
+
+    // 로그아웃 진행 중이면 자동 로그인 로직 건너뛰기
+    if (isLoggingOut) {
+      console.log("Logout in progress - skipping auto login logic");
+      if (!user) {
+        // 로그아웃 완료되면 플래그 리셋
+        isLoggingOut = false;
+        hasRedirected = false;
+        console.log("Logout completed - flags reset");
+      }
+      return;
+    }
 
     // Extension에서 왔는데 이미 로그인되어 있으면 정보 전달
     if (user && source === "extension" && extensionId && !hasRedirected) {

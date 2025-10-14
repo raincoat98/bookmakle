@@ -1,0 +1,87 @@
+body {
+  width: 400px;
+  height: 550px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#toast {
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    opacity 0.4s ease-in-out;
+}
+
+#toast.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+@keyframes slideInBounce {
+  0% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+#toast.show {
+  animation: slideInBounce 0.5s ease-out forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 숨김 스타일 */
+.hidden {
+  display: none !important;
+}
+
+/* 로그인 버튼 숨김 */
+#login.hidden {
+  display: none !important;
+}
+
+/* 로그아웃 버튼 스타일 */
+#signOutButton {
+  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#signOutButton.hidden {
+  display: none !important;
+}
+
+#signOutButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* 메인 콘텐츠 숨김 */
+#mainContent.hidden {
+  display: none;
+}
+
+#loginGuide.hidden {
+  display: none;
+}
