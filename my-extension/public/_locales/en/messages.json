@@ -86,5 +86,13 @@
   "tooManyMessages": {
     "message": "Too many messages received.",
     "description": "Too many messages error"
+  },
+  "privacyPolicyText": {
+    "message": "This extension uses your Google account email address for authentication purposes only and does not share any personal data with third parties.",
+    "description": "Privacy policy text"
+  },
+  "contactText": {
+    "message": "Contact:",
+    "description": "Contact label"
   }
 }

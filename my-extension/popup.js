@@ -407,5 +407,24 @@ function showToast(message, type = "success") {
   }, duration);
 }
 
-// 페이지 로드시 사용자 상태 확인
+// 다국어 지원 함수
+function initializeI18n() {
+  // 개인정보 보호 정책 텍스트 설정
+  const privacyPolicyElement = document.getElementById("privacyPolicyText");
+  const contactElement = document.getElementById("contactText");
+
+  if (privacyPolicyElement && chrome.i18n) {
+    privacyPolicyElement.textContent =
+      chrome.i18n.getMessage("privacyPolicyText") ||
+      privacyPolicyElement.textContent;
+  }
+
+  if (contactElement && chrome.i18n) {
+    contactElement.textContent =
+      chrome.i18n.getMessage("contactText") || contactElement.textContent;
+  }
+}
+
+// 페이지 로드시 사용자 상태 확인 및 다국어 초기화
+initializeI18n();
 refreshUser();

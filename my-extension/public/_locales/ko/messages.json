@@ -122,5 +122,13 @@
   "currentPageInfo": {
     "message": "현재 페이지:",
     "description": "현재 페이지 정보 라벨"
+  },
+  "privacyPolicyText": {
+    "message": "이 확장 프로그램은 사용자의 Google 계정 이메일 주소를 인증 목적으로만 사용하며, 어떠한 개인 데이터도 제3자에게 제공하지 않습니다.",
+    "description": "개인정보 보호 정책 텍스트"
+  },
+  "contactText": {
+    "message": "문의:",
+    "description": "문의 라벨"
   }
 }
