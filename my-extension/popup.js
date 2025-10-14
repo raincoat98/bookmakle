@@ -14,8 +14,8 @@ const $tagList = document.getElementById("tagList");
 
 // 로그인 버튼 클릭 이벤트
 $btn.addEventListener("click", async () => {
-  // React 앱으로 리다이렉트하여 로그인 처리
-  const loginUrl = `https://bookmarkhub-5ea6c.web.app?source=extension&extensionId=${chrome.runtime.id}`;
+  // signin-popup 페이지로 리다이렉트하여 로그인 처리
+  const loginUrl = `https://bookmarkhub-5ea6c-sign.web.app?source=extension&extensionId=${chrome.runtime.id}`;
   chrome.tabs.create({ url: loginUrl });
 
   // 팝업 창 닫기
@@ -173,7 +173,19 @@ async function loadCollections() {
       return;
     }
 
-    // 컬렉션 데이터 요청
+    // 먼저 캐시된 컬렉션 확인
+    const cachedResult = await chrome.storage.local.get(["cachedCollections"]);
+
+    if (
+      cachedResult?.cachedCollections &&
+      cachedResult.cachedCollections.length > 0
+    ) {
+      console.log("캐시된 컬렉션 사용:", cachedResult.cachedCollections.length);
+      renderCollections(cachedResult.cachedCollections);
+      return;
+    }
+
+    // 캐시가 없으면 서버에서 가져오기
     console.log("컬렉션 데이터 요청 중...");
     const result = await chrome.runtime.sendMessage({
       type: "GET_COLLECTIONS",
@@ -188,6 +200,8 @@ async function loadCollections() {
     }
 
     if (result?.type === "COLLECTIONS_DATA" && result.collections) {
+      // Storage에 캐시 저장
+      chrome.storage.local.set({ cachedCollections: result.collections });
       renderCollections(result.collections);
     }
   } catch (error) {

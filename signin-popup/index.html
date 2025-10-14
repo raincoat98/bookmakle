@@ -44,9 +44,24 @@
         display: inline-block;
       }
       .logged-in {
-        background: #d4edda;
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
         color: #155724;
         border: 2px solid #c3e6cb;
+        font-size: 18px;
+        font-weight: bold;
+        animation: successPulse 2s ease-in-out;
+      }
+
+      @keyframes successPulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
       }
       .logged-out {
         background: #f8d7da;

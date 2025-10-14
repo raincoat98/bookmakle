@@ -68,9 +68,47 @@ window.addEventListener("message", async (ev) => {
   // 컬렉션 데이터 요청
   if (ev.data?.getCollections) {
     console.log("Getting collections request received");
+    console.log("Received idToken:", ev.data.idToken ? "Yes" : "No");
+
     try {
       // 현재 로그인된 사용자 확인
       let currentUser = auth.currentUser;
+
+      // 현재 사용자가 없고 idToken이 있으면 세션 복원 시도
+      if (!currentUser && ev.data.idToken) {
+        console.log(
+          "Attempting to restore Firebase Auth session with idToken..."
+        );
+
+        try {
+          await setPersistence(auth, browserLocalPersistence);
+
+          // 세션 복원 대기
+          currentUser = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+              console.log("Auth state restoration timeout");
+              resolve(auth.currentUser);
+            }, 7000);
+
+            if (auth.currentUser) {
+              clearTimeout(timeout);
+              resolve(auth.currentUser);
+              return;
+            }
+
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+              console.log("Auth state changed:", user ? user.uid : "null");
+              if (user) {
+                clearTimeout(timeout);
+                unsubscribe();
+                resolve(user);
+              }
+            });
+          });
+        } catch (error) {
+          console.error("Failed to restore session with idToken:", error);
+        }
+      }
 
       // 현재 사용자가 없으면 세션 복원 대기
       if (!currentUser) {
@@ -79,7 +117,7 @@ window.addEventListener("message", async (ev) => {
           const timeout = setTimeout(() => {
             console.log("Auth state restoration timeout");
             resolve(auth.currentUser);
-          }, 3000);
+          }, 5000);
 
           // 먼저 현재 상태 확인
           if (auth.currentUser) {
@@ -142,7 +180,7 @@ window.addEventListener("message", async (ev) => {
         currentUser = await new Promise((resolve) => {
           const timeout = setTimeout(() => {
             resolve(auth.currentUser);
-          }, 3000);
+          }, 5000); // 3초 → 5초로 증가
 
           if (auth.currentUser) {
             clearTimeout(timeout);
@@ -193,15 +231,61 @@ window.addEventListener("message", async (ev) => {
 
   // 북마크 저장 요청
   if (ev.data?.saveBookmark) {
-    console.log("Saving bookmark");
+    console.log("Saving bookmark request received");
+    console.log("Received idToken:", ev.data.idToken ? "Yes" : "No");
+
     try {
       let currentUser = auth.currentUser;
 
+      // 현재 사용자가 없고 idToken이 있으면 세션 복원 시도
+      if (!currentUser && ev.data.idToken) {
+        console.log(
+          "Attempting to restore Firebase Auth session with idToken..."
+        );
+
+        // idToken으로 세션 복원 시도
+        try {
+          // Firebase Auth에 idToken 정보가 있다면 onAuthStateChanged가 트리거될 것임
+          await setPersistence(auth, browserLocalPersistence);
+
+          // 세션 복원 대기
+          currentUser = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+              console.log("Auth state restoration timeout for bookmark save");
+              resolve(auth.currentUser);
+            }, 7000); // 더 긴 타임아웃
+
+            if (auth.currentUser) {
+              clearTimeout(timeout);
+              resolve(auth.currentUser);
+              return;
+            }
+
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+              console.log(
+                "Auth state changed for bookmark save:",
+                user ? user.uid : "null"
+              );
+              if (user) {
+                clearTimeout(timeout);
+                unsubscribe();
+                resolve(user);
+              }
+            });
+          });
+        } catch (error) {
+          console.error("Failed to restore session with idToken:", error);
+        }
+      }
+
+      // 여전히 사용자가 없으면 일반적인 세션 복원 시도
       if (!currentUser) {
+        console.log("Waiting for auth state restoration for bookmark save...");
         currentUser = await new Promise((resolve) => {
           const timeout = setTimeout(() => {
+            console.log("Auth state restoration timeout for bookmark save");
             resolve(auth.currentUser);
-          }, 3000);
+          }, 5000);
 
           if (auth.currentUser) {
             clearTimeout(timeout);
@@ -210,6 +294,10 @@ window.addEventListener("message", async (ev) => {
           }
 
           const unsubscribe = auth.onAuthStateChanged((user) => {
+            console.log(
+              "Auth state changed for bookmark save:",
+              user ? user.uid : "null"
+            );
             if (user) {
               clearTimeout(timeout);
               unsubscribe();
@@ -220,6 +308,7 @@ window.addEventListener("message", async (ev) => {
       }
 
       if (!currentUser) {
+        console.error("User not authenticated for bookmark save");
         send({
           type: "BOOKMARK_SAVE_ERROR",
           name: "AuthError",
@@ -228,6 +317,8 @@ window.addEventListener("message", async (ev) => {
         });
         return;
       }
+
+      console.log("Saving bookmark for authenticated user:", currentUser.uid);
 
       // 현재 로그인된 사용자의 ID로 북마크 데이터 업데이트
       const bookmarkData = {
@@ -255,6 +346,16 @@ window.addEventListener("message", async (ev) => {
 
 // 페이지 로드 완료 시 알림
 console.log("SignIn popup page loaded, ready to receive messages");
+
+// URL 쿼리 파라미터 확인
+const urlParams = new URLSearchParams(window.location.search);
+const source = urlParams.get("source");
+const extensionId = urlParams.get("extensionId");
+
+console.log("=== PAGE LOAD ===");
+console.log("URL:", window.location.href);
+console.log("URL params - source:", source, "extensionId:", extensionId);
+console.log("=================");
 
 function toSafeUser(user) {
   return {
@@ -474,6 +575,18 @@ function initUI() {
         await auth.signOut();
         addLog("로그아웃 완료", "success");
         updateAuthStatus();
+
+        // Extension에서 왔다면 로그아웃 알림
+        if (source === "extension" && extensionId) {
+          try {
+            await chrome.runtime.sendMessage(extensionId, {
+              type: "LOGOUT_SUCCESS",
+            });
+            addLog("Extension에 로그아웃 알림 전송", "success");
+          } catch (error) {
+            addLog(`Extension 통신 실패: ${error.message}`, "error");
+          }
+        }
       } catch (error) {
         addLog(`로그아웃 실패: ${error.message}`, "error");
       }
@@ -483,7 +596,73 @@ function initUI() {
         addLog("Google 로그인 시작...", "info");
         const result = await signInWithPopup(auth, provider);
         addLog(`로그인 성공: ${result.user.email}`, "success");
+
         updateAuthStatus();
+
+        // Extension에서 왔다면 성공 페이지로 리다이렉트
+        console.log(
+          "Check redirect - source:",
+          source,
+          "extensionId:",
+          extensionId
+        );
+
+        if (source === "extension" && extensionId) {
+          addLog("Extension에 로그인 정보 전달 중...", "info");
+
+          try {
+            // ID 토큰 가져오기
+            const idToken = await result.user.getIdToken();
+            console.log("ID token obtained for extension");
+
+            // 컬렉션 가져오기
+            addLog("컬렉션 불러오는 중...", "info");
+            const collections = await fetchCollections(result.user.uid);
+            console.log(
+              "Collections fetched for extension:",
+              collections.length
+            );
+
+            // Extension에 로그인 정보 및 컬렉션 전달
+            const userData = {
+              uid: result.user.uid,
+              email: result.user.email,
+              displayName: result.user.displayName,
+              photoURL: result.user.photoURL,
+            };
+
+            console.log(
+              "Sending login info and collections to extension:",
+              extensionId
+            );
+            console.log("Collections to send:", collections);
+
+            const response = await chrome.runtime.sendMessage(extensionId, {
+              type: "LOGIN_SUCCESS",
+              user: userData,
+              idToken: idToken,
+              collections: collections,
+            });
+
+            console.log("Extension 응답:", response);
+            addLog(
+              `✅ 로그인 정보 및 ${collections.length}개의 컬렉션이 확장 프로그램에 전달되었습니다!`,
+              "success"
+            );
+
+            // 성공 후 현재 페이지에서 로그인 상태 유지 (리다이렉트 없음)
+            addLog(
+              "로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.",
+              "success"
+            );
+          } catch (error) {
+            console.error("Extension 통신 오류:", error);
+            addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
+          }
+        } else {
+          console.log("Not redirecting - source or extensionId missing");
+          console.log("Current URL:", window.location.href);
+        }
       } catch (error) {
         addLog(`로그인 실패: ${error.message}`, "error");
       }
@@ -538,9 +717,75 @@ function initUI() {
   addLog("SignIn popup 페이지 초기화 완료", "success");
 
   // 인증 상태 모니터링
-  auth.onAuthStateChanged((user) => {
+  let hasRedirected = false; // 중복 리다이렉트 방지
+
+  auth.onAuthStateChanged(async (user) => {
+    console.log(
+      "onAuthStateChanged - user:",
+      user ? user.email : "null",
+      "source:",
+      source,
+      "extensionId:",
+      extensionId,
+      "hasRedirected:",
+      hasRedirected
+    );
     addLog(`인증 상태 변경: ${user ? user.email : "로그아웃"}`, "info");
     updateAuthStatus();
+
+    // Extension에서 왔는데 이미 로그인되어 있으면 성공 페이지로
+    if (user && source === "extension" && extensionId && !hasRedirected) {
+      hasRedirected = true;
+      console.log("Already logged in - sending info to extension immediately");
+      addLog("이미 로그인되어 있음 - Extension에 정보 전달", "info");
+
+      try {
+        // ID 토큰 가져오기
+        const idToken = await user.getIdToken();
+        console.log("ID token obtained for extension (auto)");
+
+        // 컬렉션 가져오기
+        addLog("컬렉션 불러오는 중...", "info");
+        const collections = await fetchCollections(user.uid);
+        console.log(
+          "Collections fetched for extension (auto):",
+          collections.length
+        );
+
+        // Extension에 로그인 정보 및 컬렉션 전달
+        const userData = {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        };
+
+        console.log(
+          "Auto sending login info and collections to extension:",
+          extensionId
+        );
+
+        const response = await chrome.runtime.sendMessage(extensionId, {
+          type: "LOGIN_SUCCESS",
+          user: userData,
+          idToken: idToken,
+          collections: collections,
+        });
+
+        console.log("Extension 응답 (auto):", response);
+        addLog(
+          `✅ 로그인 정보 및 ${collections.length}개의 컬렉션이 확장 프로그램에 전달되었습니다!`,
+          "success"
+        );
+        addLog(
+          "로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.",
+          "success"
+        );
+      } catch (error) {
+        console.error("Extension 통신 오류 (auto):", error);
+        addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
+      }
+    }
   });
 
   // 초기 상태 표시

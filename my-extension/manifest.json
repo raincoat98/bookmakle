@@ -38,7 +38,10 @@
     "https://bookmarkhub-5ea6c.web.app/*"
   ],
   "externally_connectable": {
-    "matches": ["https://bookmarkhub-5ea6c.web.app/*"]
+    "matches": [
+      "https://bookmarkhub-5ea6c.web.app/*",
+      "https://bookmarkhub-5ea6c-sign.web.app/*"
+    ]
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; frame-src 'self' https://bookmarkhub-5ea6c-sign.web.app; connect-src 'self' https://apis.google.com https://www.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com https://identitytoolkit.googleapis.com;"

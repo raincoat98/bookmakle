@@ -88,10 +88,31 @@ async function closeOffscreen() {
 chrome.runtime.onMessageExternal.addListener(
   (request, sender, sendResponse) => {
     if (request.type === "LOGIN_SUCCESS" && request.user) {
-      // Chrome Storage에 사용자 정보 저장
+      // Chrome Storage에 사용자 정보, 토큰, 컬렉션 저장
       if (chrome.storage && chrome.storage.local) {
-        chrome.storage.local.set({ currentUser: request.user }, () => {
+        const dataToSave = {
+          currentUser: request.user,
+        };
+
+        // idToken이 있으면 함께 저장
+        if (request.idToken) {
+          dataToSave.currentIdToken = request.idToken;
+        }
+
+        // 컬렉션이 있으면 함께 저장
+        if (request.collections) {
+          dataToSave.cachedCollections = request.collections;
+          console.log(
+            "Saving collections to storage:",
+            request.collections.length
+          );
+        }
+
+        chrome.storage.local.set(dataToSave, () => {
           console.log("User login saved from external site:", request.user);
+          if (request.collections) {
+            console.log("Collections cached:", request.collections.length);
+          }
           sendResponse({ success: true });
         });
       } else {
@@ -102,12 +123,15 @@ chrome.runtime.onMessageExternal.addListener(
     }
 
     if (request.type === "LOGOUT_SUCCESS") {
-      // Chrome Storage에서 사용자 정보 제거
+      // Chrome Storage에서 사용자 정보, 토큰, 컬렉션 제거
       if (chrome.storage && chrome.storage.local) {
-        chrome.storage.local.remove(["currentUser"], () => {
-          console.log("User logout completed from external site");
-          sendResponse({ success: true });
-        });
+        chrome.storage.local.remove(
+          ["currentUser", "currentIdToken", "cachedCollections"],
+          () => {
+            console.log("User logout completed from external site");
+            sendResponse({ success: true });
+          }
+        );
       } else {
         console.error("Chrome Storage API가 사용할 수 없습니다");
         sendResponse({ success: false, error: "Storage API unavailable" });

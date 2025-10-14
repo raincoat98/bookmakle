@@ -135,6 +135,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     iframe.contentWindow.postMessage(
       {
         getCollections: true,
+        idToken: currentIdToken, // ID 토큰 함께 전달
       },
       origin
     );
@@ -174,6 +175,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       {
         getBookmarks: true,
         collectionId: msg.collectionId,
+        idToken: currentIdToken, // ID 토큰 함께 전달
       },
       origin
     );
@@ -216,6 +218,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       {
         saveBookmark: true,
         bookmarkData: msg.bookmarkData,
+        idToken: currentIdToken, // ID 토큰 함께 전달
       },
       origin
     );
