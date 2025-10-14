@@ -192,6 +192,27 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           type: "SAVE_BOOKMARK",
           bookmarkData: msg.bookmarkData,
         });
+
+        // 저장 성공 시 아이콘에 체크 표시
+        if (result?.type === "BOOKMARK_SAVED") {
+          const [activeTab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          if (activeTab) {
+            chrome.action.setBadgeText({ text: "✓", tabId: activeTab.id });
+            chrome.action.setBadgeBackgroundColor({
+              color: "#10b981",
+              tabId: activeTab.id,
+            });
+
+            // 3초 후 제거
+            setTimeout(() => {
+              chrome.action.setBadgeText({ text: "", tabId: activeTab.id });
+            }, 3000);
+          }
+        }
+
         sendResponse(result);
         return;
       }
@@ -442,6 +463,9 @@ async function toggleQuickMode() {
         : "⚡ 빠른 실행 모드 활성화",
     });
 
+    // 팝업 동작 업데이트
+    await updatePopupBehavior();
+
     console.log(`빠른 실행 모드 ${newMode ? "활성화" : "비활성화"}`);
   } catch (error) {
     console.error("빠른 실행 모드 토글 실패:", error);
@@ -475,3 +499,140 @@ async function openDashboard() {
     console.error("대시보드 열기 실패:", error);
   }
 }
+
+// 빠른실행모드 상태에 따라 팝업 설정 업데이트
+async function updatePopupBehavior() {
+  const result = await chrome.storage.local.get(["quickMode"]);
+  const isQuickMode = result.quickMode || false;
+
+  if (isQuickMode) {
+    // 빠른실행모드: 팝업 제거하여 onClicked 이벤트 발생
+    await chrome.action.setPopup({ popup: "" });
+    console.log("빠른실행모드 활성화 - 팝업 비활성화");
+  } else {
+    // 일반 모드: 팝업 설정
+    await chrome.action.setPopup({ popup: "popup.html" });
+    console.log("일반 모드 - 팝업 활성화");
+  }
+}
+
+// 확장 프로그램 아이콘 클릭 이벤트 (빠른실행모드 전용)
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    // 사용자 정보 확인
+    const result = await chrome.storage.local.get(["currentUser"]);
+    const currentUser = result.currentUser;
+
+    if (!currentUser) {
+      console.log("빠른실행모드: 로그인 필요 - 대시보드로 이동");
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "public/bookmark.png",
+        title: "로그인 필요",
+        message: "북마크를 저장하려면 먼저 로그인하세요.",
+        priority: 2,
+      });
+      await openDashboard();
+
+      return;
+    }
+
+    console.log("⚡ 빠른 저장 시작...");
+
+    // 현재 탭 정보
+    const bookmarkData = {
+      userId: currentUser.uid,
+      title: tab.title || tab.url,
+      url: tab.url,
+      description: "",
+      collectionId: null,
+      tags: [],
+      favIconUrl: tab.favIconUrl || "",
+      order: Date.now(),
+    };
+
+    // offscreen 설정 및 저장
+    await setupOffscreen();
+    const saveResult = await sendMessageToOffscreen({
+      target: "offscreen",
+      type: "SAVE_BOOKMARK",
+      bookmarkData: bookmarkData,
+    });
+
+    if (saveResult?.type === "BOOKMARK_SAVED") {
+      // 아이콘에 체크 표시
+      chrome.action.setBadgeText({ text: "✓", tabId: tab.id });
+      chrome.action.setBadgeBackgroundColor({
+        color: "#10b981",
+        tabId: tab.id,
+      });
+
+      // 성공 알림
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "public/bookmark.png",
+        title: "⚡ 빠른 저장 완료",
+        message: `"${tab.title}" 북마크가 저장되었습니다.`,
+        priority: 2,
+      });
+      console.log("빠른 저장 완료:", saveResult.bookmarkId);
+
+      // 3초 후 체크 표시 제거
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: "", tabId: tab.id });
+      }, 3000);
+    } else {
+      // 아이콘에 실패 표시
+      chrome.action.setBadgeText({ text: "✕", tabId: tab.id });
+      chrome.action.setBadgeBackgroundColor({
+        color: "#ef4444",
+        tabId: tab.id,
+      });
+
+      // 실패 알림
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "public/bookmark.png",
+        title: "❌ 저장 실패",
+        message: saveResult?.message || "북마크 저장에 실패했습니다.",
+        priority: 2,
+      });
+      console.error("빠른 저장 실패:", saveResult);
+
+      // 3초 후 제거
+      setTimeout(() => {
+        chrome.action.setBadgeText({ text: "", tabId: tab.id });
+      }, 3000);
+    }
+  } catch (error) {
+    console.error("빠른 저장 중 오류:", error);
+
+    // 아이콘에 오류 표시
+    chrome.action.setBadgeText({ text: "✕", tabId: tab.id });
+    chrome.action.setBadgeBackgroundColor({ color: "#ef4444", tabId: tab.id });
+
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "public/bookmark.png",
+      title: "❌ 오류 발생",
+      message: "북마크 저장 중 오류가 발생했습니다.",
+      priority: 2,
+    });
+
+    // 3초 후 제거
+    setTimeout(() => {
+      chrome.action.setBadgeText({ text: "", tabId: tab.id });
+    }, 3000);
+  }
+});
+
+// storage 변경 감지하여 팝업 동작 업데이트
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === "local" && changes.quickMode) {
+    console.log("빠른실행모드 변경 감지:", changes.quickMode.newValue);
+    updatePopupBehavior();
+  }
+});
+
+// 확장 프로그램 시작 시 팝업 동작 초기화
+updatePopupBehavior();
