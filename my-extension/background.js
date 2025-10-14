@@ -15,8 +15,17 @@ async function hasOffscreen() {
 }
 
 async function setupOffscreen() {
-  if (await hasOffscreen()) return;
-  if (creatingOffscreen) return creatingOffscreen;
+  if (await hasOffscreen()) {
+    // 이미 존재하면 준비 확인만
+    await waitForOffscreenReady();
+    return;
+  }
+
+  if (creatingOffscreen) {
+    await creatingOffscreen;
+    await waitForOffscreenReady();
+    return;
+  }
 
   creatingOffscreen = chrome.offscreen.createDocument({
     url: OFFSCREEN_PATH,
@@ -24,6 +33,49 @@ async function setupOffscreen() {
     justification: "Firebase signInWithPopup in iframe (MV3 limitation)",
   });
   await creatingOffscreen;
+  creatingOffscreen = null;
+
+  // offscreen이 준비될 때까지 대기
+  await waitForOffscreenReady();
+}
+
+// offscreen이 준비될 때까지 대기 (ping 테스트)
+async function waitForOffscreenReady(maxWait = 5000) {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWait) {
+    try {
+      // ping 메시지를 보내서 응답이 오는지 확인
+      await chrome.runtime.sendMessage({
+        target: "offscreen",
+        type: "PING",
+      });
+      // 응답이 왔으면 준비된 것
+      console.log("Offscreen is ready");
+      return;
+    } catch (error) {
+      // 아직 준비 안됨, 조금 더 대기
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+  }
+
+  console.warn("Offscreen may not be ready after maximum wait time");
+}
+
+// offscreen으로 메시지를 보내고 재시도 로직 포함
+async function sendMessageToOffscreen(message, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const result = await chrome.runtime.sendMessage(message);
+      return result;
+    } catch (error) {
+      if (i === maxRetries - 1) {
+        throw error;
+      }
+      console.log(`Offscreen 메시지 전송 재시도 ${i + 1}/${maxRetries}`);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
 }
 
 async function closeOffscreen() {
@@ -72,7 +124,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (msg?.type === "LOGIN_GOOGLE") {
         await setupOffscreen();
         // offscreen으로 위임
-        const result = await chrome.runtime.sendMessage({
+        const result = await sendMessageToOffscreen({
           target: "offscreen",
           type: "START_POPUP_AUTH",
         });
@@ -104,6 +156,43 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           console.error("Chrome Storage API가 사용할 수 없습니다");
           sendResponse({ success: false, error: "Storage API unavailable" });
         }
+        return;
+      }
+
+      if (msg?.type === "GET_COLLECTIONS") {
+        // 컬렉션 데이터 요청을 offscreen으로 전달
+        await setupOffscreen();
+        const result = await sendMessageToOffscreen({
+          target: "offscreen",
+          type: "GET_COLLECTIONS",
+          userId: msg.userId,
+        });
+        sendResponse(result);
+        return;
+      }
+
+      if (msg?.type === "GET_BOOKMARKS") {
+        // 북마크 데이터 요청을 offscreen으로 전달
+        await setupOffscreen();
+        const result = await sendMessageToOffscreen({
+          target: "offscreen",
+          type: "GET_BOOKMARKS",
+          userId: msg.userId,
+          collectionId: msg.collectionId,
+        });
+        sendResponse(result);
+        return;
+      }
+
+      if (msg?.type === "SAVE_BOOKMARK") {
+        // 북마크 저장 요청을 offscreen으로 전달
+        await setupOffscreen();
+        const result = await sendMessageToOffscreen({
+          target: "offscreen",
+          type: "SAVE_BOOKMARK",
+          bookmarkData: msg.bookmarkData,
+        });
+        sendResponse(result);
         return;
       }
     } catch (error) {

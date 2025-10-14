@@ -1,8 +1,169 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head><meta charset="utf-8" /><title>signInWithPopup</title></head>
+  <head>
+    <meta charset="utf-8" />
+    <title>SignIn Popup - Test Page</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .container {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      h1 {
+        color: #667eea;
+        margin-top: 0;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .section {
+        margin: 20px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+      }
+      .section h2 {
+        margin-top: 0;
+        color: #333;
+        font-size: 1.2em;
+      }
+      .status {
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        margin: 10px 0;
+        display: inline-block;
+      }
+      .logged-in {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #c3e6cb;
+      }
+      .logged-out {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #f5c6cb;
+      }
+      .user-email {
+        color: #666;
+        margin: 10px 0;
+        font-size: 0.95em;
+      }
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        font-weight: 600;
+        margin: 5px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .collection-item {
+        background: white;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+        transition: box-shadow 0.2s;
+      }
+      .collection-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      .loading {
+        color: #667eea;
+        font-weight: bold;
+      }
+      .error {
+        color: #dc3545;
+        font-weight: bold;
+      }
+      .success {
+        color: #28a745;
+        font-weight: bold;
+      }
+      #debugLogs {
+        max-height: 300px;
+        overflow-y: auto;
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 0.85em;
+        line-height: 1.6;
+      }
+      .log-entry {
+        margin: 3px 0;
+      }
+      .log-info {
+        color: #4fc3f7;
+      }
+      .log-success {
+        color: #81c784;
+      }
+      .log-error {
+        color: #e57373;
+      }
+    </style>
+  </head>
   <body>
-    <h1>signInWithPopup</h1>
+    <div class="container">
+      <h1>🔐 SignIn Popup - Test Page</h1>
+
+      <!-- 인증 상태 섹션 -->
+      <div class="section">
+        <h2>📊 인증 상태</h2>
+        <div id="authStatus" class="status logged-out">❌ 로그아웃 상태</div>
+        <div id="userEmail" class="user-email" style="display: none"></div>
+        <div style="margin-top: 15px">
+          <button id="loginBtn">Google 로그인</button>
+          <button id="refreshAuthBtn">상태 새로고침</button>
+        </div>
+      </div>
+
+      <!-- 컬렉션 테스트 섹션 -->
+      <div class="section">
+        <h2>📁 컬렉션 테스트</h2>
+        <div style="margin: 15px 0">
+          <button id="loadCollectionsBtn">컬렉션 불러오기</button>
+          <button id="clearCollectionsBtn">목록 지우기</button>
+        </div>
+        <div id="collectionsStatus"></div>
+        <div id="collectionsList"></div>
+      </div>
+
+      <!-- 디버그 로그 -->
+      <div class="section">
+        <h2>🐛 디버그 로그</h2>
+        <button id="clearLogsBtn">로그 지우기</button>
+        <div id="debugLogs"></div>
+      </div>
+    </div>
+
     <script type="module" src="./signInWithPopup.js"></script>
   </body>
 </html>
