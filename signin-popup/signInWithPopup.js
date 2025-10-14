@@ -27,6 +27,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
+// Provider 설정 - popup 관련 설정 추가
+provider.setCustomParameters({
+  prompt: "select_account",
+});
+
 // Persistence 설정
 setPersistence(auth, browserLocalPersistence).catch((error) => {
   console.error("Failed to set persistence:", error);
@@ -354,11 +359,36 @@ console.log("SignIn popup page loaded, ready to receive messages");
 const urlParams = new URLSearchParams(window.location.search);
 const source = urlParams.get("source");
 const extensionId = urlParams.get("extensionId");
+const isFromExtension = source === "extension" && extensionId;
 
 console.log("=== PAGE LOAD ===");
 console.log("URL:", window.location.href);
 console.log("URL params - source:", source, "extensionId:", extensionId);
+console.log("Is from extension:", isFromExtension);
 console.log("=================");
+
+// 안전한 signInWithPopup 래퍼 함수
+async function safeSignInWithPopup() {
+  try {
+    // Extension 환경에서 추가 안전 장치
+    if (isFromExtension) {
+      console.log("Extension environment detected - using safe popup");
+    }
+
+    const result = await signInWithPopup(auth, provider);
+    return result;
+  } catch (error) {
+    // 팝업이 닫힌 경우 더 자세한 에러 정보 제공
+    if (error.code === "auth/popup-closed-by-user") {
+      throw new Error("로그인 팝업이 닫혔습니다. 다시 시도해주세요.");
+    } else if (error.code === "auth/popup-blocked") {
+      throw new Error(
+        "팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요."
+      );
+    }
+    throw error;
+  }
+}
 
 function toSafeUser(user) {
   return {
@@ -590,10 +620,16 @@ function initUI() {
     // 로그인
     try {
       addLog("Google 로그인 시작...", "info");
+
+      // Extension에서 온 경우 안내 메시지 추가
+      if (isFromExtension) {
+        addLog("확장 프로그램에서 Google 로그인을 진행합니다...", "info");
+      }
+
       loginBtn.disabled = true;
       loginBtn.innerHTML = `<div class="loading-spinner"></div> 로그인 중...`;
 
-      const result = await signInWithPopup(auth, provider);
+      const result = await safeSignInWithPopup();
       addLog(`로그인 성공: ${result.user.email}`, "success");
 
       updateAuthStatus();
@@ -613,7 +649,13 @@ function initUI() {
         console.log("Current URL:", window.location.href);
       }
     } catch (error) {
+      console.error("Login error:", error);
       addLog(`로그인 실패: ${error.message}`, "error");
+
+      // Extension에서 온 경우 특별한 안내
+      if (isFromExtension && error.code === "auth/popup-closed-by-user") {
+        addLog("팝업이 닫혔습니다. 다시 시도해주세요.", "warning");
+      }
     } finally {
       loginBtn.disabled = false;
       loginBtn.innerHTML = `
@@ -661,7 +703,14 @@ function initUI() {
   // 탭 닫기 버튼 클릭
   closeTabBtn.addEventListener("click", () => {
     addLog("탭을 닫는 중...", "info");
+
+    // window.close() 시도
     window.close();
+
+    // window.close()가 작동하지 않을 수 있음을 안내 (짧은 지연 후)
+    setTimeout(() => {
+      addLog("탭을 수동으로 닫아주세요. (Ctrl+W 또는 탭의 X 버튼)", "warning");
+    }, 500);
   });
 
   // 로그 지우기 버튼
@@ -848,6 +897,14 @@ function initUI() {
 
       // 성공 후 현재 페이지에서 로그인 상태 유지 (리다이렉트 없음)
       addLog("로그인 완료! 이 페이지에서 계속 사용할 수 있습니다.", "success");
+
+      // Extension에서 열린 경우 탭 닫기 안내만 제공 (자동 닫기 제거)
+      if (isFromExtension) {
+        addLog(
+          "로그인이 완료되었습니다. 우측 상단의 '탭 닫기' 버튼을 눌러 탭을 닫을 수 있습니다.",
+          "info"
+        );
+      }
     } catch (error) {
       console.error("Extension 통신 오류:", error);
       addLog(`❌ Extension 통신 실패: ${error.message}`, "error");
