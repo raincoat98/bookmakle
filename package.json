@@ -1,0 +1,48 @@
+{
+  "name": "bookmark-hub",
+  "version": "1.0.0",
+  "description": "📚 북마크 허브 - 통합 북마크 관리 시스템",
+  "scripts": {
+    "setup": "./setup-env.sh",
+    "deploy": "./deploy.sh all",
+    "deploy:signin": "./deploy.sh signin-popup",
+    "deploy:dashboard": "./deploy.sh dashboard",
+    "deploy:extension": "./deploy.sh my-extension",
+    "build": "./build.sh all",
+    "build:signin": "./build.sh signin-popup",
+    "build:dashboard": "./build.sh dashboard",
+    "build:extension": "./build.sh my-extension",
+    "dev": "./dev.sh signin-popup",
+    "dev:all": "./dev.sh all",
+    "dev:signin": "./dev.sh signin-popup",
+    "dev:dashboard": "./dev.sh dashboard",
+    "dev:extension": "./dev.sh my-extension",
+    "serve": "./serve.sh signin-popup",
+    "start": "./dev.sh dashboard"
+  },
+  "keywords": [
+    "bookmark",
+    "bookmark-manager",
+    "firebase",
+    "authentication",
+    "chrome-extension",
+    "react",
+    "typescript",
+    "vite",
+    "manifest-v3",
+    "dashboard"
+  ],
+  "author": "북마크 허브 개발팀",
+  "license": "MIT",
+  "homepage": "https://github.com/bookmark-hub/bookmark-hub",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bookmark-hub/bookmark-hub.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bookmark-hub/bookmark-hub/issues"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}
