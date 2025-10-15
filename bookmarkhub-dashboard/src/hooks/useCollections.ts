@@ -6,7 +6,6 @@ import {
   doc,
   query,
   where,
-  orderBy,
   getDocs,
   updateDoc,
   serverTimestamp,
@@ -24,8 +23,7 @@ export const useCollections = (userId: string) => {
       setLoading(true);
       const q = query(
         collection(db, "collections"),
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc")
+        where("userId", "==", userId)
       );
 
       const querySnapshot = await getDocs(q);
@@ -44,6 +42,9 @@ export const useCollections = (userId: string) => {
           parentId: data.parentId ?? null,
         });
       });
+
+      // 클라이언트 측에서 이름순으로 정렬
+      collectionList.sort((a, b) => a.name.localeCompare(b.name));
 
       setCollections(collectionList);
     } catch (error) {

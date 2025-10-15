@@ -62,9 +62,9 @@ export const CollectionList = ({
     depth: number = 0
   ): React.JSX.Element[] {
     if (depth > 2) return [];
-    const filteredCollections = collections.filter(
-      (col) => col.parentId === parentId
-    );
+    const filteredCollections = collections
+      .filter((col) => col.parentId === parentId)
+      .sort((a, b) => a.name.localeCompare(b.name));
     return filteredCollections.flatMap((collection, index) => {
       const children = renderCollectionTree(collection.id, depth + 1);
       const isOpen = openIds.includes(collection.id);
@@ -238,6 +238,7 @@ export const CollectionList = ({
           {/* 최상위 컬렉션들만 표시 */}
           {collections
             .filter((col) => !col.parentId)
+            .sort((a, b) => a.name.localeCompare(b.name))
             .map((collection) => (
               <button
                 key={collection.id}

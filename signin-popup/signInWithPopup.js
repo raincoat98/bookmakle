@@ -607,8 +607,8 @@ async function fetchCollections(userId) {
       });
     });
 
-    // 클라이언트 측에서 정렬
-    collections.sort((a, b) => (a.order || 0) - (b.order || 0));
+    // 클라이언트 측에서 이름순으로 정렬
+    collections.sort((a, b) => a.name.localeCompare(b.name));
 
     return collections;
   } catch (error) {
