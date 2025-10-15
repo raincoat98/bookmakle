@@ -71,7 +71,9 @@ async function sendMessageToOffscreen(message, maxRetries = 3) {
   console.log("🔥 sendMessageToOffscreen called with:", message);
   for (let i = 0; i < maxRetries; i++) {
     try {
-      console.log(`🔥 Attempt ${i + 1}: Sending message via chrome.runtime.sendMessage`);
+      console.log(
+        `🔥 Attempt ${i + 1}: Sending message via chrome.runtime.sendMessage`
+      );
       const result = await chrome.runtime.sendMessage(message);
       console.log("🔥 Message sent successfully, result:", result);
       return result;
@@ -609,9 +611,10 @@ chrome.action.onClicked.addListener(async (tab) => {
       title: tab.title || tab.url,
       url: tab.url,
       description: "",
-      collectionId: null,
+      collection: null, // 빠른 저장에서는 컬렉션 없음으로 저장
       tags: [],
-      favIconUrl: tab.favIconUrl || "",
+      favicon: tab.favIconUrl || "",
+      isFavorite: false,
       order: Date.now(),
     };
 

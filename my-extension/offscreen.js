@@ -262,6 +262,9 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
   if (msg.type === "SAVE_BOOKMARK") {
     // 북마크 저장 요청
+    console.log("offscreen에서 북마크 저장 요청 수신:", msg.bookmarkData);
+    console.log("전달할 컬렉션 ID:", msg.bookmarkData?.collectionId);
+
     const origin = new URL(PUBLIC_POPUP_URL).origin;
 
     function handleSaveBookmarkMessage(ev) {

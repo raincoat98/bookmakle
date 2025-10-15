@@ -367,6 +367,8 @@ window.addEventListener("message", async (ev) => {
   // 북마크 저장 요청
   if (ev.data?.saveBookmark) {
     console.log("Saving bookmark request received");
+    console.log("Received bookmarkData:", ev.data.bookmarkData);
+    console.log("Received collectionId:", ev.data.bookmarkData?.collectionId);
     console.log("Received idToken:", ev.data.idToken ? "Yes" : "No");
 
     try {
@@ -659,6 +661,8 @@ async function fetchBookmarks(userId, collectionId = null) {
 
 // Firestore에 북마크 저장
 async function saveBookmark(bookmarkData) {
+  console.log("saveBookmark 함수 호출됨, 입력 데이터:", bookmarkData);
+
   if (!bookmarkData.userId) {
     throw new Error("User ID is required");
   }
@@ -672,13 +676,21 @@ async function saveBookmark(bookmarkData) {
       title: bookmarkData.title || "",
       url: bookmarkData.url || "",
       description: bookmarkData.description || "",
-      collectionId: bookmarkData.collectionId || null,
+      collection:
+        (bookmarkData.collection || bookmarkData.collectionId) &&
+        (bookmarkData.collection || bookmarkData.collectionId).trim() !== ""
+          ? bookmarkData.collection || bookmarkData.collectionId
+          : null,
       tags: bookmarkData.tags || [],
-      favIconUrl: bookmarkData.favIconUrl || "",
+      favicon: bookmarkData.favicon || bookmarkData.favIconUrl || "",
+      isFavorite: bookmarkData.isFavorite || false,
       order: bookmarkData.order || 0,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
+
+    console.log("Firestore에 저장할 최종 북마크 데이터:", newBookmark);
+    console.log("최종 컬렉션 ID:", newBookmark.collection);
 
     // Firestore에 저장
     const docRef = await addDoc(bookmarksRef, newBookmark);

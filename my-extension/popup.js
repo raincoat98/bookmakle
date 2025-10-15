@@ -319,14 +319,29 @@ if ($saveBookmarkButton) {
       $saveBookmarkButton.textContent = "저장 중...";
 
       // 북마크 데이터 준비
+      const selectedCollectionId = $collectionSelect?.value;
+      console.log(
+        "선택된 컬렉션 ID:",
+        selectedCollectionId,
+        "타입:",
+        typeof selectedCollectionId
+      );
+
+      const finalCollectionId =
+        selectedCollectionId && selectedCollectionId.trim() !== ""
+          ? selectedCollectionId
+          : null;
+      console.log("최종 컬렉션 ID:", finalCollectionId);
+
       const bookmarkData = {
         userId: authResult.user.uid,
         title: window.currentPageData.title,
         url: window.currentPageData.url,
         description: $memoInput?.value || "",
-        collectionId: $collectionSelect?.value || null,
+        collection: finalCollectionId,
         tags: tags,
-        favIconUrl: window.currentPageData.favIconUrl || "",
+        favicon: window.currentPageData.favIconUrl || "",
+        isFavorite: false,
         order: Date.now(), // 임시로 타임스탬프 사용
       };
 
