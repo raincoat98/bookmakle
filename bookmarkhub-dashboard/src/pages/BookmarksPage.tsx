@@ -352,6 +352,7 @@ export const BookmarksPage: React.FC = () => {
       if ("isPinned" in collectionData) {
         await setPinned(collectionId, collectionData.isPinned || false);
         // isPinned를 제외한 나머지 데이터만 updateCollection으로 처리
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { isPinned: _, ...otherData } = collectionData;
         if (Object.keys(otherData).length > 0) {
           await updateCollection(collectionId, otherData);
@@ -432,10 +433,10 @@ export const BookmarksPage: React.FC = () => {
     >
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* 북마크 리스트 상단 컨트롤 바 */}
-        <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 z-10 p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-sm">
           <div className="flex flex-col sm:flex-row gap-4 w-full">
-            {/* 검색창 - 데스크톱에서만 보임 */}
-            <div className="relative w-full sm:flex-1 min-w-0 hidden sm:block">
+            {/* 검색창 - 모든 화면 크기에서 보임 */}
+            <div className="relative w-full sm:flex-1 min-w-0">
               <input
                 type="text"
                 placeholder="북마크 검색..."
@@ -514,7 +515,7 @@ export const BookmarksPage: React.FC = () => {
         </div>
 
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0 sm:pb-6 pb-24">
+        <div className="flex-1 p-4 lg:p-6 overflow-y-auto w-full min-w-0">
           {(() => {
             // 필터링된 북마크 데이터에서 실제 북마크 배열 추출
             let bookmarksToDisplay: Bookmark[] = [];
@@ -569,22 +570,6 @@ export const BookmarksPage: React.FC = () => {
               />
             );
           })()}
-
-          {/* 모바일 하단 검색바 */}
-          <div className="fixed bottom-0 left-0 right-0 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 border-t border-slate-200/50 dark:border-slate-700/50 p-4 sm:hidden">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="검색어 또는 URL 입력"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-4 pr-16 py-4 border border-slate-300/50 dark:border-slate-600/50 rounded-2xl bg-slate-50/80 dark:bg-slate-800/80 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm shadow-lg"
-              />
-              <button className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl text-sm font-medium shadow-lg transition-all duration-200">
-                완료
-              </button>
-            </div>
-          </div>
 
           {/* 태그 필터 UI */}
           {(() => {

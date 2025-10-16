@@ -243,7 +243,7 @@ export const Drawer: React.FC<DrawerProps> = ({
         </div>
 
         {/* 콘텐츠 영역 */}
-        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
     </div>
   );
