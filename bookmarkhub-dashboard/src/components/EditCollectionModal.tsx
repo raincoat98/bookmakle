@@ -42,6 +42,7 @@ export const EditCollectionModal = ({
     description: "",
     icon: "Folder",
     parentId: null,
+    isPinned: false,
   });
   const [loading, setLoading] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
@@ -54,6 +55,7 @@ export const EditCollectionModal = ({
         description: collection.description || "",
         icon: collection.icon,
         parentId: collection.parentId,
+        isPinned: collection.isPinned || false,
       });
     }
   }, [collection]);
@@ -191,6 +193,28 @@ export const EditCollectionModal = ({
                 </select>
               </div>
             )}
+
+            {/* 고정하기 옵션 */}
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="isPinned"
+                checked={formData.isPinned}
+                onChange={(e) =>
+                  setFormData({ ...formData, isPinned: e.target.checked })
+                }
+                className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 rounded focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="isPinned"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center space-x-2"
+              >
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                  PIN
+                </span>
+                <span>고정하기 (기본 탭으로 설정)</span>
+              </label>
+            </div>
 
             <div className="flex justify-end space-x-2 pt-4">
               <button

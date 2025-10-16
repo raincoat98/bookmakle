@@ -31,8 +31,25 @@ export const BookmarksPage: React.FC = () => {
     label: "사용자 순서",
   });
 
-  const { collections, addCollection, updateCollection, deleteCollection } =
-    useCollections(user?.uid || "");
+  const {
+    collections,
+    addCollection,
+    updateCollection,
+    deleteCollection,
+    setPinned,
+  } = useCollections(user?.uid || "");
+
+  // 핀된 컬렉션을 기본 탭으로 설정
+  React.useEffect(() => {
+    if (collections.length > 0) {
+      const pinnedCollection = collections.find((col) => col.isPinned);
+      if (pinnedCollection) {
+        setSelectedCollection((current) =>
+          current === "all" ? pinnedCollection.id : current
+        );
+      }
+    }
+  }, [collections]);
   const {
     bookmarks,
     addBookmark,
@@ -87,18 +104,21 @@ export const BookmarksPage: React.FC = () => {
   }, [bookmarks]);
 
   // 하위 컬렉션 ID들을 재귀적으로 가져오는 함수
-  const getChildCollectionIds = (parentId: string): string[] => {
-    const childIds: string[] = [];
-    const getChildren = (id: string) => {
-      const children = collections.filter((col) => col.parentId === id);
-      children.forEach((child) => {
-        childIds.push(child.id);
-        getChildren(child.id);
-      });
-    };
-    getChildren(parentId);
-    return childIds;
-  };
+  const getChildCollectionIds = React.useCallback(
+    (parentId: string): string[] => {
+      const childIds: string[] = [];
+      const getChildren = (id: string) => {
+        const children = collections.filter((col) => col.parentId === id);
+        children.forEach((child) => {
+          childIds.push(child.id);
+          getChildren(child.id);
+        });
+      };
+      getChildren(parentId);
+      return childIds;
+    },
+    [collections]
+  );
 
   // parentId의 깊이 계산 함수
   const getCollectionDepth = (id: string | null): number => {
@@ -118,7 +138,8 @@ export const BookmarksPage: React.FC = () => {
     name: string,
     description: string,
     icon: string,
-    parentId?: string | null
+    parentId?: string | null,
+    isPinned?: boolean
   ) => {
     // parentId의 깊이가 2 이상이면 추가 불가
     if (parentId && getCollectionDepth(parentId) >= 2) {
@@ -127,12 +148,19 @@ export const BookmarksPage: React.FC = () => {
     }
 
     try {
-      await addCollection({
+      const collectionId = await addCollection({
         name,
         description,
         icon,
         parentId: parentId ?? null,
+        isPinned: isPinned ?? false,
       });
+
+      // 핀이 설정된 경우, 다른 컬렉션들의 핀을 해제
+      if (isPinned && collectionId) {
+        await setPinned(collectionId, true);
+      }
+
       toast.success("컬렉션이 추가되었습니다.");
     } catch (error) {
       console.error("Error adding collection:", error);
@@ -208,7 +236,14 @@ export const BookmarksPage: React.FC = () => {
       isGrouped: false,
       bookmarks: filtered,
     };
-  }, [bookmarks, searchTerm, selectedCollection, selectedTag, collections]);
+  }, [
+    bookmarks,
+    searchTerm,
+    selectedCollection,
+    selectedTag,
+    collections,
+    getChildCollectionIds,
+  ]);
 
   // 이벤트 핸들러들
   const handleAddBookmark = async (bookmarkData: BookmarkFormData) => {
@@ -313,7 +348,18 @@ export const BookmarksPage: React.FC = () => {
     collectionData: Partial<Collection>
   ) => {
     try {
-      await updateCollection(collectionId, collectionData);
+      // isPinned가 변경된 경우 setPinned 함수 사용
+      if ("isPinned" in collectionData) {
+        await setPinned(collectionId, collectionData.isPinned || false);
+        // isPinned를 제외한 나머지 데이터만 updateCollection으로 처리
+        const { isPinned: _, ...otherData } = collectionData;
+        if (Object.keys(otherData).length > 0) {
+          await updateCollection(collectionId, otherData);
+        }
+      } else {
+        await updateCollection(collectionId, collectionData);
+      }
+
       toast.success("컬렉션이 수정되었습니다.");
       setShowEditModal(false);
       setEditingCollection(null);

@@ -125,7 +125,19 @@ export const CollectionList = ({
             )}
             {!hasChild && depth > 0 && <span className="tree-leaf">└</span>}
           </div>
-          {renderCollectionIcon(collection.icon, "w-5 h-5")}
+
+          <div className="flex items-center space-x-2">
+            {renderCollectionIcon(collection.icon, "w-5 h-5")}
+            {collection.isPinned && (
+              <span
+                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                title="고정된 컬렉션"
+              >
+                PIN
+              </span>
+            )}
+          </div>
+
           <div className="flex-1">
             <span
               className="font-medium block text-left"
@@ -142,6 +154,7 @@ export const CollectionList = ({
               </span>
             )}
           </div>
+
           {/* 액션 버튼들 */}
           <div className="flex items-center space-x-1 ml-2">
             {/* 수정 버튼 */}
@@ -238,20 +251,31 @@ export const CollectionList = ({
           {/* 최상위 컬렉션들만 표시 */}
           {collections
             .filter((col) => !col.parentId)
-            .sort((a, b) => a.name.localeCompare(b.name))
+            .sort((a, b) => {
+              // 핀된 컬렉션이 먼저 오도록 정렬
+              if (a.isPinned && !b.isPinned) return -1;
+              if (!a.isPinned && b.isPinned) return 1;
+              return a.name.localeCompare(b.name);
+            })
             .map((collection) => (
-              <button
-                key={collection.id}
-                onClick={() => onCollectionChange(collection.id)}
-                className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
-                  selectedCollection === collection.id
-                    ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                }`}
-                title={collection.name}
-              >
-                {renderCollectionIcon(collection.icon, "w-4 h-4")}
-              </button>
+              <div key={collection.id} className="relative">
+                <button
+                  onClick={() => onCollectionChange(collection.id)}
+                  className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+                    selectedCollection === collection.id
+                      ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  }`}
+                  title={collection.name}
+                >
+                  {renderCollectionIcon(collection.icon, "w-4 h-4")}
+                </button>
+                {collection.isPinned && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center px-1 py-0.5 rounded-full text-xs font-bold bg-yellow-400 text-yellow-900 border border-yellow-500">
+                    P
+                  </span>
+                )}
+              </div>
             ))}
         </div>
 

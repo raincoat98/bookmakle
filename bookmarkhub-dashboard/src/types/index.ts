@@ -56,6 +56,7 @@ export interface Collection {
   createdAt: Date;
   updatedAt: Date;
   parentId: string | null; // 하위 컬렉션 지원
+  isPinned?: boolean; // 핀 기능 추가
 }
 
 export interface CollectionFormData {
@@ -63,6 +64,7 @@ export interface CollectionFormData {
   description?: string;
   icon: string;
   parentId: string | null; // 하위 컬렉션 지원
+  isPinned?: boolean; // 핀 기능 추가
 }
 
 // 기존 하드코딩된 컬렉션 타입은 호환성을 위해 유지

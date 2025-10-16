@@ -9,7 +9,8 @@ interface AddCollectionModalProps {
     name: string,
     description: string,
     icon: string,
-    parentId?: string
+    parentId?: string | null,
+    isPinned?: boolean
   ) => Promise<void>;
   parentId?: string | null;
 }
@@ -23,6 +24,7 @@ export const AddCollectionModal = ({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("Folder");
+  const [isPinned, setIsPinned] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
 
@@ -33,10 +35,11 @@ export const AddCollectionModal = ({
     if (!name.trim()) return;
     setLoading(true);
     try {
-      await onAdd(name.trim(), description.trim(), icon, parentId || undefined);
+      await onAdd(name.trim(), description.trim(), icon, parentId, isPinned);
       setName("");
       setDescription("");
       setIcon("Folder");
+      setIsPinned(false);
       setShowIconPicker(false);
       onClose();
     } finally {
@@ -109,6 +112,26 @@ export const AddCollectionModal = ({
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                 placeholder="컬렉션에 대한 설명을 입력하세요 (선택사항)"
               />
+            </div>
+
+            {/* 고정하기 옵션 */}
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="isPinned"
+                checked={isPinned}
+                onChange={(e) => setIsPinned(e.target.checked)}
+                className="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 rounded focus:ring-brand-500 dark:focus:ring-brand-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label
+                htmlFor="isPinned"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center space-x-2"
+              >
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                  PIN
+                </span>
+                <span>고정하기 (기본 탭으로 설정)</span>
+              </label>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
               <button
