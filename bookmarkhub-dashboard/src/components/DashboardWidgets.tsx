@@ -1281,8 +1281,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 // 성경 구절 위젯 컴포넌트
 const BibleVerseWidget: React.FC = () => {
   const [currentVerse, setCurrentVerse] = useState(() => {
-    const randomIndex = Math.floor(Math.random() * bibleVerses.length);
-    return bibleVerses[randomIndex];
+    const data = bibleVerses as {
+      verses: Array<{ verse: string; reference: string }>;
+    };
+    const randomIndex = Math.floor(Math.random() * data.verses.length);
+    return data.verses[randomIndex];
   });
   const [copied, setCopied] = useState(false);
 
@@ -1393,8 +1396,11 @@ const BibleVerseWidget: React.FC = () => {
 
   // 마운트 시에만 한 번 설정 (interval 제거)
   useEffect(() => {
-    const randomIndex = Math.floor(Math.random() * bibleVerses.length);
-    setCurrentVerse(bibleVerses[randomIndex]);
+    const data = bibleVerses as {
+      verses: Array<{ verse: string; reference: string }>;
+    };
+    const randomIndex = Math.floor(Math.random() * data.verses.length);
+    setCurrentVerse(data.verses[randomIndex]);
   }, []);
 
   return (
@@ -1658,6 +1664,18 @@ const BibleVerseWidget: React.FC = () => {
               }}
             >
               {currentVerse.reference}
+            </p>
+            <p
+              className="text-xs text-white/70 mt-2 font-light tracking-wide relative"
+              style={{
+                zIndex: 200,
+                textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+              }}
+            >
+              {
+                (bibleVerses as { _copyright: { notice: string } })._copyright
+                  .notice
+              }
             </p>
           </motion.div>
         </div>

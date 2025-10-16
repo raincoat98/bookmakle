@@ -7,6 +7,15 @@ interface BibleVerse {
   reference: string;
 }
 
+interface BibleData {
+  _copyright: {
+    notice: string;
+    permission: string;
+    source: string;
+  };
+  verses: BibleVerse[];
+}
+
 // 아름다운 그라데이션 배경 색상 배열
 const gradientBackgrounds = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -34,8 +43,9 @@ export const BibleVerseWidget: React.FC = () => {
 
   // 마운트 시에만 실행되는 랜덤 구절 선택 함수 (메모이제이션)
   const getRandomVerse = useCallback((): BibleVerse => {
-    const index = Math.floor(Math.random() * bibleVersesData.length);
-    return bibleVersesData[index];
+    const data = bibleVersesData as BibleData;
+    const index = Math.floor(Math.random() * data.verses.length);
+    return data.verses[index];
   }, []); // 빈 dependency로 마운트 시에만 생성
 
   // 마운트 시에만 실행되는 랜덤 배경 그라데이션 선택 함수 (메모이제이션)
@@ -160,6 +170,9 @@ export const BibleVerseWidget: React.FC = () => {
           </p>
           <p className="text-sm text-white/90 mt-3 text-right italic drop-shadow-sm group-hover:text-white/80 transition-colors duration-300">
             {verse.reference}
+          </p>
+          <p className="text-xs text-white/70 mt-2 text-right drop-shadow-sm">
+            {(bibleVersesData as BibleData)._copyright.notice}
           </p>
         </div>
       </div>
