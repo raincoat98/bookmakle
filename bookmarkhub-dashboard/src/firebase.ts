@@ -16,12 +16,12 @@ import {
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA-biD6_Gy0sGWoy2qmcB-sXuW5strHApc",
-  authDomain: "bookmarkhub-5ea6c.firebaseapp.com",
-  projectId: "bookmarkhub-5ea6c",
-  storageBucket: "bookmarkhub-5ea6c.firebasestorage.app",
-  messagingSenderId: "798364806000",
-  appId: "1:798364806000:web:1234567890abcdef",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 // Firebase 초기화
