@@ -65,11 +65,12 @@ export function useAdminUsers() {
               bookmarksSnapshot.docs.map((d) => d.id)
             );
           }
-        } catch (bookmarkError: any) {
+        } catch (bookmarkError: unknown) {
+          const error = bookmarkError as { code?: string; message?: string };
           console.error(`사용자 ${uid}의 북마크 로드 실패:`, {
             error: bookmarkError,
-            code: bookmarkError.code,
-            message: bookmarkError.message,
+            code: error.code,
+            message: error.message || String(bookmarkError),
           });
         }
 
@@ -90,11 +91,12 @@ export function useAdminUsers() {
               collectionsSnapshot.docs.map((d) => d.id)
             );
           }
-        } catch (collectionError: any) {
+        } catch (collectionError: unknown) {
+          const error = collectionError as { code?: string; message?: string };
           console.error(`사용자 ${uid}의 컬렉션 로드 실패:`, {
             error: collectionError,
-            code: collectionError.code,
-            message: collectionError.message,
+            code: error.code,
+            message: error.message || String(collectionError),
           });
         }
 
@@ -111,9 +113,13 @@ export function useAdminUsers() {
       }
 
       setUsers(usersData);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("사용자 목록 로드 오류:", err);
-      setError(err.message || "사용자 목록을 불러오는데 실패했습니다.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "사용자 목록을 불러오는데 실패했습니다."
+      );
     } finally {
       setLoading(false);
     }
@@ -138,9 +144,11 @@ export function useAdminUsers() {
       console.log(
         `사용자 ${uid} 상태 변경: ${isActive ? "활성화" : "비활성화"}`
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("사용자 상태 변경 실패:", err);
-      setError(err.message || "사용자 상태 변경에 실패했습니다.");
+      setError(
+        err instanceof Error ? err.message : "사용자 상태 변경에 실패했습니다."
+      );
     }
   };
 

@@ -11,13 +11,13 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase";
-import type { Bookmark, BookmarkFormData } from "../types";
+import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import { getFaviconUrl, refreshFavicon } from "../utils/favicon";
 
 export const useBookmarks = (
   userId: string,
   selectedCollection: string = "all",
-  collections: any[] = [] // 컬렉션 목록을 받아서 하위 컬렉션 ID를 계산
+  collections: Collection[] = [] // 컬렉션 목록을 받아서 하위 컬렉션 ID를 계산
 ) => {
   const [rawBookmarks, setRawBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,7 +71,7 @@ export const useBookmarks = (
       // order가 없는 경우 생성일 기준으로 정렬 (최신순)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-  }, [rawBookmarks, selectedCollection, collections]);
+  }, [rawBookmarks, selectedCollection, getChildCollectionIds]);
 
   useEffect(() => {
     if (!userId) {
