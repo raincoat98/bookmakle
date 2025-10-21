@@ -6,6 +6,7 @@ import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
 import { EditCollectionModal } from "../components/EditCollectionModal";
 import { useAuth } from "../hooks/useAuth";
+import { DisabledUserMessage } from "../components/DisabledUserMessage";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import type {
@@ -19,7 +20,7 @@ import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
 import { Drawer } from "../components/Drawer";
 
 export const BookmarksPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isActive, isActiveLoading } = useAuth();
 
   // 상태 관리
   const [selectedCollection, setSelectedCollection] = useState("all");
@@ -406,6 +407,15 @@ export const BookmarksPage: React.FC = () => {
             북마크를 관리하려면 먼저 로그인해주세요.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // 비활성화된 사용자 체크
+  if (!isActiveLoading && isActive === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <DisabledUserMessage />
       </div>
     );
   }

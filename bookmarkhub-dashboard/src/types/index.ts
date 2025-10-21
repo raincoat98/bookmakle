@@ -1,4 +1,6 @@
-export interface User {
+// Firebase User는 firebase/auth에서 import하여 사용
+// 이 인터페이스는 더 이상 사용하지 않음 (호환성을 위해 유지)
+export interface AppUser {
   uid: string;
   displayName: string | null;
   email: string | null;
@@ -19,6 +21,7 @@ export interface FirestoreUser {
   createdAt: any; // serverTimestamp
   updatedAt: any; // serverTimestamp
   provider: string;
+  isActive?: boolean; // 사용자 활성화 상태
 }
 
 export interface Bookmark {
@@ -84,4 +87,16 @@ export interface SortOption {
   field: SortField;
   direction: SortDirection;
   label: string;
+}
+
+// 관리자 관련 타입
+export interface AdminUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  createdAt: Date;
+  bookmarkCount: number;
+  collectionCount: number;
+  lastLoginAt?: Date;
+  isActive: boolean; // 사용자 활성화 상태
 }

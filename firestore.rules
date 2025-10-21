@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  // 헬퍼 함수들
+  function signedIn() {
+    return request.auth != null;
+  }
+  
+  function isAdmin() {
+    return signedIn() && (
+      request.auth.token.isAdmin == true ||
+      exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+    );
+  }
+  
+  function isOwner(userId) {
+    return signedIn() && request.auth.uid == userId;
+  }
+  
+  function isUserActive(userId) {
+    return get(/databases/$(database)/documents/users/$(userId)).data.isActive != false;
+  }
+
+  match /databases/{database}/documents {
+    // admins 컬렉션 - 관리자만 읽기/쓰기 가능
+    match /admins/{adminId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+    
+    // 북마크 컬렉션 규칙
+    match /bookmarks/{bookmarkId} {
+      // 인증된 사용자만 접근 가능 또는 관리자 접근 허용
+      allow read, write: if isAdmin() || (signedIn() && 
+        (resource == null || request.auth.uid == resource.data.userId) && 
+        isUserActive(request.auth.uid));
+      // 삭제는 별도로 처리
+      allow delete: if isAdmin() || (signedIn() && 
+        request.auth.uid == resource.data.userId && 
+        isUserActive(request.auth.uid));
+    }
+    
+    // 컬렉션 컬렉션 규칙
+    match /collections/{collectionId} {
+      // 인증된 사용자만 접근 가능 또는 관리자 접근 허용
+      allow read, write: if isAdmin() || (signedIn() && 
+        (resource == null || request.auth.uid == resource.data.userId) && 
+        isUserActive(request.auth.uid));
+      // 삭제는 별도로 처리
+      allow delete: if isAdmin() || (signedIn() && 
+        request.auth.uid == resource.data.userId && 
+        isUserActive(request.auth.uid));
+    }
+    
+    // 사용자별 설정(메인페이지 등) 규칙 추가
+    match /users/{userId}/settings/{docId} {
+      allow read, write: if isAdmin() || (signedIn() && request.auth.uid == userId && isUserActive(request.auth.uid));
+    }
+    
+    // 사용자 문서는 모든 인증된 사용자가 읽을 수 있음 (관리자용)
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isOwner(userId);
+      
+      // 사용자의 북마크 (하위 컬렉션)
+      match /bookmarks/{bookmarkId} {
+        allow read, write, delete: if isAdmin() || (signedIn() && request.auth.uid == userId && isUserActive(request.auth.uid));
+      }
+      
+      // 사용자의 컬렉션 (하위 컬렉션)
+      match /collections/{collectionId} {
+        allow read, write, delete: if isAdmin() || (signedIn() && request.auth.uid == userId && isUserActive(request.auth.uid));
+      }
+    }
+    
+    // 기본적으로 모든 접근 거부
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

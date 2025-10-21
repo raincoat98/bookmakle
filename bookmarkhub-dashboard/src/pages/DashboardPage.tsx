@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { DashboardOverview } from "../components/DashboardWidgets";
 import { useAuth } from "../hooks/useAuth";
+import { DisabledUserMessage } from "../components/DisabledUserMessage";
 import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import type { Bookmark, BookmarkFormData, SortOption } from "../types";
@@ -12,7 +13,7 @@ import { AddCollectionModal } from "../components/AddCollectionModal";
 import { Drawer } from "../components/Drawer";
 
 export const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isActive, isActiveLoading } = useAuth();
   const {
     bookmarks,
     addBookmark,
@@ -211,6 +212,15 @@ export const DashboardPage: React.FC = () => {
             북마크를 관리하려면 먼저 로그인해주세요.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // 비활성화된 사용자 체크
+  if (!isActiveLoading && isActive === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <DisabledUserMessage />
       </div>
     );
   }

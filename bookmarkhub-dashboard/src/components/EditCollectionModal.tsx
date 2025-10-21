@@ -92,14 +92,8 @@ export const EditCollectionModal = ({
   const descendantIds = collection?.id
     ? getDescendantIds(collections, collection.id)
     : [];
-  console.log("collection.id", collection?.id);
-  console.log("descendantIds", descendantIds);
   const availableParents = collections.filter(
     (col) => col.id !== collection?.id && !descendantIds.includes(col.id)
-  );
-  console.log(
-    "availableParents",
-    availableParents.map((c) => c.id)
   );
 
   if (!isOpen || !collection) return null;

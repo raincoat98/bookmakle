@@ -1,6 +1,6 @@
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import type { User as FirebaseUser } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import {
   db,
   loginWithGoogle,
@@ -9,10 +9,41 @@ import {
   logout as fbLogout,
 } from "../firebase";
 import { AuthCtx } from "../contexts/AuthContext";
-import type { User, FirestoreUser } from "../types";
+import type { FirestoreUser } from "../types";
 
 export const useAuth = () => {
   const authState = useContext(AuthCtx);
+  const [isActive, setIsActive] = useState<boolean | null>(null);
+  const [isActiveLoading, setIsActiveLoading] = useState(false);
+
+  // 사용자 활성화 상태 확인
+  const checkUserStatus = async (uid: string) => {
+    try {
+      setIsActiveLoading(true);
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const active = userData.isActive !== false; // 기본값은 true
+        setIsActive(active);
+        return active;
+      }
+      return true; // 문서가 없으면 기본적으로 활성화
+    } catch (error) {
+      console.error("사용자 상태 확인 실패:", error);
+      return true; // 에러 시 기본적으로 활성화
+    } finally {
+      setIsActiveLoading(false);
+    }
+  };
+
+  // 사용자 변경 시 상태 확인
+  useEffect(() => {
+    if (authState.user) {
+      checkUserStatus(authState.user.uid);
+    } else {
+      setIsActive(null);
+    }
+  }, [authState.user]);
 
   // Firestore에 사용자 데이터 저장
   const saveUserToFirestore = async (firebaseUser: FirebaseUser) => {
@@ -97,20 +128,12 @@ export const useAuth = () => {
     }
   };
 
-  // Convert Firebase User to our User type
-  const user: User | null = authState.user
-    ? {
-        uid: authState.user.uid,
-        displayName: authState.user.displayName,
-        email: authState.user.email,
-        photoURL: authState.user.photoURL,
-        emailVerified: authState.user.emailVerified,
-      }
-    : null;
-
   return {
-    user,
+    user: authState.user, // Firebase User 그대로 반환
     loading: authState.loading,
+    isActive, // 사용자 활성화 상태
+    isActiveLoading, // 활성화 상태 로딩
+    checkUserStatus, // 상태 확인 함수
     login,
     loginWithEmail: loginWithEmailHandler,
     signup,

@@ -1,8 +1,19 @@
 import { useAuth } from "../hooks/useAuth";
 import { Link } from "react-router-dom";
-import { Menu, Sun, Moon, Settings, User, LogOut, Globe } from "lucide-react";
+import {
+  Menu,
+  Sun,
+  Moon,
+  Settings,
+  User,
+  LogOut,
+  Globe,
+  Shield,
+} from "lucide-react";
 import { useDrawer } from "../contexts/DrawerContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { isAdminUser } from "../firebase";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   showMenuButton?: boolean;
@@ -12,6 +23,7 @@ export const Header = ({ showMenuButton = false }: HeaderProps) => {
   const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const { setIsDrawerOpen } = useDrawer();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -30,6 +42,15 @@ export const Header = ({ showMenuButton = false }: HeaderProps) => {
       console.error("로그아웃 실패:", error);
     }
   };
+
+  // 관리자 권한 체크
+  useEffect(() => {
+    if (user) {
+      isAdminUser(user).then(setIsAdmin);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [user]);
 
   return (
     <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 shadow-glass">
@@ -96,6 +117,18 @@ export const Header = ({ showMenuButton = false }: HeaderProps) => {
                   </span>
                 </button>
               </div>
+            )}
+
+            {/* 관리자 페이지 링크 */}
+            {user && isAdmin && (
+              <Link
+                to="/admin"
+                className="p-2 text-red-500 hover:text-red-600 dark:hover:text-red-400 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-red-50 dark:hover:bg-red-900/20 backdrop-blur-sm border-2 border-red-300 dark:border-red-600"
+                aria-label="관리자"
+                title="관리자 대시보드"
+              >
+                <Shield className="w-6 h-6" />
+              </Link>
             )}
 
             {/* 설정 링크 */}

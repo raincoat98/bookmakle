@@ -7,8 +7,10 @@ import {
 import { DashboardPage } from "./pages/DashboardPage";
 import { BookmarksPage } from "./pages/BookmarksPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { AdminPage } from "./pages/AdminPage";
 import { ExtensionLoginSuccessPage } from "./pages/ExtensionLoginSuccessPage";
 import { LoginScreen } from "./components/LoginScreen";
+import { AdminProtected } from "./components/AdminProtected";
 import ExtensionBridge from "./components/ExtensionBridge";
 import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
@@ -139,6 +141,14 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/bookmarks" element={<BookmarksPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminProtected>
+                  <AdminPage />
+                </AdminProtected>
+              }
+            />
             <Route
               path="/extension-login-success"
               element={<ExtensionLoginSuccessPage />}

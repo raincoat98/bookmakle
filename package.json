@@ -4,6 +4,8 @@
   "description": "📚 북마크 허브 - 통합 북마크 관리 시스템",
   "scripts": {
     "setup": "./setup-env.sh",
+    "admin:set": "node set-admin.js",
+    "admin:check": "node -e \"console.log('VITE_ADMIN_EMAIL:', process.env.VITE_ADMIN_EMAIL || '설정되지 않음')\"",
     "deploy": "./deploy.sh all",
     "deploy:signin": "./deploy.sh signin-popup",
     "deploy:dashboard": "./deploy.sh dashboard",
@@ -44,5 +46,9 @@
   },
   "devDependencies": {
     "firebase-tools": "^13.0.0"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.5.0",
+    "dotenv": "^16.3.1"
   }
 }
