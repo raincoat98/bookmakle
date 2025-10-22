@@ -16,7 +16,6 @@ import {
   query,
   where,
   getDocs,
-  orderBy,
   addDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -194,6 +193,108 @@ window.addEventListener("message", async (ev) => {
       console.error("Auth error:", e);
       send({
         name: e.name || "FirebaseError",
+        code: e.code,
+        message: e.message,
+      });
+    }
+  }
+
+  // 컬렉션 생성 요청
+  if (ev.data?.createCollection) {
+    try {
+      let currentUser = auth.currentUser;
+
+      // 현재 사용자가 없고 idToken이 있으면 세션 복원 시도
+      if (!currentUser && ev.data.idToken) {
+        try {
+          await setPersistence(auth, browserLocalPersistence);
+
+          // 세션 복원 대기
+          currentUser = await new Promise((resolve) => {
+            const timeout = setTimeout(() => {
+              console.log("Auth state restoration timeout");
+              resolve(auth.currentUser);
+            }, 7000);
+
+            if (auth.currentUser) {
+              clearTimeout(timeout);
+              resolve(auth.currentUser);
+              return;
+            }
+
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+              console.log("Auth state changed:", user ? user.uid : "null");
+              if (user) {
+                clearTimeout(timeout);
+                unsubscribe();
+                resolve(user);
+              }
+            });
+          });
+        } catch (error) {
+          console.error("Failed to restore session with idToken:", error);
+        }
+      }
+
+      // 현재 사용자가 없으면 세션 복원 대기
+      if (!currentUser) {
+        console.log("Waiting for auth state restoration...");
+        currentUser = await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            console.log("Auth state restoration timeout");
+            resolve(auth.currentUser);
+          }, 5000);
+
+          if (auth.currentUser) {
+            clearTimeout(timeout);
+            resolve(auth.currentUser);
+            return;
+          }
+
+          const unsubscribe = auth.onAuthStateChanged((user) => {
+            console.log("Auth state changed:", user ? user.uid : "null");
+            if (user) {
+              clearTimeout(timeout);
+              unsubscribe();
+              resolve(user);
+            }
+          });
+        });
+      }
+
+      if (!currentUser) {
+        console.error("User not authenticated");
+        send({
+          type: "COLLECTION_CREATE_ERROR",
+          name: "AuthError",
+          code: "auth/not-authenticated",
+          message: "User is not authenticated. Please sign in first.",
+        });
+        return;
+      }
+
+      console.log(
+        "Creating collection for authenticated user:",
+        currentUser.uid
+      );
+
+      // 현재 로그인된 사용자의 ID로 컬렉션 데이터 업데이트
+      const collectionData = {
+        ...ev.data.collectionData,
+        userId: currentUser.uid,
+      };
+
+      const collectionId = await createCollection(collectionData);
+      console.log("Collection created with ID:", collectionId);
+      send({
+        type: "COLLECTION_CREATED",
+        collectionId: collectionId,
+      });
+    } catch (e) {
+      console.error("Collection create error:", e);
+      send({
+        type: "COLLECTION_CREATE_ERROR",
+        name: e.name || "FirestoreError",
         code: e.code,
         message: e.message,
       });
@@ -587,6 +688,35 @@ function toSafeUser(user) {
   };
 }
 
+// Firestore에 컬렉션 생성
+async function createCollection(collectionData) {
+  if (!collectionData.userId) {
+    throw new Error("User ID is required");
+  }
+
+  try {
+    const collectionsRef = collection(db, "collections");
+
+    // 컬렉션 데이터 준비
+    const newCollection = {
+      userId: collectionData.userId,
+      name: collectionData.name || "",
+      icon: collectionData.icon || "📁",
+      description: collectionData.description || "",
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    // Firestore에 저장
+    const docRef = await addDoc(collectionsRef, newCollection);
+
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating collection:", error);
+    throw error;
+  }
+}
+
 // Firestore에서 컬렉션 가져오기
 async function fetchCollections(userId) {
   if (!userId) {
@@ -671,16 +801,18 @@ async function saveBookmark(bookmarkData) {
     const bookmarksRef = collection(db, "bookmarks");
 
     // 북마크 데이터 준비
+    const collectionId =
+      (bookmarkData.collection || bookmarkData.collectionId) &&
+      (bookmarkData.collection || bookmarkData.collectionId).trim() !== ""
+        ? bookmarkData.collection || bookmarkData.collectionId
+        : null;
+
     const newBookmark = {
       userId: bookmarkData.userId,
       title: bookmarkData.title || "",
       url: bookmarkData.url || "",
       description: bookmarkData.description || "",
-      collection:
-        (bookmarkData.collection || bookmarkData.collectionId) &&
-        (bookmarkData.collection || bookmarkData.collectionId).trim() !== ""
-          ? bookmarkData.collection || bookmarkData.collectionId
-          : null,
+      collection: collectionId,
       tags: bookmarkData.tags || [],
       favicon: bookmarkData.favicon || bookmarkData.favIconUrl || "",
       isFavorite: bookmarkData.isFavorite || false,
@@ -688,9 +820,6 @@ async function saveBookmark(bookmarkData) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
-
-    console.log("Firestore에 저장할 최종 북마크 데이터:", newBookmark);
-    console.log("최종 컬렉션 ID:", newBookmark.collection);
 
     // Firestore에 저장
     const docRef = await addDoc(bookmarksRef, newBookmark);
