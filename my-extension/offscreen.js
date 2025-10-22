@@ -262,9 +262,6 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 
   if (msg.type === "SAVE_BOOKMARK") {
     // 북마크 저장 요청
-    console.log("offscreen에서 북마크 저장 요청 수신:", msg.bookmarkData);
-    console.log("전달할 컬렉션 ID:", msg.bookmarkData?.collectionId);
-
     const origin = new URL(PUBLIC_POPUP_URL).origin;
 
     function handleSaveBookmarkMessage(ev) {
@@ -294,10 +291,53 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
 
     window.addEventListener("message", handleSaveBookmarkMessage, false);
+
+    const messageToSend = {
+      saveBookmark: true,
+      bookmarkData: msg.bookmarkData,
+      idToken: currentIdToken, // ID 토큰 함께 전달
+    };
+
+    iframe.contentWindow.postMessage(messageToSend, origin);
+
+    return true; // async 응답
+  }
+
+  if (msg.type === "CREATE_COLLECTION") {
+    // 컬렉션 생성 요청
+    const origin = new URL(PUBLIC_POPUP_URL).origin;
+
+    function handleCreateCollectionMessage(ev) {
+      // Firebase 내부 메시지 노이즈 필터
+      if (typeof ev.data === "string" && ev.data.startsWith("!_{")) return;
+
+      try {
+        const data =
+          typeof ev.data === "string" ? JSON.parse(ev.data) : ev.data;
+
+        // 컬렉션 생성 응답만 처리
+        if (
+          data.type === "COLLECTION_CREATED" ||
+          data.type === "COLLECTION_CREATE_ERROR"
+        ) {
+          window.removeEventListener("message", handleCreateCollectionMessage);
+          sendResponse(data);
+        }
+      } catch (e) {
+        window.removeEventListener("message", handleCreateCollectionMessage);
+        sendResponse({
+          type: "COLLECTION_CREATE_ERROR",
+          name: "ParseError",
+          message: e.message,
+        });
+      }
+    }
+
+    window.addEventListener("message", handleCreateCollectionMessage, false);
     iframe.contentWindow.postMessage(
       {
-        saveBookmark: true,
-        bookmarkData: msg.bookmarkData,
+        createCollection: true,
+        collectionData: msg.collectionData,
         idToken: currentIdToken, // ID 토큰 함께 전달
       },
       origin

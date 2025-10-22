@@ -251,6 +251,83 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       }
 
       if (msg?.type === "SAVE_BOOKMARK") {
+        // 컬렉션이 선택된 경우 존재 여부 검증
+        const collectionId = msg.bookmarkData?.collection;
+        console.log(
+          "🔍 [background] 북마크 저장 요청 - 컬렉션 ID:",
+          collectionId
+        );
+
+        if (collectionId) {
+          // 사용자 정보 가져오기
+          const authResult = await chrome.storage.local.get(["currentUser"]);
+          if (!authResult?.currentUser?.uid) {
+            console.error("❌ [background] 사용자 정보 없음");
+            sendResponse({
+              type: "BOOKMARK_SAVE_ERROR",
+              code: "auth/not-authenticated",
+              message: "로그인이 필요합니다.",
+            });
+            return;
+          }
+
+          // 실시간으로 Firestore에서 컬렉션 목록 조회
+          console.log(
+            "🔍 [background] Firestore에서 컬렉션 목록 실시간 조회 중..."
+          );
+          await setupOffscreen();
+          const collectionsResult = await sendMessageToOffscreen({
+            target: "offscreen",
+            type: "GET_COLLECTIONS",
+            userId: authResult.currentUser.uid,
+          });
+
+          console.log(
+            "🔍 [background] 컬렉션 조회 결과:",
+            collectionsResult.type
+          );
+
+          if (collectionsResult?.type === "COLLECTIONS_ERROR") {
+            console.error("❌ [background] 컬렉션 조회 실패");
+            sendResponse({
+              type: "BOOKMARK_SAVE_ERROR",
+              code: "firestore/fetch-failed",
+              message: "컬렉션 목록을 가져올 수 없습니다.",
+            });
+            return;
+          }
+
+          const collections = collectionsResult.collections || [];
+          console.log("🔍 [background] 조회된 컬렉션 수:", collections.length);
+          console.log(
+            "🔍 [background] 컬렉션 ID 목록:",
+            collections.map((c) => c.id)
+          );
+
+          const collectionExists = collections.some(
+            (col) => col.id === collectionId
+          );
+          console.log("🔍 [background] 컬렉션 존재 여부:", collectionExists);
+
+          if (!collectionExists) {
+            console.error(
+              "❌ [background] 컬렉션이 존재하지 않음:",
+              collectionId
+            );
+            sendResponse({
+              type: "BOOKMARK_SAVE_ERROR",
+              code: "not-found",
+              message:
+                "선택한 컬렉션이 존재하지 않습니다. 컬렉션 목록을 새로고침하세요.",
+            });
+            return;
+          }
+
+          console.log("✅ [background] 컬렉션 존재 확인 완료:", collectionId);
+        } else {
+          console.log("ℹ️ [background] 컬렉션이 선택되지 않음 - 검증 건너뛰기");
+        }
+
         // 북마크 저장 요청을 offscreen으로 전달
         await setupOffscreen();
         const result = await sendMessageToOffscreen({
@@ -279,6 +356,18 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
           }
         }
 
+        sendResponse(result);
+        return;
+      }
+
+      if (msg?.type === "CREATE_COLLECTION") {
+        // 컬렉션 생성 요청을 offscreen으로 전달
+        await setupOffscreen();
+        const result = await sendMessageToOffscreen({
+          target: "offscreen",
+          type: "CREATE_COLLECTION",
+          collectionData: msg.collectionData,
+        });
         sendResponse(result);
         return;
       }
