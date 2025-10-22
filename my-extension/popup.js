@@ -29,6 +29,8 @@ const $confirmCollectionBtn = document.getElementById("confirmCollectionBtn");
 const $memoInput = document.getElementById("memoInput");
 const $tagInput = document.getElementById("tagInput");
 const $tagList = document.getElementById("tagList");
+const $themeToggle = document.getElementById("themeToggle");
+const $themeIcon = document.getElementById("themeIcon");
 
 // 로그인 버튼 클릭 이벤트
 $btn.addEventListener("click", async () => {
@@ -850,8 +852,130 @@ function initializeI18n() {
   }
 }
 
+// 다크모드 관련 함수들
+let currentTheme = "light";
+
+// 테마 초기화 (최적화)
+let isInitializing = false; // 중복 초기화 방지
+
+async function initializeTheme() {
+  if (isInitializing) return; // 이미 초기화 중이면 무시
+  isInitializing = true;
+
+  try {
+    // 저장된 테마 설정 불러오기
+    const result = await chrome.storage.local.get(["theme"]);
+    const savedTheme = result.theme || "light";
+
+    // 시스템 다크모드 설정 확인
+    if (savedTheme === "auto") {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      currentTheme = prefersDark ? "dark" : "light";
+    } else {
+      currentTheme = savedTheme;
+    }
+
+    applyTheme(currentTheme);
+    updateThemeIcon();
+  } catch (error) {
+    console.error("테마 초기화 실패:", error);
+    applyTheme("light");
+  } finally {
+    isInitializing = false; // 초기화 완료
+  }
+}
+
+// 테마 적용
+function applyTheme(theme) {
+  const body = document.body;
+  const html = document.documentElement;
+
+  if (theme === "dark") {
+    body.setAttribute("data-theme", "dark");
+    html.setAttribute("data-theme", "dark");
+  } else {
+    body.removeAttribute("data-theme");
+    html.removeAttribute("data-theme");
+  }
+
+  currentTheme = theme;
+}
+
+// 테마 아이콘 업데이트
+function updateThemeIcon() {
+  if (!$themeIcon) return;
+
+  if (currentTheme === "dark") {
+    // 라이트 모드 아이콘 (태양)
+    $themeIcon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    `;
+  } else {
+    // 다크 모드 아이콘 (달)
+    $themeIcon.innerHTML = `
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+    `;
+  }
+}
+
+// 테마 토글 (최적화)
+let isToggling = false; // 중복 토글 방지
+
+async function toggleTheme() {
+  if (isToggling) return; // 이미 토글 중이면 무시
+  isToggling = true;
+
+  try {
+    const newTheme = currentTheme === "light" ? "dark" : "light";
+    applyTheme(newTheme);
+    updateThemeIcon();
+
+    // 테마 설정 저장
+    await chrome.storage.local.set({ theme: newTheme });
+    console.log(`테마가 ${newTheme}로 변경되었습니다`);
+  } catch (error) {
+    console.error("테마 설정 저장 실패:", error);
+  } finally {
+    isToggling = false; // 토글 완료
+  }
+}
+
+// 테마 토글 버튼 이벤트
+if ($themeToggle) {
+  $themeToggle.addEventListener("click", toggleTheme);
+}
+
+// 시스템 다크모드 설정 변경 감지 (최적화)
+if (window.matchMedia) {
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  let isProcessing = false; // 중복 처리 방지
+
+  mediaQuery.addEventListener("change", (e) => {
+    if (isProcessing) return; // 이미 처리 중이면 무시
+    isProcessing = true;
+
+    // 자동 모드일 때만 시스템 설정에 따라 변경
+    chrome.storage.local
+      .get(["theme"])
+      .then((result) => {
+        if (result.theme === "auto") {
+          const newTheme = e.matches ? "dark" : "light";
+          applyTheme(newTheme);
+          updateThemeIcon();
+        }
+        isProcessing = false; // 처리 완료
+      })
+      .catch(() => {
+        isProcessing = false; // 에러 시에도 플래그 리셋
+      });
+  });
+}
+
 // 페이지 로드시 사용자 상태 확인 및 다국어 초기화
 initializeI18n();
+initializeTheme();
 refreshUser();
 
 // Lucide 아이콘 렌더링 함수
