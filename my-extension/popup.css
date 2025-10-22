@@ -85,3 +85,66 @@ body {
 #loginGuide.hidden {
   display: none;
 }
+
+/* 커스텀 스크롤바 스타일 */
+#collectionDropdownOptions::-webkit-scrollbar {
+  width: 6px;
+}
+
+#collectionDropdownOptions::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+#collectionDropdownOptions::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+#collectionDropdownOptions::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Firefox 스크롤바 스타일 */
+#collectionDropdownOptions {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+/* 컬렉션 옵션 컨테이너 스크롤바 */
+#collectionOptionsContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+#collectionOptionsContainer::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+#collectionOptionsContainer::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+#collectionOptionsContainer::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+#collectionOptionsContainer {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+/* 검색 입력 필드 스타일 */
+#collectionSearchInput {
+  transition: all 0.2s ease-in-out;
+}
+
+#collectionSearchInput:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* 컬렉션 옵션 컨테이너 하단 여백 */
+#collectionOptionsContainer {
+  padding-bottom: 8px;
+}

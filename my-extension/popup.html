@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="popup.css" />
+    <script src="./lucide.js"></script>
   </head>
   <body
     class="bg-gradient-to-br from-violet-400 via-purple-400 to-blue-300 flex items-center justify-center"
@@ -131,15 +132,114 @@
 
           <!-- 컬렉션 선택 -->
           <div class="mb-2" id="collectionSection">
-            <label class="block text-xs text-gray-500 mb-1 font-medium"
-              >컬렉션 (선택사항)</label
-            >
-            <select
-              id="collectionSelect"
-              class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all duration-200"
-            >
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs text-gray-500 font-medium"
+                >컬렉션 (선택사항)</label
+              >
+              <div class="flex gap-1">
+                <button
+                  id="refreshCollectionBtn"
+                  class="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+                  title="컬렉션 새로고침"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 text-gray-500 hover:text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                </button>
+                <button
+                  id="addCollectionBtn"
+                  class="p-1 hover:bg-gray-100 rounded transition-colors duration-200"
+                  title="컬렉션 추가"
+                >
+                  <svg
+                    class="w-3.5 h-3.5 text-gray-500 hover:text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <!-- 커스텀 드롭다운 -->
+            <div class="relative">
+              <div
+                id="collectionDropdown"
+                class="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition-all duration-200 bg-white"
+              >
+                <div class="flex items-center justify-between">
+                  <span id="collectionSelectedText">📄 컬렉션 없음</span>
+                  <svg
+                    class="w-4 h-4 text-gray-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <!-- 드롭다운 옵션들 -->
+              <div
+                id="collectionDropdownOptions"
+                class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg hidden max-h-48 overflow-hidden scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                style="scrollbar-width: thin; scrollbar-color: #d1d5db #f3f4f6"
+              >
+                <!-- 검색 입력 필드 -->
+                <div class="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                  <input
+                    type="text"
+                    id="collectionSearchInput"
+                    class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent"
+                    placeholder="🔍 컬렉션 검색..."
+                  />
+                </div>
+                <!-- 스크롤 가능한 옵션 영역 -->
+                <div
+                  id="collectionOptionsContainer"
+                  class="max-h-32 overflow-y-auto pb-4"
+                >
+                  <div
+                    class="collection-option py-2 px-3 hover:bg-gray-100 cursor-pointer"
+                    data-value=""
+                  >
+                    <div class="flex items-center">
+                      <span class="text-gray-500">📄</span>
+                      <span class="ml-2 text-sm">컬렉션 없음</span>
+                    </div>
+                  </div>
+                  <!-- 동적으로 추가됩니다 -->
+                </div>
+              </div>
+            </div>
+
+            <!-- 숨겨진 select (실제 값 저장용) -->
+            <select id="collectionSelect" class="hidden">
               <option value="">📄 컬렉션 없음</option>
-              <!-- 컬렉션 옵션들이 동적으로 로드됩니다 -->
             </select>
           </div>
 
@@ -194,6 +294,56 @@
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 컬렉션 추가 모달 -->
+    <div
+      id="addCollectionModal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center"
+    >
+      <div class="bg-white rounded-lg p-6 w-80 max-w-[90%]">
+        <h3 class="text-lg font-semibold mb-4">새 컬렉션 추가</h3>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >컬렉션 이름</label
+          >
+          <input
+            id="collectionNameInput"
+            type="text"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="컬렉션 이름을 입력하세요"
+          />
+        </div>
+
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >아이콘 (선택사항)</label
+          >
+          <input
+            id="collectionIconInput"
+            type="text"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            placeholder="아이콘을 입력하세요 (예: 📁, 💻, ⭐)"
+            value="📁"
+          />
+        </div>
+
+        <div class="flex gap-3 justify-end">
+          <button
+            id="cancelCollectionBtn"
+            class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200"
+          >
+            취소
+          </button>
+          <button
+            id="confirmCollectionBtn"
+            class="px-4 py-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-md transition-colors duration-200"
+          >
+            추가
+          </button>
         </div>
       </div>
     </div>
