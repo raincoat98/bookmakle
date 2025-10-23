@@ -3,7 +3,6 @@ const $btn = document.getElementById("login");
 const $user = document.getElementById("user");
 const $mainContent = document.getElementById("mainContent");
 const $loginGuide = document.getElementById("loginGuide");
-const $signOutButton = document.getElementById("signOutButton");
 const $currentPageUrl = document.getElementById("currentPageUrl");
 const $quickModeCheckbox = document.getElementById("quickModeCheckbox");
 const $saveBookmarkButton = document.getElementById("saveBookmarkButton");
@@ -42,54 +41,12 @@ $btn.addEventListener("click", async () => {
   window.close();
 });
 
-// 새로운 로그아웃 버튼 클릭 이벤트
-if ($signOutButton) {
-  console.log("로그아웃 버튼 이벤트 리스너 등록됨");
-  $signOutButton.addEventListener("click", async () => {
-    console.log("로그아웃 버튼 클릭됨");
-
-    // 로그아웃 버튼 로딩 상태로 변경
-    const originalText = $signOutButton.innerHTML;
-    $signOutButton.disabled = true;
-    $signOutButton.innerHTML = `
-      <div class="animate-spin rounded-full" style="width: 12px; height: 12px; border: 2px solid transparent; border-top: 2px solid white; margin-right: 6px;"></div>
-      로그아웃 중...
-    `;
-
-    try {
-      console.log("로그아웃 메시지 전송 중...");
-      const result = await chrome.runtime.sendMessage({ type: "LOGOUT" });
-      console.log("로그아웃 결과:", result);
-      if (result?.error) {
-        console.error("Storage API 에러:", result.error);
-        return;
-      }
-      if (result?.success) {
-        console.log("로그아웃 성공, UI 업데이트");
-        // 사용자 상태를 다시 확인하여 UI 업데이트
-        await refreshUser();
-      }
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-      // 에러 발생 시에도 UI를 로그인 상태로 변경
-      showLoginUI();
-    } finally {
-      // 로그아웃 버튼 원래 상태로 복원
-      $signOutButton.disabled = false;
-      $signOutButton.innerHTML = originalText;
-    }
-  });
-} else {
-  console.error("로그아웃 버튼을 찾을 수 없음");
-}
-
 // 로그인 UI 표시
 function showLoginUI() {
   $user.innerHTML = "";
   $btn.classList.remove("hidden");
   if ($mainContent) $mainContent.classList.add("hidden");
   if ($loginGuide) $loginGuide.classList.remove("hidden");
-  if ($signOutButton) $signOutButton.classList.add("hidden");
 }
 
 // 로그인 후 UI 표시
@@ -97,7 +54,6 @@ function showMainContent() {
   $btn.classList.add("hidden");
   if ($mainContent) $mainContent.classList.remove("hidden");
   if ($loginGuide) $loginGuide.classList.add("hidden");
-  if ($signOutButton) $signOutButton.classList.remove("hidden");
 
   // 현재 페이지 URL 가져오기
   getCurrentPageUrl();

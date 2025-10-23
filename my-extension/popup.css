@@ -40,7 +40,7 @@
 
 body {
   width: 400px;
-  height: 580px;
+  height: 520px;
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -369,6 +369,72 @@ body {
 }
 
 .theme-toggle-left:hover svg {
+  transform: rotate(180deg);
+}
+
+/* 오른쪽 위치의 테마 토글 버튼 */
+.theme-toggle-right {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px var(--shadow-primary);
+  z-index: 10;
+}
+
+.theme-toggle-right:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px var(--shadow-primary);
+}
+
+.theme-toggle-right svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-right:hover svg {
+  transform: rotate(180deg);
+}
+
+/* 헤더용 테마 토글 버튼 */
+.theme-toggle-header {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px var(--shadow-primary);
+}
+
+.theme-toggle-header:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px var(--shadow-primary);
+}
+
+.theme-toggle-header svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle-header:hover svg {
   transform: rotate(180deg);
 }
 
