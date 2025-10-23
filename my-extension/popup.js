@@ -1058,3 +1058,23 @@ if (document.readyState === "loading") {
 } else {
   initializeLucideIcons();
 }
+
+// 버그 등록하기 버튼 이벤트 리스너
+const $bugReportButton = document.getElementById("bugReportButton");
+if ($bugReportButton) {
+  $bugReportButton.addEventListener("click", () => {
+    const bugReportUrl =
+      "https://github.com/raincoat98/bookmakle/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen";
+    chrome.tabs.create({ url: bugReportUrl });
+  });
+}
+
+// 후원하기 버튼 (비활성화 상태)
+const $sponsorButton = document.getElementById("sponsorButton");
+if ($sponsorButton) {
+  $sponsorButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    // 현재 비활성화 상태이므로 아무 동작하지 않음
+    console.log("후원 링크 준비 중입니다.");
+  });
+}
