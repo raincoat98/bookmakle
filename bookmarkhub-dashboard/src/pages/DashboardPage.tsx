@@ -20,7 +20,6 @@ export const DashboardPage: React.FC = () => {
     updateBookmark,
     deleteBookmark,
     toggleFavorite,
-    reorderBookmarks,
   } = useBookmarks(user?.uid || "", "all");
   const { collections, addCollection } = useCollections(user?.uid || "");
 
@@ -138,69 +137,6 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
-  // 북마크 순서 변경
-  const handleReorderBookmarks = async (newFavoriteBookmarks: Bookmark[]) => {
-    console.log(
-      "Dashboard handleReorderBookmarks called with:",
-      newFavoriteBookmarks.length,
-      "favorite bookmarks"
-    ); // 디버깅 로그
-
-    try {
-      // 전체 북마크 배열에서 즐겨찾기 북마크들의 순서를 업데이트
-      const updatedBookmarks = [...bookmarks];
-
-      // 즐겨찾기 북마크들을 맨 앞으로 이동하고 순서 설정
-      newFavoriteBookmarks.forEach((favoriteBookmark, index) => {
-        const bookmarkIndex = updatedBookmarks.findIndex(
-          (b) => b.id === favoriteBookmark.id
-        );
-        if (bookmarkIndex !== -1) {
-          // 즐겨찾기 북마크를 맨 앞으로 이동 (order: 0부터 시작)
-          updatedBookmarks[bookmarkIndex] = {
-            ...updatedBookmarks[bookmarkIndex],
-            order: index,
-          };
-        }
-      });
-
-      // 즐겨찾기가 아닌 북마크들의 order를 뒤로 설정
-      const nonFavoriteBookmarks = updatedBookmarks.filter(
-        (b) => !b.isFavorite
-      );
-      nonFavoriteBookmarks.forEach((bookmark, index) => {
-        const bookmarkIndex = updatedBookmarks.findIndex(
-          (b) => b.id === bookmark.id
-        );
-        if (bookmarkIndex !== -1) {
-          updatedBookmarks[bookmarkIndex] = {
-            ...updatedBookmarks[bookmarkIndex],
-            order: newFavoriteBookmarks.length + index,
-          };
-        }
-      });
-
-      console.log(
-        "Updated bookmarks:",
-        updatedBookmarks.map((b) => ({
-          id: b.id,
-          title: b.title,
-          order: b.order,
-          isFavorite: b.isFavorite,
-        }))
-      ); // 디버깅 로그
-
-      // Firestore에 순서 업데이트
-      await reorderBookmarks(updatedBookmarks);
-
-      console.log("Dashboard bookmarks reordered successfully"); // 디버깅 로그
-      // toast.success("북마크 순서가 변경되었습니다."); // 중복 토스트 제거
-    } catch (error) {
-      console.error("Error reordering bookmarks:", error);
-      toast.error("북마크 순서 변경 중 오류가 발생했습니다.");
-    }
-  };
-
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -242,7 +178,6 @@ export const DashboardPage: React.FC = () => {
             onAddBookmark={() => setIsAddModalOpen(true)}
             onAddCollection={() => setIsAddCollectionModalOpen(true)}
             onToggleFavorite={handleToggleFavorite}
-            onReorder={handleReorderBookmarks}
             currentSort={currentSort}
             onSortChange={setCurrentSort}
             userId={user?.uid || ""}
