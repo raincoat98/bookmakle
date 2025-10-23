@@ -462,8 +462,8 @@ async function createContextMenusInternal() {
         contexts: ["action"],
       },
       {
-        id: "open-chrome-store",
-        title: "🛒 Chrome 웹스토어",
+        id: "open-bug-report",
+        title: "🐛 버그 리포트",
         contexts: ["action"],
       },
     ];
@@ -622,11 +622,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         console.log("GitHub 저장소 열기 실행");
         await openGitHub();
         break;
-      case "open-chrome-store":
-        console.log("Chrome 웹스토어 열기 실행");
-        await openChromeStore();
-        break;
-      case "open-chrome-store":
+      case "open-bug-report":
         console.log("버그 리포트 열기 실행");
         await openBugReport();
         break;
