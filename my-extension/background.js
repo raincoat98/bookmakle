@@ -255,10 +255,14 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const collectionId = msg.bookmarkData?.collection;
         console.log(
           "🔍 [background] 북마크 저장 요청 - 컬렉션 ID:",
-          collectionId
+          collectionId,
+          "타입:",
+          typeof collectionId
         );
 
-        if (collectionId) {
+        if (collectionId && collectionId.trim() !== "") {
+          console.log("🔍 [background] 컬렉션 검증 시작:", collectionId);
+
           // 사용자 정보 가져오기
           const authResult = await chrome.storage.local.get(["currentUser"]);
           if (!authResult?.currentUser?.uid) {
@@ -271,43 +275,67 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
             return;
           }
 
-          // 실시간으로 Firestore에서 컬렉션 목록 조회
+          // 캐시된 컬렉션 먼저 확인
+          const cachedResult = await chrome.storage.local.get([
+            "cachedCollections",
+          ]);
+          const cachedCollections = cachedResult.cachedCollections || [];
           console.log(
-            "🔍 [background] Firestore에서 컬렉션 목록 실시간 조회 중..."
-          );
-          await setupOffscreen();
-          const collectionsResult = await sendMessageToOffscreen({
-            target: "offscreen",
-            type: "GET_COLLECTIONS",
-            userId: authResult.currentUser.uid,
-          });
-
-          console.log(
-            "🔍 [background] 컬렉션 조회 결과:",
-            collectionsResult.type
+            "🔍 [background] 캐시된 컬렉션 수:",
+            cachedCollections.length
           );
 
-          if (collectionsResult?.type === "COLLECTIONS_ERROR") {
-            console.error("❌ [background] 컬렉션 조회 실패");
-            sendResponse({
-              type: "BOOKMARK_SAVE_ERROR",
-              code: "firestore/fetch-failed",
-              message: "컬렉션 목록을 가져올 수 없습니다.",
-            });
-            return;
-          }
-
-          const collections = collectionsResult.collections || [];
-          console.log("🔍 [background] 조회된 컬렉션 수:", collections.length);
-          console.log(
-            "🔍 [background] 컬렉션 ID 목록:",
-            collections.map((c) => c.id)
-          );
-
-          const collectionExists = collections.some(
+          let collectionExists = cachedCollections.some(
             (col) => col.id === collectionId
           );
-          console.log("🔍 [background] 컬렉션 존재 여부:", collectionExists);
+
+          if (collectionExists) {
+            console.log(
+              "✅ [background] 캐시에서 컬렉션 존재 확인:",
+              collectionId
+            );
+          } else {
+            // 캐시에 없으면 실시간으로 Firestore에서 조회
+            console.log(
+              "🔍 [background] 캐시에 없음 - Firestore에서 실시간 조회 중..."
+            );
+            await setupOffscreen();
+            const collectionsResult = await sendMessageToOffscreen({
+              target: "offscreen",
+              type: "GET_COLLECTIONS",
+              userId: authResult.currentUser.uid,
+            });
+
+            console.log(
+              "🔍 [background] 컬렉션 조회 결과:",
+              collectionsResult.type
+            );
+
+            if (collectionsResult?.type === "COLLECTIONS_ERROR") {
+              console.error("❌ [background] 컬렉션 조회 실패");
+              sendResponse({
+                type: "BOOKMARK_SAVE_ERROR",
+                code: "firestore/fetch-failed",
+                message: "컬렉션 목록을 가져올 수 없습니다.",
+              });
+              return;
+            }
+
+            const collections = collectionsResult.collections || [];
+            console.log(
+              "🔍 [background] 조회된 컬렉션 수:",
+              collections.length
+            );
+            console.log(
+              "🔍 [background] 컬렉션 ID 목록:",
+              collections.map((c) => c.id)
+            );
+
+            collectionExists = collections.some(
+              (col) => col.id === collectionId
+            );
+            console.log("🔍 [background] 컬렉션 존재 여부:", collectionExists);
+          }
 
           if (!collectionExists) {
             console.error(

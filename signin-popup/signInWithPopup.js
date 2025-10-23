@@ -800,12 +800,14 @@ async function saveBookmark(bookmarkData) {
   try {
     const bookmarksRef = collection(db, "bookmarks");
 
-    // 북마크 데이터 준비
-    const collectionId =
-      (bookmarkData.collection || bookmarkData.collectionId) &&
-      (bookmarkData.collection || bookmarkData.collectionId).trim() !== ""
-        ? bookmarkData.collection || bookmarkData.collectionId
-        : null;
+    // 북마크 데이터 준비 - 컬렉션 ID 처리 개선
+    let collectionId = null;
+    const rawCollectionId =
+      bookmarkData.collection || bookmarkData.collectionId;
+
+    if (rawCollectionId && rawCollectionId.trim() !== "") {
+      collectionId = rawCollectionId.trim();
+    }
 
     const newBookmark = {
       userId: bookmarkData.userId,
@@ -820,6 +822,13 @@ async function saveBookmark(bookmarkData) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
+
+    console.log("저장할 북마크 데이터:", {
+      ...newBookmark,
+      createdAt: "serverTimestamp()",
+      updatedAt: "serverTimestamp()",
+    });
+    console.log("컬렉션 ID 최종 확인:", collectionId);
 
     // Firestore에 저장
     const docRef = await addDoc(bookmarksRef, newBookmark);

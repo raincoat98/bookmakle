@@ -252,6 +252,15 @@ function renderCollections(collections) {
     </div>
   `;
 
+  // 숨겨진 select 요소에도 옵션 추가
+  $collectionSelect.innerHTML = '<option value="">📄 컬렉션 없음</option>';
+  collections.forEach((collection) => {
+    const option = document.createElement("option");
+    option.value = collection.id;
+    option.textContent = collection.name;
+    $collectionSelect.appendChild(option);
+  });
+
   // 컬렉션 옵션들 추가
   collections.forEach((collection) => {
     const optionDiv = createCollectionOption(collection);
@@ -390,7 +399,11 @@ if ($collectionDropdown) {
       const option = e.target.closest(".collection-option");
       if (option) {
         const value = option.getAttribute("data-value");
+        console.log("컬렉션 옵션 클릭됨:", value);
+
+        // 숨겨진 select 요소 값 설정
         $collectionSelect.value = value;
+        console.log("$collectionSelect.value 설정됨:", $collectionSelect.value);
 
         // 선택된 텍스트 업데이트
         const iconElement = option.querySelector("svg, span");
@@ -405,6 +418,12 @@ if ($collectionDropdown) {
 
         // 드롭다운 닫기
         $collectionDropdownOptions.classList.add("hidden");
+
+        console.log("컬렉션 선택 완료 - 최종 값:", $collectionSelect.value);
+        console.log(
+          "선택된 옵션 확인:",
+          $collectionSelect.selectedOptions[0]?.textContent
+        );
       }
     });
   }
@@ -651,6 +670,11 @@ if ($saveBookmarkButton) {
 
       // 북마크 데이터 준비
       const selectedCollectionId = $collectionSelect?.value;
+      console.log("=== 컬렉션 선택 디버깅 ===");
+      console.log("$collectionSelect 요소:", $collectionSelect);
+      console.log("$collectionSelect.value:", selectedCollectionId);
+      console.log("$collectionSelect.options:", $collectionSelect?.options);
+      console.log("선택된 옵션:", $collectionSelect?.selectedOptions[0]);
       console.log(
         "선택된 컬렉션 ID:",
         selectedCollectionId,
@@ -658,11 +682,16 @@ if ($saveBookmarkButton) {
         typeof selectedCollectionId
       );
 
-      const finalCollectionId =
-        selectedCollectionId && selectedCollectionId.trim() !== ""
-          ? selectedCollectionId
-          : null;
+      // 컬렉션 ID 처리 개선
+      let finalCollectionId = null;
+      if (selectedCollectionId && selectedCollectionId.trim() !== "") {
+        finalCollectionId = selectedCollectionId.trim();
+        console.log("컬렉션 선택됨:", finalCollectionId);
+      } else {
+        console.log("컬렉션 미선택 - null로 설정");
+      }
       console.log("최종 컬렉션 ID:", finalCollectionId);
+      console.log("=== 컬렉션 선택 디버깅 끝 ===");
 
       // 컬렉션이 선택된 경우에만 유효성 검증
       if (finalCollectionId) {
