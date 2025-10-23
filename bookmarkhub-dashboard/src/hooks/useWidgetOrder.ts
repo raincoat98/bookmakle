@@ -1,11 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
-export type WidgetId =
-  | "clock"
-  | "favorite-bookmarks"
-  | "recent-bookmarks"
-  | "quick-actions"
-  | "bible-verse";
+export type WidgetId = "clock" | "bookmarks" | "quick-actions" | "bible-verse";
 
 export interface WidgetConfig {
   id: WidgetId;
@@ -16,8 +11,7 @@ export interface WidgetConfig {
 const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: "bible-verse", title: "성경말씀", enabled: true },
   { id: "clock", title: "시계", enabled: true },
-  { id: "favorite-bookmarks", title: "즐겨찾기 북마크", enabled: true },
-  { id: "recent-bookmarks", title: "최근 추가 북마크", enabled: true },
+  { id: "bookmarks", title: "북마크", enabled: true },
   { id: "quick-actions", title: "빠른 작업", enabled: true },
 ];
 
@@ -26,117 +20,135 @@ export const useWidgetOrder = (userId: string) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   // 로컬 스토리지 키
-  const storageKey = `widget-order-${userId}`;
+  const storageKey = useMemo(() => `widget-order-${userId}`, [userId]);
 
-  // 위젯 순서 로드
-  useEffect(() => {
-    if (!userId) return;
+  // 위젯 설정 병합 함수
+  const mergeWidgetConfigs = useCallback(
+    (savedWidgets: WidgetConfig[]): WidgetConfig[] => {
+      const validWidgets = savedWidgets.filter((widget) =>
+        DEFAULT_WIDGETS.some((defaultWidget) => defaultWidget.id === widget.id)
+      );
+
+      // 새로운 위젯 추가
+      const mergedWidgets = [...validWidgets];
+      DEFAULT_WIDGETS.forEach((defaultWidget) => {
+        const exists = mergedWidgets.find(
+          (widget) => widget.id === defaultWidget.id
+        );
+        if (!exists) {
+          mergedWidgets.push(defaultWidget);
+        }
+      });
+
+      return mergedWidgets;
+    },
+    []
+  );
+
+  // 위젯 설정 로드
+  const loadWidgetConfig = useCallback(() => {
+    if (!userId) return DEFAULT_WIDGETS;
 
     try {
       const savedOrder = localStorage.getItem(storageKey);
-      if (savedOrder) {
-        const parsedOrder: WidgetConfig[] = JSON.parse(savedOrder);
+      if (!savedOrder) return DEFAULT_WIDGETS;
 
-        // 새로운 위젯이 추가된 경우 기존 설정에 병합
-        const updatedWidgets = [...parsedOrder];
-        let hasChanges = false;
-
-        // 삭제된 위젯들 제거 (collection-distribution 등)
-        const validWidgets = updatedWidgets.filter((widget) =>
-          DEFAULT_WIDGETS.some(
-            (defaultWidget) => defaultWidget.id === widget.id
-          )
-        );
-
-        // 새로운 위젯 추가
-        DEFAULT_WIDGETS.forEach((defaultWidget) => {
-          const exists = validWidgets.find(
-            (widget) => widget.id === defaultWidget.id
-          );
-          if (!exists) {
-            validWidgets.push(defaultWidget);
-            hasChanges = true;
-          }
-        });
-
-        // 유효한 위젯들만 사용
-        if (validWidgets.length !== updatedWidgets.length) {
-          hasChanges = true;
-        }
-
-        if (hasChanges) {
-          // 변경사항이 있는 경우 저장하고 업데이트
-          localStorage.setItem(storageKey, JSON.stringify(validWidgets));
-          setWidgets(validWidgets);
-        } else {
-          setWidgets(validWidgets);
-        }
-      } else {
-        // 저장된 설정이 없으면 기본값 사용
-        setWidgets(DEFAULT_WIDGETS);
-      }
+      const parsedOrder: WidgetConfig[] = JSON.parse(savedOrder);
+      return mergeWidgetConfigs(parsedOrder);
     } catch (error) {
       console.error("위젯 순서 로드 실패:", error);
-      setWidgets(DEFAULT_WIDGETS);
+      return DEFAULT_WIDGETS;
     }
-  }, [userId, storageKey]);
+  }, [userId, storageKey, mergeWidgetConfigs]);
 
-  // 위젯 순서 저장
-  const saveWidgetOrder = (newWidgets: WidgetConfig[]) => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(newWidgets));
-      setWidgets(newWidgets);
-    } catch (error) {
-      console.error("위젯 순서 저장 실패:", error);
-    }
-  };
+  // 위젯 설정 저장
+  const saveWidgetConfig = useCallback(
+    (newWidgets: WidgetConfig[]) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(newWidgets));
+        setWidgets(newWidgets);
+      } catch (error) {
+        console.error("위젯 순서 저장 실패:", error);
+      }
+    },
+    [storageKey]
+  );
+
+  // 위젯 순서 로드
+  useEffect(() => {
+    const loadedWidgets = loadWidgetConfig();
+    setWidgets(loadedWidgets);
+  }, [loadWidgetConfig]);
 
   // 위젯 순서 변경
-  const reorderWidgets = (newWidgets: WidgetConfig[]) => {
-    saveWidgetOrder(newWidgets);
-  };
+  const reorderWidgets = useCallback(
+    (newWidgets: WidgetConfig[]) => {
+      saveWidgetConfig(newWidgets);
+    },
+    [saveWidgetConfig]
+  );
 
   // 위젯 활성화/비활성화
-  const toggleWidget = (widgetId: WidgetId) => {
-    const newWidgets = widgets.map((widget) =>
-      widget.id === widgetId ? { ...widget, enabled: !widget.enabled } : widget
-    );
-    saveWidgetOrder(newWidgets);
-  };
+  const toggleWidget = useCallback(
+    (widgetId: WidgetId) => {
+      const newWidgets = widgets.map((widget) =>
+        widget.id === widgetId
+          ? { ...widget, enabled: !widget.enabled }
+          : widget
+      );
+      saveWidgetConfig(newWidgets);
+    },
+    [widgets, saveWidgetConfig]
+  );
 
   // 위젯 순서 초기화
-  const resetWidgetOrder = () => {
-    saveWidgetOrder(DEFAULT_WIDGETS);
-  };
+  const resetWidgetOrder = useCallback(() => {
+    saveWidgetConfig(DEFAULT_WIDGETS);
+  }, [saveWidgetConfig]);
+
+  // 위젯 이동 유틸리티 함수
+  const moveWidget = useCallback(
+    (widgetId: WidgetId, direction: "up" | "down") => {
+      const currentIndex = widgets.findIndex((w) => w.id === widgetId);
+      const newIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+      if (newIndex < 0 || newIndex >= widgets.length) return;
+
+      const newWidgets = [...widgets];
+      [newWidgets[currentIndex], newWidgets[newIndex]] = [
+        newWidgets[newIndex],
+        newWidgets[currentIndex],
+      ];
+      saveWidgetConfig(newWidgets);
+    },
+    [widgets, saveWidgetConfig]
+  );
 
   // 위젯을 위로 이동
-  const moveWidgetUp = (widgetId: WidgetId) => {
-    const currentIndex = widgets.findIndex((w) => w.id === widgetId);
-    if (currentIndex > 0) {
-      const newWidgets = [...widgets];
-      [newWidgets[currentIndex - 1], newWidgets[currentIndex]] = [
-        newWidgets[currentIndex],
-        newWidgets[currentIndex - 1],
-      ];
-      saveWidgetOrder(newWidgets);
-    }
-  };
+  const moveWidgetUp = useCallback(
+    (widgetId: WidgetId) => {
+      moveWidget(widgetId, "up");
+    },
+    [moveWidget]
+  );
 
   // 위젯을 아래로 이동
-  const moveWidgetDown = (widgetId: WidgetId) => {
-    const currentIndex = widgets.findIndex((w) => w.id === widgetId);
-    if (currentIndex < widgets.length - 1) {
-      const newWidgets = [...widgets];
-      [newWidgets[currentIndex], newWidgets[currentIndex + 1]] = [
-        newWidgets[currentIndex + 1],
-        newWidgets[currentIndex],
-      ];
-      saveWidgetOrder(newWidgets);
-    }
-  };
+  const moveWidgetDown = useCallback(
+    (widgetId: WidgetId) => {
+      moveWidget(widgetId, "down");
+    },
+    [moveWidget]
+  );
+
+  // 활성화된 위젯들만 필터링
+  const enabledWidgets = useMemo(
+    () => widgets.filter((widget) => widget.enabled || isEditMode),
+    [widgets, isEditMode]
+  );
 
   return {
     widgets,
+    enabledWidgets,
     isEditMode,
     setIsEditMode,
     reorderWidgets,
