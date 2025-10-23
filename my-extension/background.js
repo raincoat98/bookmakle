@@ -436,7 +436,7 @@ async function createContextMenusInternal() {
     const isQuickMode = result.quickMode || false;
     console.log("빠른 실행 모드 상태:", isQuickMode);
 
-    // 메뉴 생성 (재시도 로직 포함)
+    // 메뉴 생성 (최대 4개 제한 - Chrome 확장 프로그램 제약)
     const menuItems = [
       {
         id: "toggle-quick-mode",
@@ -446,19 +446,36 @@ async function createContextMenusInternal() {
         contexts: ["action"],
       },
       {
-        id: "separator",
-        type: "separator",
+        id: "open-dashboard",
+        title: "📊 대시보드 열기",
         contexts: ["action"],
       },
       {
-        id: "open-dashboard",
-        title: "📊 대시보드 열기",
+        id: "separator-1",
+        type: "separator",
+        contexts: ["action"],
+      },
+
+      {
+        id: "open-github",
+        title: "🐙 GitHub 저장소",
+        contexts: ["action"],
+      },
+      {
+        id: "open-chrome-store",
+        title: "🛒 Chrome 웹스토어",
         contexts: ["action"],
       },
     ];
 
     for (const menuItem of menuItems) {
-      await createContextMenuItemWithRetry(menuItem, 3);
+      console.log("메뉴 생성 시도:", menuItem.id, menuItem.title);
+      try {
+        await createContextMenuItemWithRetry(menuItem, 3);
+        console.log("✅ 메뉴 생성 완료:", menuItem.id);
+      } catch (error) {
+        console.error("❌ 메뉴 생성 실패:", menuItem.id, error.message);
+      }
     }
 
     console.log("컨텍스트 메뉴 생성 완료");
@@ -511,29 +528,33 @@ async function removeAllMenusSafely() {
 async function createContextMenuItemWithRetry(properties, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(
+        `🔄 메뉴 생성 시도 ${attempt}/${maxRetries}: ${properties.id}`
+      );
       await createContextMenuItem(properties);
+      console.log(`✅ 메뉴 생성 성공: ${properties.id}`);
       return; // 성공하면 종료
     } catch (error) {
       console.warn(
-        `메뉴 생성 시도 ${attempt}/${maxRetries} 실패:`,
+        `⚠️ 메뉴 생성 시도 ${attempt}/${maxRetries} 실패 [${properties.id}]:`,
         error.message
       );
 
       if (attempt === maxRetries) {
         console.error(
-          `메뉴 생성 최종 실패 [${properties.id || properties.type}]`
+          `❌ 메뉴 생성 최종 실패 [${properties.id || properties.type}]`
         );
         throw error; // 최대 재시도 후 실패하면 에러 던지기
       }
 
       // 재시도 전 대기 (지수적 백오프)
       const delay = Math.pow(2, attempt) * 100; // 200ms, 400ms, 800ms
-      console.log(`${delay}ms 후 재시도합니다...`);
+      console.log(`⏳ ${delay}ms 후 재시도합니다...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
 
       // 중복 ID 오류인 경우 추가 메뉴 제거 시도
       if (error.message.includes("duplicate")) {
-        console.log("중복 ID 오류 감지 - 추가 메뉴 제거 시도");
+        console.log("🔄 중복 ID 오류 감지 - 추가 메뉴 제거 시도");
         await new Promise((resolve) => {
           chrome.contextMenus.removeAll(() => {
             resolve();
@@ -549,13 +570,14 @@ async function createContextMenuItemWithRetry(properties, maxRetries = 3) {
 function createContextMenuItem(properties) {
   return new Promise((resolve, reject) => {
     try {
+      console.log(`🔧 메뉴 생성 시도: ${properties.id} (${properties.title})`);
       chrome.contextMenus.create(properties, () => {
         if (chrome.runtime.lastError) {
           const error = chrome.runtime.lastError;
           const errorMsg =
             error.message || error.toString() || "알 수 없는 오류";
           console.error(
-            `메뉴 생성 실패 [${properties.id || properties.type}]:`,
+            `❌ 메뉴 생성 실패 [${properties.id || properties.type}]:`,
             errorMsg
           );
           console.error("메뉴 속성:", JSON.stringify(properties, null, 2));
@@ -569,7 +591,9 @@ function createContextMenuItem(properties) {
 
           reject(new Error(errorMsg));
         } else {
-          console.log(`메뉴 생성 성공 [${properties.id || properties.type}]`);
+          console.log(
+            `✅ 메뉴 생성 성공 [${properties.id || properties.type}]`
+          );
           resolve();
         }
       });
@@ -593,6 +617,18 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       case "open-dashboard":
         console.log("대시보드 열기 실행");
         await openDashboard();
+        break;
+      case "open-github":
+        console.log("GitHub 저장소 열기 실행");
+        await openGitHub();
+        break;
+      case "open-chrome-store":
+        console.log("Chrome 웹스토어 열기 실행");
+        await openChromeStore();
+        break;
+      case "open-chrome-store":
+        console.log("버그 리포트 열기 실행");
+        await openBugReport();
         break;
       default:
         console.log("알 수 없는 메뉴 항목:", info.menuItemId);
@@ -652,6 +688,38 @@ async function openDashboard() {
     await chrome.tabs.create({ url: dashboardUrl });
   } catch (error) {
     console.error("대시보드 열기 실패:", error);
+  }
+}
+
+// GitHub 저장소 열기 함수
+async function openGitHub() {
+  try {
+    const githubUrl = "https://github.com/raincoat98/bookmakle";
+    await chrome.tabs.create({ url: githubUrl });
+  } catch (error) {
+    console.error("GitHub 저장소 열기 실패:", error);
+  }
+}
+
+// Chrome 웹스토어 열기 함수
+async function openChromeStore() {
+  try {
+    const chromeStoreUrl =
+      "https://chromewebstore.google.com/detail/%EB%B6%81%EB%A7%88%ED%81%B4/lkkbdejelaagaipenlheijafnjggkdcm?hl=ko";
+    await chrome.tabs.create({ url: chromeStoreUrl });
+  } catch (error) {
+    console.error("Chrome 웹스토어 열기 실패:", error);
+  }
+}
+
+// 버그 리포트 열기 함수
+async function openBugReport() {
+  try {
+    const bugReportUrl =
+      "https://github.com/raincoat98/bookmakle/issues?q=sort%3Aupdated-desc+is%3Aissue+is%3Aopen";
+    await chrome.tabs.create({ url: bugReportUrl });
+  } catch (error) {
+    console.error("버그 리포트 열기 실패:", error);
   }
 }
 
