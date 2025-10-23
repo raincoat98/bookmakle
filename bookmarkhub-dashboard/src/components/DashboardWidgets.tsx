@@ -255,14 +255,13 @@ const QuickActions: React.FC<QuickActionsProps> = ({
 // 통합 북마크 위젯 (즐겨찾기 + 최근 북마크)
 const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
   bookmarks,
-  collections,
   onEdit,
   onDelete,
   onToggleFavorite,
   currentSort,
   onSortChange,
 }) => {
-  // 즐겨찾기 북마크
+  // 즐겨찾기 북마크 (컬렉션 정보 포함)
   const favoriteBookmarks = useMemo(() => {
     const filtered = bookmarks.filter((b) => b.isFavorite);
     if (currentSort && onSortChange) {
@@ -271,7 +270,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
     return filtered.slice(0, 6);
   }, [bookmarks, currentSort, onSortChange]);
 
-  // 최근 북마크
+  // 최근 북마크 (컬렉션 정보 포함)
   const recentBookmarks = useMemo(() => {
     return bookmarks
       .sort(
@@ -319,7 +318,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                 >
                   {/* 파비콘 아이콘 */}
                   <div
-                    className="w-12 h-12 rounded-xl shadow-lg hover:shadow-xl group-hover/fav-section:scale-110 transition-all duration-300 cursor-pointer mb-2 relative overflow-hidden bg-white dark:bg-gray-800"
+                    className="w-10 h-10 rounded-lg shadow-lg hover:shadow-xl group-hover/fav-section:scale-110 transition-all duration-300 cursor-pointer mb-2 relative overflow-hidden"
                     onClick={() => handleFaviconClick(bookmark.url)}
                   >
                     <img
@@ -340,7 +339,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                       className="w-full h-full flex items-center justify-center bg-gradient-to-r from-yellow-400 to-orange-500"
                       style={{ display: "none" }}
                     >
-                      <Sparkles className="w-6 h-6 text-white group-hover/fav-section:animate-pulse" />
+                      <Sparkles className="w-5 h-5 text-white group-hover/fav-section:animate-pulse" />
                     </div>
                   </div>
 
@@ -417,7 +416,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                 >
                   {/* 파비콘 아이콘 */}
                   <div
-                    className="w-12 h-12 rounded-xl shadow-lg hover:shadow-xl group-hover/recent-section:scale-110 transition-all duration-300 cursor-pointer mb-2 relative overflow-hidden bg-white dark:bg-gray-800"
+                    className="w-10 h-10 rounded-lg shadow-lg hover:shadow-xl group-hover/recent-section:scale-110 transition-all duration-300 cursor-pointer mb-2 relative overflow-hidden"
                     onClick={() => handleFaviconClick(bookmark.url)}
                   >
                     <img
@@ -438,7 +437,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                       className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600"
                       style={{ display: "none" }}
                     >
-                      <Globe className="w-6 h-6 text-white group-hover/recent-section:animate-pulse" />
+                      <Globe className="w-5 h-5 text-white group-hover/recent-section:animate-pulse" />
                     </div>
                   </div>
 
