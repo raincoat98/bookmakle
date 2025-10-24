@@ -139,76 +139,82 @@ export const CollectionList = ({
           </div>
 
           <div className="flex-1">
-            <span
-              className="font-medium block text-left"
-              style={{ wordBreak: "break-all", whiteSpace: "normal" }}
-            >
-              {collection.name}
-            </span>
-            {collection.description && collection.description.trim() !== "" && (
+            {!collapsed && (
               <span
-                className="block text-xs text-gray-500 dark:text-gray-400 text-left mt-0.5"
+                className="font-medium block text-left"
                 style={{ wordBreak: "break-all", whiteSpace: "normal" }}
               >
-                {collection.description}
+                {collection.name}
               </span>
             )}
+            {!collapsed &&
+              collection.description &&
+              collection.description.trim() !== "" && (
+                <span
+                  className="block text-xs text-gray-500 dark:text-gray-400 text-left mt-0.5"
+                  style={{ wordBreak: "break-all", whiteSpace: "normal" }}
+                >
+                  {collection.description}
+                </span>
+              )}
           </div>
 
           {/* 액션 버튼들 */}
-          <div className="flex items-center space-x-1 ml-2">
-            {/* 수정 버튼 */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-                onEditCollection(collection);
-              }}
-              className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              title="수정"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {!collapsed && (
+            <div className="flex items-center space-x-1 ml-2">
+              {/* 수정 버튼 */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                  onEditCollection(collection);
+                }}
+                className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="수정"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </button>
 
-            {/* 삭제 버튼 */}
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.nativeEvent.stopImmediatePropagation();
-                onDeleteCollectionRequest(collection.id, collection.name);
-              }}
-              className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              title="삭제"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              {/* 삭제 버튼 */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  e.nativeEvent.stopImmediatePropagation();
+                  onDeleteCollectionRequest(collection.id, collection.name);
+                }}
+                className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                title="삭제"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
-            </button>
-          </div>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>,
       ];
       if (hasChild && isOpen) nodes.push(...children);
@@ -225,27 +231,27 @@ export const CollectionList = ({
           {/* 전체 북마크 */}
           <button
             onClick={() => onCollectionChange("all")}
-            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+            className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
               selectedCollection === "all"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             title="전체"
           >
-            <span className="text-sm">📚</span>
+            <span className="text-lg">📚</span>
           </button>
 
           {/* 컬렉션 없음 */}
           <button
             onClick={() => onCollectionChange("none")}
-            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+            className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
               selectedCollection === "none"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             title="컬렉션 없음"
           >
-            <span className="text-sm">📄</span>
+            <span className="text-lg">📄</span>
           </button>
 
           {/* 최상위 컬렉션들만 표시 */}
@@ -261,14 +267,14 @@ export const CollectionList = ({
               <div key={collection.id} className="relative">
                 <button
                   onClick={() => onCollectionChange(collection.id)}
-                  className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+                  className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
                     selectedCollection === collection.id
                       ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   title={collection.name}
                 >
-                  {renderCollectionIcon(collection.icon, "w-4 h-4")}
+                  {renderCollectionIcon(collection.icon, "w-5 h-5")}
                 </button>
                 {collection.isPinned && (
                   <span className="absolute -top-1 -right-1 inline-flex items-center px-1 py-0.5 rounded-full text-xs font-bold bg-yellow-400 text-yellow-900 border border-yellow-500">
@@ -283,11 +289,11 @@ export const CollectionList = ({
         <div className="p-2 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onOpenAddCollectionModal}
-            className="w-full flex items-center justify-center p-2 btn-primary rounded-lg"
+            className="w-full flex items-center justify-center p-3 btn-primary rounded-lg"
             title="새 컬렉션"
           >
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
