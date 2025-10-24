@@ -274,7 +274,7 @@ export const useBookmarks = (
   ) => {
     if (!userId) throw new Error("사용자가 로그인되지 않았습니다.");
 
-    // favicon이 없으면 자동으로 가져오기
+    // favicon이 없으면 자동으로 가져오기 (커스텀 파비콘 URL이 있는 경우는 그대로 사용)
     let favicon = bookmarkData.favicon;
     if (!favicon && bookmarkData.url) {
       favicon = getFaviconUrl(bookmarkData.url);
