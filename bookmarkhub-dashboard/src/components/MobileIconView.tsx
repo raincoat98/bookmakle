@@ -11,7 +11,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import type { DragEndEvent } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -37,34 +37,21 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
     null
   );
   const [isEditMode, setIsEditMode] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
-  // 드래그 앤 드롭 센서 설정 - PointerSensor로 모바일 터치 지원
+  // 드래그 앤 드롭 센서 설정 - 수정모드에서만 드래그 활성화
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         delay: 0, // 즉시 드래그 시작
-        tolerance: 0, // 이동 없이도 드래그 시작
+        tolerance: 10, // 10px 이동 허용
       },
     }),
     useSensor(KeyboardSensor)
   );
 
-  // 드래그 시작 핸들러
-  const handleDragStart = (event: DragStartEvent) => {
-    console.log("Drag start:", event);
-    // 드래그 시작 시 수정 모드 활성화
-    setIsEditMode(true);
-    setIsDragging(true);
-  };
-
   // 드래그 종료 핸들러
   const handleDragEnd = (event: DragEndEvent) => {
-    console.log("Drag end:", event);
     const { active, over } = event;
-
-    // 드래그 상태 해제
-    setIsDragging(false);
 
     if (!over || !onReorder) return;
 
@@ -72,15 +59,16 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       const oldIndex = bookmarks.findIndex((item) => item.id === active.id);
       const newIndex = bookmarks.findIndex((item) => item.id === over.id);
 
-      const newBookmarks = arrayMove(bookmarks, oldIndex, newIndex);
-      onReorder(newBookmarks);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newBookmarks = arrayMove(bookmarks, oldIndex, newIndex);
+        onReorder(newBookmarks);
+      }
     }
   };
 
   // 수정 모드 종료
   const handleExitEditMode = () => {
     setIsEditMode(false);
-    setIsDragging(false);
     setSelectedBookmark(null);
   };
 
@@ -88,7 +76,6 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
     e: React.MouseEvent | React.PointerEvent,
     bookmark: Bookmark
   ) => {
-    console.log("Settings button clicked:", bookmark.title);
     e.stopPropagation();
     setSelectedBookmark(bookmark);
   };
@@ -151,6 +138,8 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
   // 드래그 가능한 북마크 아이템 컴포넌트
   const DraggableBookmarkItem = ({ bookmark }: { bookmark: Bookmark }) => {
     const elementRef = useRef<HTMLDivElement>(null);
+    const touchStartTimeRef = useRef<number>(0);
+    const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const {
       attributes,
@@ -166,21 +155,64 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       },
     });
 
-    // passive 이벤트 문제 해결을 위한 useEffect
+    // 터치 이벤트 처리 - 수정모드가 아닐 때만
     useEffect(() => {
       const element = elementRef.current;
       if (!element) return;
 
+      // 수정모드일 때는 터치 이벤트를 완전히 비활성화
+      if (isEditMode) {
+        return;
+      }
+
       const handleTouchStart = (e: TouchEvent) => {
-        e.preventDefault();
+        touchStartTimeRef.current = Date.now();
+
+        // 1초 후에 수정모드 진입을 위한 타이머 설정
+        touchTimeoutRef.current = setTimeout(() => {
+          if (!isEditMode) {
+            e.preventDefault(); // 롱프레스 시에만 브라우저 기본 동작 방지
+            setIsEditMode(true);
+          }
+        }, 1000);
       };
 
-      const handleTouchMove = (e: TouchEvent) => {
-        e.preventDefault();
+      const handleTouchEnd = () => {
+        const touchDuration = Date.now() - touchStartTimeRef.current;
+
+        // 타이머 클리어
+        if (touchTimeoutRef.current) {
+          clearTimeout(touchTimeoutRef.current);
+          touchTimeoutRef.current = null;
+        }
+
+        // 짧은 터치인 경우 링크로 이동
+        if (touchDuration < 1000 && !isEditMode) {
+          // 링크가 없는 경우 직접 이동
+          if (!element.querySelector("a")) {
+            window.open(bookmark.url, "_blank", "noopener,noreferrer");
+          } else {
+            const linkElement = element.querySelector("a");
+            if (linkElement) {
+              linkElement.click();
+            }
+          }
+        }
+      };
+
+      const handleTouchMove = () => {
+        // 터치 이동 시 타이머 클리어 (롱프레스 취소)
+        if (touchTimeoutRef.current) {
+          clearTimeout(touchTimeoutRef.current);
+          touchTimeoutRef.current = null;
+        }
       };
 
       // non-passive 이벤트 리스너 추가
       element.addEventListener("touchstart", handleTouchStart, {
+        passive: false,
+      });
+      element.addEventListener("touchend", handleTouchEnd, {
         passive: false,
       });
       element.addEventListener("touchmove", handleTouchMove, {
@@ -189,9 +221,16 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
 
       return () => {
         element.removeEventListener("touchstart", handleTouchStart);
+        element.removeEventListener("touchend", handleTouchEnd);
         element.removeEventListener("touchmove", handleTouchMove);
+
+        // 컴포넌트 언마운트 시 타이머 클리어
+        if (touchTimeoutRef.current) {
+          clearTimeout(touchTimeoutRef.current);
+        }
       };
-    }, []);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode]);
 
     const style = {
       transform: CSS.Transform.toString(transform),
@@ -213,95 +252,127 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
         <div className="relative p-1 group">
           <div
             {...attributes}
-            {...listeners}
-            className={`block w-10 h-10 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 transition-all duration-300 overflow-hidden shadow-lg touch-manipulation cursor-grab active:cursor-grabbing ${
+            {...(isEditMode ? listeners : {})}
+            className={`block w-10 h-10 rounded-lg bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 transition-all duration-300 overflow-hidden shadow-lg touch-manipulation ${
               isEditMode
-                ? "border-2 border-blue-400 dark:border-blue-500 scale-105"
-                : "hover:scale-105 hover:shadow-2xl active:scale-95"
+                ? "cursor-grab active:cursor-grabbing border-2 border-blue-400 dark:border-blue-500 scale-105"
+                : "cursor-pointer hover:scale-105 hover:shadow-2xl active:scale-95"
             }`}
-            onPointerDown={(e) => {
-              // 기존 listeners의 onPointerDown 실행
-              if (listeners?.onPointerDown) {
-                listeners.onPointerDown(e);
-              }
-            }}
-            onPointerUp={(e) => {
-              // 기존 listeners의 onPointerUp 실행
-              if (listeners?.onPointerUp) {
-                listeners.onPointerUp(e);
-              }
-            }}
-            onPointerLeave={(e) => {
-              // 기존 listeners의 onPointerLeave 실행
-              if (listeners?.onPointerLeave) {
-                listeners.onPointerLeave(e);
-              }
+            style={{
+              touchAction: "none", // 모든 브라우저 터치 동작 차단
             }}
           >
-            <a
-              href={bookmark.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block w-full h-full"
-              onClick={(e) => {
-                if (isEditMode || isDragging) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  return false;
-                }
-              }}
-              onMouseDown={(e) => {
-                if (isEditMode || isDragging) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  return false;
-                }
-              }}
-              onTouchStart={(e) => {
-                if (isEditMode || isDragging) {
-                  e.stopPropagation();
-                  return false;
-                }
-              }}
-            >
-              {/* 파비콘 또는 초기 */}
-              <div
-                className={`w-full h-full flex items-center justify-center ${getFaviconBackground(
-                  bookmark
-                )}`}
+            {isEditMode ? (
+              <a
+                href={bookmark.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full h-full pointer-events-none"
               >
-                {bookmark.favicon ? (
-                  <img
-                    src={bookmark.favicon}
-                    alt="파비콘"
-                    className="w-8 h-8 rounded shadow-lg"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                      e.currentTarget.nextElementSibling?.classList.remove(
-                        "hidden"
-                      );
-                    }}
-                  />
-                ) : null}
+                {/* 파비콘 또는 초기 */}
                 <div
-                  className={`text-white font-bold text-sm shadow-lg ${
-                    bookmark.favicon ? "hidden" : ""
-                  }`}
+                  className={`w-full h-full flex items-center justify-center ${getFaviconBackground(
+                    bookmark
+                  )}`}
                 >
-                  {getInitials(bookmark.title)}
+                  {bookmark.favicon ? (
+                    <img
+                      src={bookmark.favicon}
+                      alt="파비콘"
+                      className="w-8 h-8 rounded shadow-lg"
+                      draggable="false"
+                      onContextMenu={(e) => e.preventDefault()}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`text-white font-bold text-sm shadow-lg ${
+                      bookmark.favicon ? "hidden" : ""
+                    }`}
+                  >
+                    {getInitials(bookmark.title)}
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <div className="block w-full h-full">
+                {/* 파비콘 또는 초기 */}
+                <div
+                  className={`w-full h-full flex items-center justify-center ${getFaviconBackground(
+                    bookmark
+                  )}`}
+                >
+                  {bookmark.favicon ? (
+                    <img
+                      src={bookmark.favicon}
+                      alt="파비콘"
+                      className="w-8 h-8 rounded shadow-lg"
+                      draggable="false"
+                      onContextMenu={(e) => e.preventDefault()}
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className={`text-white font-bold text-sm shadow-lg ${
+                      bookmark.favicon ? "hidden" : ""
+                    }`}
+                  >
+                    {getInitials(bookmark.title)}
+                  </div>
                 </div>
               </div>
-            </a>
+            )}
           </div>
 
           {/* 수정 모드일 때만 설정 버튼 표시 */}
           {isEditMode && (
             <div
-              onClick={(e) => handleSettingsClick(e, bookmark)}
-              onPointerDown={(e) => handleSettingsClick(e, bookmark)}
-              className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-500 dark:to-slate-700 backdrop-blur-xl rounded-full flex items-center justify-center shadow-lg border border-white dark:border-slate-800 z-50 touch-manipulation cursor-pointer"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSettingsClick(e, bookmark);
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // 터치를 뗄 때만 모달 열기
+                setSelectedBookmark(bookmark);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onMouseUp={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                // 마우스를 뗄 때만 모달 열기
+                handleSettingsClick(e, bookmark);
+              }}
+              className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-500 dark:to-slate-700 backdrop-blur-xl rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 z-50 touch-manipulation cursor-pointer"
+              style={{
+                pointerEvents: "auto",
+                touchAction: "manipulation",
+              }}
             >
-              <Settings className="w-3 h-3 text-white" />
+              <Settings className="w-4 h-4 text-white" />
             </div>
           )}
         </div>
@@ -322,7 +393,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       {isEditMode && (
         <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg">
           <p className="text-xs font-medium">
-            수정 모드 - 드래그하거나 설정 버튼 사용
+            수정 모드 - 1초 이상 눌러서 진입, 드래그하여 순서 변경
           </p>
           <button
             onClick={handleExitEditMode}
@@ -337,14 +408,13 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <SortableContext
           items={bookmarks.map((item) => item.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-6 gap-2 p-3 justify-items-center">
+          <div className="grid grid-cols-5 gap-2 p-3 justify-items-center">
             {bookmarks.map((bookmark) => (
               <DraggableBookmarkItem key={bookmark.id} bookmark={bookmark} />
             ))}
@@ -368,6 +438,8 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                     src={selectedBookmark.favicon}
                     alt="파비콘"
                     className="w-12 h-12 rounded-2xl shadow-lg"
+                    draggable="false"
+                    onContextMenu={(e) => e.preventDefault()}
                   />
                 ) : (
                   <div className="text-white font-bold text-3xl shadow-lg">
