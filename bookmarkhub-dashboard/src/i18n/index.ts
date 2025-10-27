@@ -24,6 +24,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
+    lng: "ko", // 기본 언어를 한국어로 강제 설정
     fallbackLng: "ko",
     debug: false,
 
