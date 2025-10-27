@@ -104,6 +104,39 @@ body {
   display: none !important;
 }
 
+/* 언어 전환 드롭다운 스타일 */
+#languageDropdown {
+  min-width: 120px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background-color: white;
+  z-index: 1000;
+}
+
+#languageDropdown.hidden {
+  display: none !important;
+}
+
+.language-option {
+  transition: background-color 0.2s ease;
+}
+
+.language-option:hover {
+  background-color: #f3f4f6 !important;
+}
+
+.language-option:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.language-option:last-child {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
 /* 로그인 버튼 숨김 */
 #login.hidden {
   display: none !important;
