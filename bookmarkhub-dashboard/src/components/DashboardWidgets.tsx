@@ -21,6 +21,7 @@ import type { Bookmark, Collection, SortOption } from "../types";
 import { sortBookmarks } from "../utils/sortBookmarks";
 import bibleVerses from "../data/bibleVerses.json";
 import { WeatherWidget } from "./WeatherWidget";
+import { useTranslation } from "react-i18next";
 import {
   DndContext,
   closestCenter,
@@ -91,6 +92,7 @@ const SortableWidget: React.FC<{
   canMoveUp,
   canMoveDown,
 }) => {
+  const { t } = useTranslation();
   // 화면 크기 감지를 위한 상태
   const [isMobile, setIsMobile] = useState(false);
 
@@ -147,7 +149,9 @@ const SortableWidget: React.FC<{
               onToggle();
             }}
             className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            title={enabled ? "위젯 숨기기" : "위젯 보이기"}
+            title={
+              enabled ? t("dashboard.hideWidget") : t("dashboard.showWidget")
+            }
           >
             {enabled ? (
               <EyeOff className="w-4 h-4 text-gray-600 dark:text-gray-400" />
@@ -165,7 +169,7 @@ const SortableWidget: React.FC<{
                   onMoveUp?.();
                 }}
                 className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                title="위로 이동"
+                title={t("common.moveUp")}
               >
                 <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
@@ -177,7 +181,7 @@ const SortableWidget: React.FC<{
                   onMoveDown?.();
                 }}
                 className="p-1 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                title="아래로 이동"
+                title={t("common.moveDown")}
               >
                 <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
@@ -209,10 +213,12 @@ const QuickActions: React.FC<QuickActionsProps> = ({
   onAddBookmark,
   onAddCollection,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="card-glass p-6">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-        빠른 작업
+        {t("dashboard.quickActions")}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
@@ -224,10 +230,10 @@ const QuickActions: React.FC<QuickActionsProps> = ({
           </div>
           <div className="text-left">
             <p className="font-medium text-gray-900 dark:text-white">
-              북마크 추가
+              {t("dashboard.addBookmark")}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              새 북마크를 추가하세요
+              {t("dashboard.addBookmarkDescription")}
             </p>
           </div>
         </button>
@@ -240,10 +246,10 @@ const QuickActions: React.FC<QuickActionsProps> = ({
           </div>
           <div className="text-left">
             <p className="font-medium text-gray-900 dark:text-white">
-              컬렉션 추가
+              {t("dashboard.addCollection")}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              새 컬렉션을 생성하세요
+              {t("dashboard.addCollectionDescription")}
             </p>
           </div>
         </button>
@@ -261,6 +267,8 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
   currentSort,
   onSortChange,
 }) => {
+  const { t } = useTranslation();
+
   // 즐겨찾기 북마크 (컬렉션 정보 포함)
   const favoriteBookmarks = useMemo(() => {
     const filtered = bookmarks.filter((b) => b.isFavorite);
@@ -285,9 +293,9 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
     const diffTime = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return "오늘";
-    if (diffDays === 1) return "어제";
-    if (diffDays < 7) return `${diffDays}일 전`;
+    if (diffDays === 0) return t("dashboard.today");
+    if (diffDays === 1) return t("dashboard.yesterday");
+    if (diffDays < 7) return t("dashboard.daysAgo", { count: diffDays });
     return date.toLocaleDateString("ko-KR", { month: "short", day: "numeric" });
   };
 
@@ -299,7 +307,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
     <div className="card-glass p-4 sm:p-6 h-full flex flex-col min-h-[400px] sm:min-h-[500px]">
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 flex items-center">
         <Heart className="w-4 sm:w-5 h-4 sm:h-5 text-red-500 mr-2 sm:mr-3" />
-        북마크
+        {t("bookmarks.title")}
       </h3>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -307,7 +315,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
         <div className="favorites-section group/fav-section flex flex-col bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl p-4 border border-yellow-200/50 dark:border-yellow-800/50 hover:shadow-lg transition-all duration-300">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center">
             <Sparkles className="w-4 h-4 text-yellow-500 mr-2" />
-            즐겨찾기
+            {t("bookmarks.favorites")}
           </h4>
           {favoriteBookmarks.length > 0 ? (
             <div className="flex flex-wrap gap-3 flex-1">
@@ -359,7 +367,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                         onToggleFavorite(bookmark.id, false);
                       }}
                       className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                      title="즐겨찾기 해제"
+                      title={t("bookmarks.removeFromFavorites")}
                     >
                       <Heart className="w-3 h-3 fill-current" />
                     </button>
@@ -373,7 +381,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                         onEdit(bookmark);
                       }}
                       className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                      title="편집"
+                      title={t("common.edit")}
                     >
                       <Edit className="w-2.5 h-2.5" />
                     </button>
@@ -383,7 +391,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                         onDelete(bookmark.id);
                       }}
                       className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                      title="삭제"
+                      title={t("common.delete")}
                     >
                       <Trash2 className="w-2.5 h-2.5" />
                     </button>
@@ -395,7 +403,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
             <div className="text-center py-8 flex-1 flex flex-col items-center justify-center">
               <Sparkles className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                즐겨찾기한 북마크가 없습니다
+                {t("bookmarks.noFavorites")}
               </p>
             </div>
           )}
@@ -405,7 +413,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
         <div className="recent-section group/recent-section flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-4 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all duration-300">
           <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4 flex items-center">
             <Globe className="w-4 h-4 text-blue-500 mr-2" />
-            최근 추가
+            {t("bookmarks.recentlyAdded")}
           </h4>
           {recentBookmarks.length > 0 ? (
             <div className="flex flex-wrap gap-3 flex-1">
@@ -463,7 +471,9 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                       }}
                       className="w-6 h-6 bg-yellow-500 text-white rounded-full flex items-center justify-center hover:bg-yellow-600 shadow-lg hover:shadow-xl transition-all duration-200"
                       title={
-                        bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"
+                        bookmark.isFavorite
+                          ? t("bookmarks.removeFromFavorites")
+                          : t("bookmarks.addToFavorites")
                       }
                     >
                       <Heart
@@ -482,7 +492,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                         onEdit(bookmark);
                       }}
                       className="w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                      title="편집"
+                      title={t("common.edit")}
                     >
                       <Edit className="w-2.5 h-2.5" />
                     </button>
@@ -492,7 +502,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
                         onDelete(bookmark.id);
                       }}
                       className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-200"
-                      title="삭제"
+                      title={t("common.delete")}
                     >
                       <Trash2 className="w-2.5 h-2.5" />
                     </button>
@@ -504,7 +514,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
             <div className="text-center py-8 flex-1 flex flex-col items-center justify-center">
               <Globe className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500 dark:text-gray-400 text-sm">
-                최근 추가된 북마크가 없습니다
+                {t("bookmarks.noRecentBookmarks")}
               </p>
             </div>
           )}
@@ -516,6 +526,7 @@ const BookmarksWidget: React.FC<BookmarksWidgetProps> = ({
 
 // 시계 위젯 (시계와 날씨만 포함)
 export const ClockWidget: React.FC = () => {
+  const { i18n } = useTranslation();
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -528,7 +539,22 @@ export const ClockWidget: React.FC = () => {
     minute: "2-digit",
     second: "2-digit",
   });
-  const dateStr = now.toLocaleDateString("ko-KR", {
+
+  // 언어에 따른 로케일 설정
+  const getLocale = () => {
+    switch (i18n.language) {
+      case "ko":
+        return "ko-KR";
+      case "ja":
+        return "ja-JP";
+      case "en":
+        return "en-US";
+      default:
+        return "ko-KR";
+    }
+  };
+
+  const dateStr = now.toLocaleDateString(getLocale(), {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -567,6 +593,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onSortChange,
   userId,
 }) => {
+  const { t } = useTranslation();
   const {
     widgets,
     enabledWidgets,
@@ -660,7 +687,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
       {/* 위젯 편집 컨트롤 */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          대시보드
+          {t("dashboard.title")}
         </h2>
         <div className="flex items-center space-x-2">
           <button
@@ -672,7 +699,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>{isEditMode ? "편집 완료" : "위젯 편집"}</span>
+            <span>
+              {isEditMode
+                ? t("dashboard.editComplete")
+                : t("dashboard.editWidget")}
+            </span>
           </button>
           {isEditMode && (
             <button
@@ -680,7 +711,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 flex items-center space-x-2 transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>초기화</span>
+              <span>{t("dashboard.reset")}</span>
             </button>
           )}
         </div>
@@ -729,23 +760,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-300">
             <Settings className="w-5 h-5" />
-            <h3 className="font-medium">위젯 편집 모드</h3>
+            <h3 className="font-medium">{t("dashboard.editMode")}</h3>
           </div>
           <div className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-            <p>
-              • 눈 모양 아이콘을 클릭하여 위젯을 숨기거나 표시할 수 있습니다.
-            </p>
-            <p className="hidden md:block">
-              • 데스크톱에서는 위젯을 드래그하여 순서를 변경할 수 있습니다.
-            </p>
-            <p className="md:hidden">
-              • 모바일에서는 위/아래 화살표 버튼으로 위젯 순서를 변경할 수
-              있습니다.
-            </p>
-            <p>
-              • 비활성화된 위젯은 반투명하게 표시되며, 클릭하여 다시 활성화할 수
-              있습니다.
-            </p>
+            <p>• {t("dashboard.editModeTip1")}</p>
+            <p className="hidden md:block">• {t("dashboard.editModeTip2")}</p>
+            <p className="md:hidden">• {t("dashboard.editModeTip3")}</p>
+            <p>• {t("dashboard.editModeTip4")}</p>
           </div>
         </div>
       )}
@@ -755,6 +776,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
 // 성경 구절 위젯 컴포넌트
 const BibleVerseWidget: React.FC = () => {
+  const { t } = useTranslation();
   const [currentVerse, setCurrentVerse] = useState(() => {
     const data = bibleVerses as {
       verses: Array<{ verse: string; reference: string }>;
@@ -897,7 +919,7 @@ const BibleVerseWidget: React.FC = () => {
       whileTap={{ scale: 0.98 }}
       className={`relative overflow-hidden rounded-2xl md:rounded-3xl ${backgrounds[backgroundIndex]} backdrop-blur-xl border border-white/20 shadow-2xl min-h-[280px] sm:min-h-[320px] md:min-h-[400px] flex items-center cursor-pointer`}
       onClick={handleCopyVerse}
-      title={copied ? "복사됨!" : "클릭하여 성경말씀 복사"}
+      title={copied ? t("dashboard.copied") : t("dashboard.clickToCopyVerse")}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -1014,7 +1036,7 @@ const BibleVerseWidget: React.FC = () => {
               <BookOpen className="w-5 h-5 text-white/80" />
             </motion.div>
             <span className="text-white/80 text-sm font-medium">
-              {copied ? "복사됨!" : "오늘의 성경말씀"}
+              {copied ? t("dashboard.copied") : t("dashboard.todaysBibleVerse")}
             </span>
           </div>
         </motion.div>
@@ -1034,7 +1056,7 @@ const BibleVerseWidget: React.FC = () => {
             >
               ✓
             </motion.div>
-            <span>복사됨!</span>
+            <span>{t("dashboard.copied")}</span>
           </motion.div>
         )}
 

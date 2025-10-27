@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Plus, Globe, Folder } from "lucide-react";
 import type { Collection } from "../types";
 import { getFaviconUrl, findFaviconFromWebsite } from "../utils/favicon";
+import { useTranslation } from "react-i18next";
 
 interface AddBookmarkModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
   onAdd,
   collections,
 }) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [description, setDescription] = useState("");
@@ -88,12 +90,12 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
 
     // 기본 유효성 검사
     if (!title.trim()) {
-      alert("북마크 제목을 입력해주세요.");
+      alert(t("bookmarks.bookmarkTitleRequired"));
       return;
     }
 
     if (!url.trim()) {
-      alert("북마크 URL을 입력해주세요.");
+      alert(t("bookmarks.bookmarkUrlRequired"));
       return;
     }
 
@@ -106,7 +108,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
     try {
       new URL(validUrl);
     } catch {
-      alert("올바른 URL 형식이 아닙니다.");
+      alert(t("bookmarks.invalidUrl"));
       return;
     }
 
@@ -178,7 +180,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
             {/* 헤더 - 고정 */}
             <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-10 border-b border-white/20 dark:border-gray-700/30">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                북마크 추가
+                {t("bookmarks.addBookmark")}
               </h2>
               <button
                 onClick={onClose}
@@ -194,7 +196,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                 {/* URL 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    URL *
+                    {t("bookmarks.bookmarkUrl")} *
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -216,7 +218,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                         {favicon ? (
                           <img
                             src={favicon}
-                            alt="파비콘"
+                            alt={t("common.favicon")}
                             className="w-6 h-6 rounded"
                             onError={(e) => {
                               e.currentTarget.src = "/favicon.svg";
@@ -235,8 +237,8 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                       </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
                         {faviconLoading
-                          ? "파비콘 가져오는 중..."
-                          : "파비콘 미리보기"}
+                          ? t("bookmarks.faviconLoading")
+                          : t("bookmarks.faviconPreview")}
                       </span>
                     </div>
                   )}
@@ -245,13 +247,13 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                 {/* 제목 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    제목 *
+                    {t("bookmarks.bookmarkTitle")} *
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="북마크 제목"
+                    placeholder={t("bookmarks.bookmarkTitlePlaceholder")}
                     className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     required
                   />
@@ -260,12 +262,13 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                 {/* 설명 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    설명 (선택사항)
+                    {t("bookmarks.bookmarkDescription")} ({t("common.optional")}
+                    )
                   </label>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="북마크에 대한 설명을 입력하세요"
+                    placeholder={t("bookmarks.bookmarkDescriptionPlaceholder")}
                     rows={3}
                     className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                   />
@@ -275,7 +278,8 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                 {collections.length > 0 && (
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      컬렉션 (선택사항)
+                      {t("bookmarks.bookmarkCollection")} (
+                      {t("common.optional")})
                     </label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -286,7 +290,9 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                         onChange={(e) => setSelectedCollection(e.target.value)}
                         className="w-full pl-12 pr-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
                       >
-                        <option value="">컬렉션 선택 안함</option>
+                        <option value="">
+                          {t("collections.noCollectionSelection")}
+                        </option>
                         {collections.map((collection) => (
                           <option key={collection.id} value={collection.id}>
                             {collection.name}
@@ -319,7 +325,7 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                     onClick={onClose}
                     className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105 backdrop-blur-sm"
                   >
-                    취소
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
@@ -329,12 +335,12 @@ export const AddBookmarkModal: React.FC<AddBookmarkModalProps> = ({
                     {isLoading ? (
                       <>
                         <div className="spinner w-4 h-4"></div>
-                        <span>추가 중...</span>
+                        <span>{t("common.adding")}</span>
                       </>
                     ) : (
                       <>
                         <Plus className="w-4 h-4" />
-                        <span>추가</span>
+                        <span>{t("common.add")}</span>
                       </>
                     )}
                   </button>

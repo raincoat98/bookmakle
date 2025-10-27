@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Collection } from "../types";
 import { renderCollectionIcon } from "../utils/iconRenderer";
+import { useTranslation } from "react-i18next";
 
 interface CollectionListProps {
   collections: Collection[];
@@ -28,6 +29,7 @@ export const CollectionList = ({
   onOpenAddSubCollectionModal,
   collapsed = false,
 }: CollectionListProps) => {
+  const { t } = useTranslation();
   // 오픈된(열린) 컬렉션 id 목록
   const [openIds, setOpenIds] = useState<string[]>([]);
 
@@ -131,7 +133,7 @@ export const CollectionList = ({
             {collection.isPinned && (
               <span
                 className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                title="고정된 컬렉션"
+                title={t("collections.pinnedCollection")}
               >
                 PIN
               </span>
@@ -171,7 +173,7 @@ export const CollectionList = ({
                   onEditCollection(collection);
                 }}
                 className="p-1 text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="수정"
+                title={t("common.edit")}
               >
                 <svg
                   className="w-4 h-4"
@@ -197,7 +199,7 @@ export const CollectionList = ({
                   onDeleteCollectionRequest(collection.id, collection.name);
                 }}
                 className="p-1 text-gray-400 hover:text-red-600 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="삭제"
+                title={t("common.delete")}
               >
                 <svg
                   className="w-4 h-4"
@@ -236,7 +238,7 @@ export const CollectionList = ({
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
-            title="전체"
+            title={t("collections.all")}
           >
             <span className="text-lg">📚</span>
           </button>
@@ -249,7 +251,7 @@ export const CollectionList = ({
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
-            title="컬렉션 없음"
+            title={t("collections.noCollection")}
           >
             <span className="text-lg">📄</span>
           </button>
@@ -290,7 +292,7 @@ export const CollectionList = ({
           <button
             onClick={onOpenAddCollectionModal}
             className="w-full flex items-center justify-center p-3 btn-primary rounded-lg"
-            title="새 컬렉션"
+            title={t("collections.newCollection")}
           >
             <svg
               className="w-5 h-5"
@@ -316,7 +318,7 @@ export const CollectionList = ({
       {/* 헤더 */}
       <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-          컬렉션
+          {t("collections.title")}
         </h2>
         <button
           onClick={
@@ -324,7 +326,7 @@ export const CollectionList = ({
           }
           className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold"
         >
-          {openIds.length === allIds.length ? "전체 닫기" : "전체 열기"}
+          {openIds.length === allIds.length ? t("collections.closeAll") : t("collections.openAll")}
         </button>
       </div>
 
@@ -342,7 +344,7 @@ export const CollectionList = ({
           >
             <span className="text-lg">📚</span>
             <span className="font-medium transition-all duration-300">
-              전체
+              {t("collections.all")}
             </span>
           </button>
 
@@ -357,14 +359,14 @@ export const CollectionList = ({
           >
             <span className="text-lg">📄</span>
             <span className="font-medium transition-all duration-300">
-              컬렉션 없음
+              {t("collections.noCollection")}
             </span>
           </button>
 
           {collections.length === 0 && !loading && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <p>컬렉션이 없습니다.</p>
-              <p className="text-sm mt-1">새 컬렉션을 만들어보세요!</p>
+              <p>{t("collections.noCollectionsFound")}</p>
+              <p className="text-sm mt-1">{t("collections.createNewCollection")}</p>
             </div>
           )}
 
@@ -398,7 +400,7 @@ export const CollectionList = ({
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          <span className="transition-all duration-300">새 컬렉션</span>
+          <span className="transition-all duration-300">{t("collections.newCollection")}</span>
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Bookmark, Collection } from "../types";
 import { renderCollectionIcon } from "../utils/iconRenderer";
+import { useTranslation } from "react-i18next";
 
 interface SortableBookmarkCardProps {
   bookmark: Bookmark;
@@ -34,6 +35,7 @@ export const SortableBookmarkCard = ({
   isMoving = false, // 이동 중인지 여부
   moveDirection = null, // 이동 방향
 }: SortableBookmarkCardProps) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -165,7 +167,7 @@ export const SortableBookmarkCard = ({
           onClick={handleMoveUp}
           disabled={isFirst}
           className="block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden p-1 min-w-[32px] min-h-[32px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
-          title="위로 이동"
+          title={t("common.moveUp")}
         >
           <svg
             className="w-4 h-4"
@@ -185,7 +187,7 @@ export const SortableBookmarkCard = ({
           onClick={handleMoveDown}
           disabled={isLast}
           className="block sm:hidden md:hidden lg:hidden xl:hidden 2xl:hidden p-1 min-w-[32px] min-h-[32px] text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0 border border-gray-300 dark:border-gray-600 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent flex items-center justify-center"
-          title="아래로 이동"
+          title={t("common.moveDown")}
         >
           <svg
             className="w-4 h-4"
@@ -214,7 +216,7 @@ export const SortableBookmarkCard = ({
               ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
               : "text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
           }`}
-          title="즐겨찾기"
+          title={t("bookmarks.isFavorite")}
         >
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
@@ -224,7 +226,7 @@ export const SortableBookmarkCard = ({
         <button
           onClick={handleEdit}
           className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-          title="수정"
+          title={t("common.edit")}
         >
           <svg
             className="w-4 h-4"
@@ -244,7 +246,7 @@ export const SortableBookmarkCard = ({
         <button
           onClick={handleDelete}
           className="p-2 min-w-[32px] min-h-[32px] text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation flex-shrink-0"
-          title="삭제"
+          title={t("common.delete")}
         >
           <svg
             className="w-4 h-4"
@@ -269,12 +271,12 @@ export const SortableBookmarkCard = ({
             <div
               className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-brand-100 to-accent-100 dark:from-brand-900/30 dark:to-accent-900/30 flex items-center justify-center shadow-sm group/favicon cursor-pointer hover:bg-gradient-to-br hover:from-brand-200 hover:to-accent-200 dark:hover:from-brand-800/50 dark:hover:to-accent-800/50 transition-all duration-200"
               onClick={handleRefreshFavicon}
-              title="클릭하여 파비콘 새로고침"
+              title={t("common.refreshFavicon")}
             >
               {bookmark.favicon ? (
                 <img
                   src={bookmark.favicon}
-                  alt="파비콘"
+                  alt={t("common.favicon")}
                   className="w-8 h-8 sm:w-6 sm:h-6 rounded-lg group-hover/favicon:opacity-70 transition-opacity duration-200"
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
@@ -364,7 +366,7 @@ export const SortableBookmarkCard = ({
                 </span>
               ) : (
                 <span className="inline-flex items-center px-3 py-2 sm:px-2.5 sm:py-1 rounded-full text-sm sm:text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
-                  컬렉션 없음
+                  {t("collections.noCollection")}
                 </span>
               )}
               <div className="text-sm sm:text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-2 sm:px-2 sm:py-1 rounded-md">
@@ -422,7 +424,7 @@ export const SortableBookmarkCard = ({
               isDragging ? "pointer-events-none opacity-50" : ""
             }`}
           >
-            <span>방문하기</span>
+            <span>{t("common.visit")}</span>
             <svg
               className="w-4 h-4"
               fill="none"
