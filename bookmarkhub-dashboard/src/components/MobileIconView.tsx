@@ -140,6 +140,9 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
     const elementRef = useRef<HTMLDivElement>(null);
     const touchStartTimeRef = useRef<number>(0);
     const touchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const mouseStartTimeRef = useRef<number>(0);
+    const mouseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const isMouseDeviceRef = useRef(false);
 
     const {
       attributes,
@@ -155,7 +158,80 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       },
     });
 
-    // 터치 이벤트 처리 - 수정모드가 아닐 때만
+    // 마우스 이벤트 처리 - PC에서만
+    useEffect(() => {
+      const element = elementRef.current;
+      if (!element) return;
+
+      // 수정모드일 때는 마우스 이벤트를 완전히 비활성화 (드래그로 대체)
+      if (isEditMode) {
+        return;
+      }
+
+      const handleMouseDown = (e: MouseEvent) => {
+        isMouseDeviceRef.current = true;
+        mouseStartTimeRef.current = Date.now();
+
+        // 왼쪽 클릭만 처리
+        if (e.button !== 0) {
+          return;
+        }
+
+        // 1초 후에 수정모드 진입을 위한 타이머 설정
+        const timeoutId = setTimeout(() => {
+          if (!isEditMode) {
+            setIsEditMode(true);
+          }
+        }, 1000);
+        mouseTimeoutRef.current = timeoutId;
+      };
+
+      const handleMouseMove = () => {
+        // 마우스 이동 시 타이머 클리어 (드래그로 판단)
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current);
+          mouseTimeoutRef.current = null;
+        }
+      };
+
+      const handleMouseUp = (e: MouseEvent) => {
+        // 왼쪽 클릭만 처리
+        if (e.button !== 0) {
+          return;
+        }
+
+        const mouseDuration = Date.now() - mouseStartTimeRef.current;
+
+        // 타이머 클리어
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current);
+          mouseTimeoutRef.current = null;
+        }
+
+        // 짧은 클릭인 경우 링크로 이동
+        if (mouseDuration < 1000 && !isEditMode) {
+          window.open(bookmark.url, "_blank", "noopener,noreferrer");
+        }
+      };
+
+      element.addEventListener("mousedown", handleMouseDown);
+      element.addEventListener("mousemove", handleMouseMove);
+      element.addEventListener("mouseup", handleMouseUp);
+
+      return () => {
+        element.removeEventListener("mousedown", handleMouseDown);
+        element.removeEventListener("mousemove", handleMouseMove);
+        element.removeEventListener("mouseup", handleMouseUp);
+
+        // 컴포넌트 언마운트 시 타이머 클리어
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current);
+        }
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode]);
+
+    // 터치 이벤트 처리 - 모바일에서만
     useEffect(() => {
       const element = elementRef.current;
       if (!element) return;
@@ -188,15 +264,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
 
         // 짧은 터치인 경우 링크로 이동
         if (touchDuration < 1000 && !isEditMode) {
-          // 링크가 없는 경우 직접 이동
-          if (!element.querySelector("a")) {
-            window.open(bookmark.url, "_blank", "noopener,noreferrer");
-          } else {
-            const linkElement = element.querySelector("a");
-            if (linkElement) {
-              linkElement.click();
-            }
-          }
+          window.open(bookmark.url, "_blank", "noopener,noreferrer");
         }
       };
 
@@ -259,7 +327,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                 : "cursor-pointer hover:scale-105 hover:shadow-2xl active:scale-95"
             }`}
             style={{
-              touchAction: "none", // 모든 브라우저 터치 동작 차단
+              touchAction: isEditMode ? "none" : "manipulation",
             }}
           >
             {isEditMode ? (
@@ -391,9 +459,9 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
     <div className="relative">
       {/* 수정 모드 안내 */}
       {isEditMode && (
-        <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg">
+        <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg relative">
           <p className="text-xs font-medium">
-            수정 모드 - 1초 이상 눌러서 진입, 드래그하여 순서 변경
+            수정 모드 - 1초 이상 누르기, 드래그로 순서 변경
           </p>
           <button
             onClick={handleExitEditMode}
