@@ -107,15 +107,11 @@ export const Drawer: React.FC<DrawerProps> = ({
                   }`}
                 />
               </div>
-              <h1
-                className={`text-lg lg:text-xl font-bold gradient-text transition-all duration-300 ${
-                  isDrawerCollapsed
-                    ? "opacity-0 scale-0 w-0 overflow-hidden"
-                    : "opacity-100 scale-100"
-                }`}
-              >
-                북마클
-              </h1>
+              {!isDrawerCollapsed && (
+                <h1 className="text-lg lg:text-xl font-bold gradient-text">
+                  북마클
+                </h1>
+              )}
             </div>
             <div
               className={`flex items-center ${
@@ -179,15 +175,9 @@ export const Drawer: React.FC<DrawerProps> = ({
                         : "text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400"
                     }`}
                   />
-                  <span
-                    className={`text-sm lg:text-base transition-all duration-300 ${
-                      isDrawerCollapsed
-                        ? "opacity-0 scale-0 w-0 overflow-hidden"
-                        : "opacity-100 scale-100"
-                    }`}
-                  >
-                    {item.name}
-                  </span>
+                  {!isDrawerCollapsed && (
+                    <span className="text-sm lg:text-base">{item.name}</span>
+                  )}
                 </Link>
               );
             })}
@@ -216,17 +206,13 @@ export const Drawer: React.FC<DrawerProps> = ({
           )}
 
           {/* 푸터 */}
-          <div
-            className={`p-2 lg:p-3 border-t border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 ${
-              isDrawerCollapsed
-                ? "opacity-0 scale-0 h-0 overflow-hidden border-t-0"
-                : "opacity-100 scale-100"
-            }`}
-          >
-            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-              © 2024 북마클
+          {!isDrawerCollapsed && (
+            <div className="p-2 lg:p-3 border-t border-gray-200/50 dark:border-gray-700/50">
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                © 2024 북마클
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
