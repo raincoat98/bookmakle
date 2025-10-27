@@ -80,7 +80,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
       {/* 사이드바 */}
       <div
-        className={`fixed inset-y-0 left-0 z-[9999] transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+        className={`fixed inset-y-0 left-0 z-[9999] transform transition-all duration-500 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
           isDrawerCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-64"
         } ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -107,11 +107,15 @@ export const Drawer: React.FC<DrawerProps> = ({
                   }`}
                 />
               </div>
-              {!isDrawerCollapsed && (
-                <h1 className="text-lg lg:text-xl font-bold gradient-text">
-                  북마클
-                </h1>
-              )}
+              <h1
+                className={`text-lg lg:text-xl font-bold gradient-text transition-all duration-300 ${
+                  isDrawerCollapsed
+                    ? "opacity-0 scale-0 w-0 overflow-hidden"
+                    : "opacity-100 scale-100"
+                }`}
+              >
+                북마클
+              </h1>
             </div>
             <div
               className={`flex items-center ${
@@ -159,8 +163,8 @@ export const Drawer: React.FC<DrawerProps> = ({
                   }}
                   className={`group flex items-center ${
                     isDrawerCollapsed
-                      ? "justify-center px-2 py-2"
-                      : "space-x-2 lg:space-x-3 px-3 py-2 lg:px-3 lg:py-2"
+                      ? "justify-center px-3 py-3"
+                      : "space-x-2 lg:space-x-3 px-3 py-3"
                   } rounded-xl lg:rounded-2xl text-sm font-medium transition-all duration-200 hover:scale-105 ${
                     item.current
                       ? "bg-gradient-to-r from-brand-500 to-brand-600 text-white shadow-soft"
@@ -169,17 +173,21 @@ export const Drawer: React.FC<DrawerProps> = ({
                   title={isDrawerCollapsed ? item.name : undefined}
                 >
                   <Icon
-                    className={`${
-                      isDrawerCollapsed ? "w-4 h-4" : "w-4 h-4 lg:w-5 lg:h-5"
-                    } ${
+                    className={`w-5 h-5 ${
                       item.current
                         ? "text-white"
                         : "text-gray-400 group-hover:text-brand-500 dark:group-hover:text-brand-400"
                     }`}
                   />
-                  {!isDrawerCollapsed && (
-                    <span className="text-sm lg:text-base">{item.name}</span>
-                  )}
+                  <span
+                    className={`text-sm lg:text-base transition-all duration-300 ${
+                      isDrawerCollapsed
+                        ? "opacity-0 scale-0 w-0 overflow-hidden"
+                        : "opacity-100 scale-100"
+                    }`}
+                  >
+                    {item.name}
+                  </span>
                 </Link>
               );
             })}
@@ -208,13 +216,17 @@ export const Drawer: React.FC<DrawerProps> = ({
           )}
 
           {/* 푸터 */}
-          {!isDrawerCollapsed && (
-            <div className="p-2 lg:p-3 border-t border-gray-200/50 dark:border-gray-700/50">
-              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                © 2024 북마클
-              </div>
+          <div
+            className={`p-2 lg:p-3 border-t border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 ${
+              isDrawerCollapsed
+                ? "opacity-0 scale-0 h-0 overflow-hidden border-t-0"
+                : "opacity-100 scale-100"
+            }`}
+          >
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              © 2024 북마클
             </div>
-          )}
+          </div>
         </div>
       </div>
 

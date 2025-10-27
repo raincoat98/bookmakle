@@ -140,23 +140,37 @@ export const CollectionList = ({
 
           <div className="flex-1">
             <span
-              className="font-medium block text-left"
+              className={`font-medium block text-left transition-all duration-300 ${
+                collapsed
+                  ? "opacity-0 scale-0 w-0 overflow-hidden"
+                  : "opacity-100 scale-100"
+              }`}
               style={{ wordBreak: "break-all", whiteSpace: "normal" }}
             >
               {collection.name}
             </span>
-            {collection.description && collection.description.trim() !== "" && (
-              <span
-                className="block text-xs text-gray-500 dark:text-gray-400 text-left mt-0.5"
-                style={{ wordBreak: "break-all", whiteSpace: "normal" }}
-              >
-                {collection.description}
-              </span>
-            )}
+            <span
+              className={`block text-xs text-gray-500 dark:text-gray-400 text-left mt-0.5 transition-all duration-300 ${
+                collapsed ||
+                !collection.description ||
+                collection.description.trim() === ""
+                  ? "opacity-0 scale-0 h-0 overflow-hidden"
+                  : "opacity-100 scale-100"
+              }`}
+              style={{ wordBreak: "break-all", whiteSpace: "normal" }}
+            >
+              {collection.description}
+            </span>
           </div>
 
           {/* 액션 버튼들 */}
-          <div className="flex items-center space-x-1 ml-2">
+          <div
+            className={`flex items-center space-x-1 ml-2 transition-all duration-300 ${
+              collapsed
+                ? "opacity-0 scale-0 w-0 overflow-hidden"
+                : "opacity-100 scale-100"
+            }`}
+          >
             {/* 수정 버튼 */}
             <button
               onClick={(e) => {
@@ -225,27 +239,27 @@ export const CollectionList = ({
           {/* 전체 북마크 */}
           <button
             onClick={() => onCollectionChange("all")}
-            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+            className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
               selectedCollection === "all"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             title="전체"
           >
-            <span className="text-sm">📚</span>
+            <span className="text-lg">📚</span>
           </button>
 
           {/* 컬렉션 없음 */}
           <button
             onClick={() => onCollectionChange("none")}
-            className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+            className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
               selectedCollection === "none"
                 ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                 : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             }`}
             title="컬렉션 없음"
           >
-            <span className="text-sm">📄</span>
+            <span className="text-lg">📄</span>
           </button>
 
           {/* 최상위 컬렉션들만 표시 */}
@@ -261,14 +275,14 @@ export const CollectionList = ({
               <div key={collection.id} className="relative">
                 <button
                   onClick={() => onCollectionChange(collection.id)}
-                  className={`w-full flex items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+                  className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors duration-200 ${
                     selectedCollection === collection.id
                       ? "bg-brand-100 dark:bg-brand-900 text-brand-700 dark:text-brand-300"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   }`}
                   title={collection.name}
                 >
-                  {renderCollectionIcon(collection.icon, "w-4 h-4")}
+                  {renderCollectionIcon(collection.icon, "w-5 h-5")}
                 </button>
                 {collection.isPinned && (
                   <span className="absolute -top-1 -right-1 inline-flex items-center px-1 py-0.5 rounded-full text-xs font-bold bg-yellow-400 text-yellow-900 border border-yellow-500">
@@ -283,11 +297,11 @@ export const CollectionList = ({
         <div className="p-2 border-t border-gray-200 dark:border-gray-700">
           <button
             onClick={onOpenAddCollectionModal}
-            className="w-full flex items-center justify-center p-2 btn-primary rounded-lg"
+            className="w-full flex items-center justify-center p-3 btn-primary rounded-lg"
             title="새 컬렉션"
           >
             <svg
-              className="w-4 h-4"
+              className="w-5 h-5"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -335,7 +349,9 @@ export const CollectionList = ({
             }`}
           >
             <span className="text-lg">📚</span>
-            <span className="font-medium">전체</span>
+            <span className="font-medium transition-all duration-300">
+              전체
+            </span>
           </button>
 
           {/* 컬렉션 없음 */}
@@ -348,7 +364,9 @@ export const CollectionList = ({
             }`}
           >
             <span className="text-lg">📄</span>
-            <span className="font-medium">컬렉션 없음</span>
+            <span className="font-medium transition-all duration-300">
+              컬렉션 없음
+            </span>
           </button>
 
           {collections.length === 0 && !loading && (
@@ -388,7 +406,7 @@ export const CollectionList = ({
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          <span>새 컬렉션</span>
+          <span className="transition-all duration-300">새 컬렉션</span>
         </button>
       </div>
     </div>
