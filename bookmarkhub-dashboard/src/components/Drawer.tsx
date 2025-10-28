@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { CollectionList } from "./CollectionList";
 import type { Collection } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface DrawerProps {
   children: React.ReactNode;
@@ -39,6 +40,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   onOpenAddCollectionModal = () => {},
   onOpenAddSubCollectionModal = () => {},
 }) => {
+  const { t } = useTranslation();
   const {
     isDrawerOpen,
     setIsDrawerOpen,
@@ -49,19 +51,19 @@ export const Drawer: React.FC<DrawerProps> = ({
 
   const navigation = [
     {
-      name: "대시보드",
+      name: t("dashboard.title"),
       href: "/dashboard",
       icon: Home,
       current: location.pathname === "/dashboard" || location.pathname === "/",
     },
     {
-      name: "북마크",
+      name: t("bookmarks.title"),
       href: "/bookmarks",
       icon: BookOpen,
       current: location.pathname === "/bookmarks",
     },
     {
-      name: "설정",
+      name: t("settings.title"),
       href: "/settings",
       icon: Settings,
       current: location.pathname === "/settings",

@@ -24,6 +24,7 @@ import {
 } from "@dnd-kit/sortable";
 import { BookOpen, Folder, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface BookmarkListProps {
   bookmarks: Bookmark[];
@@ -65,6 +66,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
   onSortChange,
   groupedBookmarks,
 }) => {
+  const { t } = useTranslation();
   const [faviconLoadingStates, setFaviconLoadingStates] = useState<
     Record<string, boolean>
   >({});
@@ -155,7 +157,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
         onReorder(newBookmarks);
 
         // 즉시 UI 업데이트를 위한 토스트 메시지
-        toast.success("북마크 순서가 변경되었습니다!", {
+        toast.success(t("bookmarks.bookmarkOrderChanged"), {
           duration: 2000,
           icon: "📌",
         });
@@ -184,10 +186,13 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
         setTimeout(() => {
           setMovingBookmarkId(null);
           setMoveDirection(null);
-          toast.success(`"${bookmark.title}" 위로 이동 완료! 🔝`, {
-            duration: 2000,
-            icon: "📌",
-          });
+          toast.success(
+            t("bookmarks.bookmarkMovedUp", { title: bookmark.title }),
+            {
+              duration: 2000,
+              icon: "📌",
+            }
+          );
         }, 300);
       }, 100);
     }
@@ -209,10 +214,13 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
         setTimeout(() => {
           setMovingBookmarkId(null);
           setMoveDirection(null);
-          toast.success(`"${bookmark.title}" 아래로 이동 완료! 🔽`, {
-            duration: 2000,
-            icon: "📌",
-          });
+          toast.success(
+            t("bookmarks.bookmarkMovedDown", { title: bookmark.title }),
+            {
+              duration: 2000,
+              icon: "📌",
+            }
+          );
         }, 300);
       }, 100);
     }
@@ -278,7 +286,7 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                     : "bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400"
                 }`}
               >
-                {bookmarks.length}개
+                {t("bookmarks.count", { count: bookmarks.length })}
               </span>
             </div>
           </div>
@@ -353,7 +361,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
         {/* 정렬 컨트롤 */}
         <div className="flex justify-between items-center">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            총 {allGroupedBookmarks.length}개의 북마크
+            {t("bookmarks.totalBookmarks", {
+              count: allGroupedBookmarks.length,
+            })}
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* 하위 컬렉션 토글 버튼 */}
@@ -364,23 +374,25 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                   className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                   title={
                     showSubCollections
-                      ? "하위 컬렉션 숨기기"
-                      : "하위 컬렉션 보기"
+                      ? t("bookmarks.hideSubCollections")
+                      : t("bookmarks.showSubCollections")
                   }
                 >
                   {showSubCollections ? (
                     <>
                       <EyeOff className="w-3 sm:w-4 h-3 sm:h-4" />
                       <span className="hidden sm:inline">
-                        하위 컬렉션 숨기기
+                        {t("bookmarks.hideSubCollections")}
                       </span>
-                      <span className="sm:hidden">숨기기</span>
+                      <span className="sm:hidden">{t("bookmarks.hide")}</span>
                     </>
                   ) : (
                     <>
                       <Eye className="w-3 sm:w-4 h-3 sm:h-4" />
-                      <span className="hidden sm:inline">하위 컬렉션 보기</span>
-                      <span className="sm:hidden">보기</span>
+                      <span className="hidden sm:inline">
+                        {t("bookmarks.showSubCollections")}
+                      </span>
+                      <span className="sm:hidden">{t("bookmarks.show")}</span>
                     </>
                   )}
                 </button>
@@ -420,11 +432,11 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                         {sortedGroupedBookmarks.selectedCollectionName}
                       </h3>
                       <span className="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400">
-                        {
-                          sortedGroupedBookmarks.selectedCollectionBookmarks
-                            .length
-                        }
-                        개
+                        {t("bookmarks.count", {
+                          count:
+                            sortedGroupedBookmarks.selectedCollectionBookmarks
+                              .length,
+                        })}
                       </span>
                     </div>
                   </div>
@@ -455,16 +467,16 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                       <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                         <Folder className="w-4 h-4" />
                         <span className="text-sm">
-                          하위 컬렉션 북마크{" "}
-                          {groupedBookmarks.groupedBookmarks.length}개가 숨겨져
-                          있습니다
+                          {t("bookmarks.hiddenSubCollectionBookmarks", {
+                            count: groupedBookmarks.groupedBookmarks.length,
+                          })}
                         </span>
                       </div>
                       <button
                         onClick={() => setShowSubCollections(true)}
                         className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                       >
-                        보기
+                        {t("bookmarks.show")}
                       </button>
                     </div>
                   </motion.div>
@@ -481,10 +493,10 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                     <div className="mb-4">
                       <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                         <Folder className="w-5 h-5" />
-                        하위 컬렉션 북마크
+                        {t("bookmarks.subCollectionBookmarks")}
                       </h2>
                       <p className="text-sm text-purple-600 dark:text-purple-400">
-                        이 컬렉션의 하위 컬렉션에 속한 북마크들입니다.
+                        {t("bookmarks.subCollectionBookmarksDescription")}
                       </p>
                     </div>
                     <motion.div
@@ -512,7 +524,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                                 {group.collectionName}
                               </h3>
                               <span className="text-xs px-2 py-1 rounded-full bg-purple-200 dark:bg-purple-700 text-purple-700 dark:text-purple-300">
-                                {group.bookmarks.length}개
+                                {t("bookmarks.count", {
+                                  count: group.bookmarks.length,
+                                })}
                               </span>
                             </div>
                             <div className="mt-3">
@@ -589,16 +603,16 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                           <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                             <Folder className="w-4 h-4" />
                             <span className="text-sm">
-                              하위 컬렉션 북마크{" "}
-                              {groupedBookmarks.groupedBookmarks.length}개가
-                              숨겨져 있습니다
+                              {t("bookmarks.hiddenSubCollectionBookmarks", {
+                                count: groupedBookmarks.groupedBookmarks.length,
+                              })}
                             </span>
                           </div>
                           <button
                             onClick={() => setShowSubCollections(true)}
                             className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                           >
-                            보기
+                            {t("bookmarks.show")}
                           </button>
                         </div>
                       </motion.div>
@@ -615,10 +629,10 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
                         <div className="mb-4">
                           <h2 className="text-lg font-bold text-purple-700 dark:text-purple-300 flex items-center gap-2">
                             <Folder className="w-5 h-5" />
-                            하위 컬렉션 북마크
+                            {t("bookmarks.subCollectionBookmarks")}
                           </h2>
                           <p className="text-sm text-purple-600 dark:text-purple-400">
-                            이 컬렉션의 하위 컬렉션에 속한 북마크들입니다.
+                            {t("bookmarks.subCollectionBookmarksDescription")}
                           </p>
                         </div>
                         <motion.div
@@ -656,7 +670,9 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
       {/* 정렬 컨트롤 */}
       <div className="flex justify-between items-center">
         <div className="text-sm text-gray-600 dark:text-gray-400">
-          총 {filteredAndSortedBookmarks.length}개의 북마크
+          {t("bookmarks.totalBookmarks", {
+            count: filteredAndSortedBookmarks.length,
+          })}
         </div>
         <BookmarkSort currentSort={currentSort} onSortChange={onSortChange} />
       </div>
@@ -761,12 +777,12 @@ export const BookmarkList: React.FC<BookmarkListProps> = ({
             <BookOpen className="w-10 h-10 text-white" />
           </div>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
-            북마크가 없습니다
+            {t("bookmarks.noBookmarksFound")}
           </h3>
           <p className="text-slate-500 dark:text-slate-400 text-center max-w-md">
             {searchTerm
-              ? "검색 결과가 없습니다. 다른 검색어를 시도해보세요."
-              : "첫 번째 북마크를 추가해보세요!"}
+              ? t("bookmarks.noSearchResults")
+              : t("bookmarks.addFirstBookmark")}
           </p>
         </div>
       )}

@@ -922,7 +922,9 @@ function initUI() {
 
     if (currentUser) {
       authStatusEl.className = "auth-status status-logged-in";
-      authStatusEl.innerHTML = `<i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> 로그인`;
+      authStatusEl.innerHTML = `<i data-lucide="check-circle" style="width: 12px; height: 12px;"></i> <span class="auth-status-text">${
+        translations[currentLanguage]?.loggedIn || translations.ko.loggedIn
+      }</span>`;
       userEmailEl.textContent = `${currentUser.email || "N/A"}`;
       userInfoEl.style.display = "block";
       loggedOutButtonsEl.classList.add("hidden");
@@ -937,7 +939,9 @@ function initUI() {
       }
     } else {
       authStatusEl.className = "auth-status status-logged-out";
-      authStatusEl.innerHTML = `<i data-lucide="x-circle" style="width: 12px; height: 12px;"></i> 로그아웃`;
+      authStatusEl.innerHTML = `<i data-lucide="x-circle" style="width: 12px; height: 12px;"></i> <span class="auth-status-text">${
+        translations[currentLanguage]?.loggedOut || translations.ko.loggedOut
+      }</span>`;
       userInfoEl.style.display = "none";
       loggedOutButtonsEl.classList.remove("hidden");
       loggedInButtonsEl.classList.add("hidden");

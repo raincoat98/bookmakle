@@ -18,9 +18,11 @@ import type {
 import toast from "react-hot-toast";
 import { Search, Grid3X3, List, Plus, FolderPlus } from "lucide-react";
 import { Drawer } from "../components/Drawer";
+import { useTranslation } from "react-i18next";
 
 export const BookmarksPage: React.FC = () => {
   const { user, isActive, isActiveLoading } = useAuth();
+  const { t } = useTranslation();
 
   // 상태 관리
   const [selectedCollection, setSelectedCollection] = useState("all");
@@ -29,7 +31,7 @@ export const BookmarksPage: React.FC = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>({
     field: "order",
     direction: "asc",
-    label: "사용자 순서",
+    label: t("bookmarks.sortByUserOrder"),
   });
 
   const {
@@ -144,7 +146,7 @@ export const BookmarksPage: React.FC = () => {
   ) => {
     // parentId의 깊이가 2 이상이면 추가 불가
     if (parentId && getCollectionDepth(parentId) >= 2) {
-      toast.error("2단계 이상 하위 컬렉션은 추가할 수 없습니다.");
+      toast.error(t("collections.maxDepthExceeded"));
       return;
     }
 
@@ -162,10 +164,10 @@ export const BookmarksPage: React.FC = () => {
         await setPinned(collectionId, true);
       }
 
-      toast.success("컬렉션이 추가되었습니다.");
+      toast.success(t("collections.collectionAdded"));
     } catch (error) {
       console.error("Error adding collection:", error);
-      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
+      toast.error(t("collections.collectionAddError"));
     }
   };
 
@@ -227,7 +229,7 @@ export const BookmarksPage: React.FC = () => {
           selectedCollectionBookmarks,
           selectedCollectionName:
             collections.find((col) => col.id === selectedCollection)?.name ||
-            "선택된 컬렉션",
+            t("collections.selectedCollection"),
           groupedBookmarks,
         };
       }
@@ -256,7 +258,7 @@ export const BookmarksPage: React.FC = () => {
         isFavorite: bookmarkData.isFavorite || false,
       });
       setIsAddModalOpen(false);
-      toast.success("북마크가 추가되었습니다.");
+      toast.success(t("bookmarks.bookmarkAdded"));
     } catch (error) {
       console.error("BookmarksPage - 북마크 추가 실패:", error);
       console.error("오류 상세:", {
@@ -268,7 +270,7 @@ export const BookmarksPage: React.FC = () => {
       // 사용자에게 더 구체적인 오류 메시지 표시
       const errorMessage =
         error instanceof Error ? error.message : "알 수 없는 오류";
-      toast.error(`북마크 추가 실패: ${errorMessage}`);
+      toast.error(`${t("bookmarks.bookmarkAddError")}: ${errorMessage}`);
     }
   };
 
@@ -282,10 +284,10 @@ export const BookmarksPage: React.FC = () => {
         isFavorite: bookmarkData.isFavorite || false,
       });
       setEditingBookmark(null);
-      toast.success("북마크가 수정되었습니다.");
+      toast.success(t("bookmarks.bookmarkUpdated"));
     } catch (error) {
       console.error("Error updating bookmark:", error);
-      toast.error("북마크 수정 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.bookmarkUpdateError"));
     }
   };
 
@@ -294,10 +296,10 @@ export const BookmarksPage: React.FC = () => {
     try {
       await deleteBookmark(id);
       setDeleteBookmarkModal({ isOpen: false, bookmark: null });
-      toast.success("북마크가 삭제되었습니다.");
+      toast.success(t("bookmarks.bookmarkDeleted"));
     } catch (error) {
       console.error("Error deleting bookmark:", error);
-      toast.error("북마크 삭제 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.bookmarkDeleteError"));
     } finally {
       setIsDeletingBookmark(false);
     }
@@ -308,12 +310,12 @@ export const BookmarksPage: React.FC = () => {
       await toggleFavorite(id, isFavorite);
       toast.success(
         isFavorite
-          ? "즐겨찾기에 추가되었습니다."
-          : "즐겨찾기에서 제거되었습니다."
+          ? t("bookmarks.addToFavorites")
+          : t("bookmarks.removeFromFavorites")
       );
     } catch (error) {
       console.error("Error toggling favorite:", error);
-      toast.error("즐겨찾기 상태 변경 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.favoriteToggleError"));
     }
   };
 
@@ -321,11 +323,11 @@ export const BookmarksPage: React.FC = () => {
   const handleRefreshFavicon = async (bookmarkId: string, url: string) => {
     try {
       const newFavicon = await updateBookmarkFavicon(bookmarkId, url);
-      toast.success("파비콘이 새로고침되었습니다.");
+      toast.success(t("bookmarks.faviconRefreshed"));
       return newFavicon;
     } catch (error) {
       console.error("Error refreshing favicon:", error);
-      toast.error("파비콘 새로고침 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.faviconRefreshError"));
       throw error;
     }
   };
@@ -334,12 +336,12 @@ export const BookmarksPage: React.FC = () => {
     setDeletingCollectionId(collectionId);
     try {
       await deleteCollection(collectionId);
-      toast.success("컬렉션이 삭제되었습니다.");
+      toast.success(t("collections.collectionDeleted"));
       setDeletingCollectionId(null);
       setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting collection:", error);
-      toast.error("컬렉션 삭제 중 오류가 발생했습니다.");
+      toast.error(t("collections.collectionDeleteError"));
       setDeletingCollectionId(null);
     }
   };
@@ -362,12 +364,12 @@ export const BookmarksPage: React.FC = () => {
         await updateCollection(collectionId, collectionData);
       }
 
-      toast.success("컬렉션이 수정되었습니다.");
+      toast.success(t("collections.collectionUpdated"));
       setShowEditModal(false);
       setEditingCollection(null);
     } catch (error) {
       console.error("Error updating collection:", error);
-      toast.error("컬렉션 수정 중 오류가 발생했습니다.");
+      toast.error(t("collections.collectionUpdateError"));
     }
   };
 
@@ -392,7 +394,7 @@ export const BookmarksPage: React.FC = () => {
       // toast.success("북마크 순서가 변경되었습니다."); // 중복 토스트 제거
     } catch (error) {
       console.error("Error reordering bookmarks:", error);
-      toast.error("북마크 순서 변경 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.reorderError"));
     }
   };
 
@@ -401,10 +403,10 @@ export const BookmarksPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            로그인이 필요합니다
+            {t("auth.loginRequired")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            북마크를 관리하려면 먼저 로그인해주세요.
+            {t("auth.loginRequiredDescription")}
           </p>
         </div>
       </div>
@@ -449,7 +451,7 @@ export const BookmarksPage: React.FC = () => {
             <div className="relative w-full sm:flex-1 min-w-0">
               <input
                 type="text"
-                placeholder="북마크 검색..."
+                placeholder={t("bookmarks.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 h-[48px] border border-slate-300/50 dark:border-slate-600/50 rounded-xl bg-white/90 dark:bg-slate-800/90 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm shadow-sm"
@@ -468,7 +470,7 @@ export const BookmarksPage: React.FC = () => {
                       ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-md"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="그리드 뷰"
+                  title={t("bookmarks.gridView")}
                 >
                   <Grid3X3 className="w-5 h-5" />
                 </button>
@@ -479,7 +481,7 @@ export const BookmarksPage: React.FC = () => {
                       ? "bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-md"
                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
-                  title="리스트 뷰"
+                  title={t("bookmarks.listView")}
                 >
                   <List className="w-5 h-5" />
                 </button>
@@ -492,14 +494,14 @@ export const BookmarksPage: React.FC = () => {
                   className="inline-flex items-center justify-center px-6 py-3 h-[48px] bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 whitespace-nowrap shadow-lg hover:shadow-xl"
                 >
                   <FolderPlus className="w-5 h-5 mr-2" />
-                  컬렉션 추가
+                  {t("collections.addCollection")}
                 </button>
                 <button
                   onClick={() => setIsAddModalOpen(true)}
                   className="inline-flex items-center justify-center px-6 py-3 h-[48px] bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 whitespace-nowrap shadow-lg hover:shadow-xl"
                 >
                   <Plus className="w-5 h-5 mr-2" />
-                  북마크 추가
+                  {t("bookmarks.addBookmark")}
                 </button>
               </div>
             </div>
@@ -512,14 +514,14 @@ export const BookmarksPage: React.FC = () => {
               className="flex items-center justify-center px-4 py-3 h-[48px] bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg"
             >
               <FolderPlus className="w-5 h-5 mr-2" />
-              컬렉션 추가
+              {t("collections.addCollection")}
             </button>
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="flex items-center justify-center px-4 py-3 h-[48px] bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
-              북마크 추가
+              {t("bookmarks.addBookmark")}
             </button>
           </div>
         </div>
@@ -627,7 +629,7 @@ export const BookmarksPage: React.FC = () => {
                   }`}
                   onClick={() => setSelectedTag(null)}
                 >
-                  전체
+                  {t("collections.all")}
                 </button>
                 {allTags.map((tag) => (
                   <button
@@ -698,19 +700,20 @@ export const BookmarksPage: React.FC = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-xs">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              컬렉션 삭제
+              {t("collections.deleteCollection")}
             </h3>
             <p className="text-gray-700 dark:text-gray-300 mb-6">
-              <span className="font-bold">{targetCollectionName}</span> 컬렉션을
-              삭제하시겠습니까?
-              <br />이 컬렉션에 속한 북마크들은 컬렉션에서 제거됩니다.
+              <span className="font-bold">{targetCollectionName}</span>{" "}
+              {t("collections.deleteConfirmation")}
+              <br />
+              {t("collections.deleteWarning")}
             </p>
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
               >
-                취소
+                {t("common.cancel")}
               </button>
               <button
                 onClick={() =>
@@ -720,7 +723,7 @@ export const BookmarksPage: React.FC = () => {
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
                 disabled={deletingCollectionId === targetCollectionId}
               >
-                삭제
+                {t("common.delete")}
               </button>
             </div>
           </div>

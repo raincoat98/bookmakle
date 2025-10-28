@@ -3,6 +3,7 @@ import type { Bookmark } from "../types";
 import { Settings, Edit, Trash2, Heart, ExternalLink, X } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTranslation } from "react-i18next";
 import {
   DndContext,
   closestCenter,
@@ -33,6 +34,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
   onToggleFavorite,
   onReorder,
 }) => {
+  const { t } = useTranslation();
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | null>(
     null
   );
@@ -346,7 +348,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                   {bookmark.favicon ? (
                     <img
                       src={bookmark.favicon}
-                      alt="파비콘"
+                      alt={t("common.favicon")}
                       className="w-8 h-8 rounded shadow-lg"
                       draggable="false"
                       onContextMenu={(e) => e.preventDefault()}
@@ -378,7 +380,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                   {bookmark.favicon ? (
                     <img
                       src={bookmark.favicon}
-                      alt="파비콘"
+                      alt={t("common.favicon")}
                       className="w-8 h-8 rounded shadow-lg"
                       draggable="false"
                       onContextMenu={(e) => e.preventDefault()}
@@ -461,7 +463,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       {isEditMode && (
         <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg relative">
           <p className="text-xs font-medium">
-            수정 모드 - 1초 이상 누르기, 드래그로 순서 변경
+            {t("mobileIconView.editModeDescription")}
           </p>
           <button
             onClick={handleExitEditMode}
@@ -533,7 +535,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                 onClick={handleCloseSettings}
               >
                 <ExternalLink className="w-5 h-5 mr-3" />
-                방문하기
+                {t("common.visit")}
               </a>
 
               <button
@@ -550,8 +552,8 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                   }`}
                 />
                 {selectedBookmark.isFavorite
-                  ? "즐겨찾기 해제"
-                  : "즐겨찾기 추가"}
+                  ? t("bookmarks.removeFromFavorites")
+                  : t("bookmarks.addToFavorites")}
               </button>
 
               <button
@@ -559,7 +561,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                 className="flex items-center justify-center w-full px-4 py-4 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
               >
                 <Edit className="w-5 h-5 mr-3" />
-                수정
+                {t("common.edit")}
               </button>
 
               <button
@@ -567,7 +569,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
                 className="flex items-center justify-center w-full px-4 py-4 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
               >
                 <Trash2 className="w-5 h-5 mr-3" />
-                삭제
+                {t("common.delete")}
               </button>
             </div>
 
@@ -576,7 +578,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
               onClick={handleCloseSettings}
               className="w-full px-4 py-4 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all duration-200 font-medium"
             >
-              취소
+              {t("common.cancel")}
             </button>
           </div>
         </div>

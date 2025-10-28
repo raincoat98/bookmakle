@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { IconPicker } from "./IconPicker";
 import * as LucideIcons from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AddCollectionModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const AddCollectionModal = ({
   onAdd,
   parentId = null,
 }: AddCollectionModalProps) => {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("Folder");
@@ -64,26 +66,28 @@ export const AddCollectionModal = ({
       <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            {parentId ? "하위 컬렉션 추가" : "컬렉션 추가"}
+            {parentId
+              ? t("collections.addSubCollection")
+              : t("collections.addCollection")}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                이름 *
+                {t("collections.collectionName")} *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                placeholder="컬렉션 이름을 입력하세요"
+                placeholder={t("collections.collectionNamePlaceholder")}
                 required
                 autoFocus
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                아이콘
+                {t("collections.collectionIcon")}
               </label>
               <div className="relative">
                 <button
@@ -97,20 +101,22 @@ export const AddCollectionModal = ({
                     </div>
                     <span>{icon}</span>
                   </div>
-                  <span className="text-gray-500">선택</span>
+                  <span className="text-gray-500">
+                    {t("collections.selectIcon")}
+                  </span>
                 </button>
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                설명
+                {t("collections.collectionDescription")}
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                placeholder="컬렉션에 대한 설명을 입력하세요 (선택사항)"
+                placeholder={t("collections.collectionDescriptionPlaceholder")}
               />
             </div>
 
@@ -130,7 +136,7 @@ export const AddCollectionModal = ({
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                   PIN
                 </span>
-                <span>고정하기 (기본 탭으로 설정)</span>
+                <span>{t("collections.pinCollection")}</span>
               </label>
             </div>
             <div className="flex justify-end space-x-2 pt-4">
@@ -140,14 +146,14 @@ export const AddCollectionModal = ({
                 className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600"
                 disabled={loading}
               >
-                취소
+                {t("common.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={loading || !name.trim()}
                 className="px-4 py-2 rounded bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "추가 중..." : "추가"}
+                {loading ? t("common.adding") : t("common.add")}
               </button>
             </div>
           </form>

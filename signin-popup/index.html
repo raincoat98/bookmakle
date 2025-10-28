@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- 다국어 지원 -->
+    <script src="i18n.js"></script>
     <style>
       * {
         margin: 0;
@@ -531,6 +533,97 @@
         font-size: 11px;
         font-weight: 500;
       }
+
+      /* 언어 전환 버튼 스타일 */
+      .language-switcher {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        gap: 2px;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 8px;
+        margin: 16px auto 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        width: fit-content;
+      }
+
+      .language-btn {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        min-width: 44px;
+        text-align: center;
+      }
+
+      .language-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(147, 51, 234, 0.1),
+          rgba(124, 58, 237, 0.1)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 8px;
+      }
+
+      .language-btn:hover {
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(147, 51, 234, 0.2);
+      }
+
+      .language-btn:hover::before {
+        opacity: 1;
+      }
+
+      .language-btn.active {
+        background: linear-gradient(135deg, #9333ea, #7c3aed);
+        color: white;
+        box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+        transform: translateY(-1px);
+      }
+
+      .language-btn.active::before {
+        opacity: 0;
+      }
+
+      /* 언어 버튼 애니메이션 */
+      .language-btn:active {
+        transform: translateY(0);
+        transition: transform 0.1s ease;
+      }
+
+      /* 반응형 디자인 */
+      @media (max-width: 480px) {
+        .language-switcher {
+          margin: 12px auto 0;
+          gap: 1px;
+          padding: 6px;
+        }
+
+        .language-btn {
+          padding: 6px 8px;
+          font-size: 10px;
+          min-width: 36px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -565,9 +658,13 @@
       </div>
 
       <!-- 상태 뱃지 -->
-      <div id="authStatus" class="auth-status status-logged-out">
+      <div
+        id="authStatus"
+        class="auth-status status-logged-out"
+        data-i18n="authStatus"
+      >
         <i data-lucide="x-circle" style="width: 12px; height: 12px"></i>
-        로그아웃
+        <span class="auth-status-text">로그아웃</span>
       </div>
 
       <!-- 헤더 -->
@@ -585,8 +682,10 @@
             </svg>
           </div>
         </div>
-        <h1 class="title">북마클</h1>
-        <p class="subtitle">북마크를 스마트하게 관리하세요</p>
+        <h1 class="title app-name" data-i18n="appName">북마클</h1>
+        <p class="subtitle app-description" data-i18n="appDescription">
+          북마크를 스마트하게 관리하세요
+        </p>
       </div>
 
       <!-- 인증 상태 섹션 -->
@@ -597,7 +696,11 @@
 
         <!-- 로그아웃 상태 버튼들 -->
         <div id="loggedOutButtons">
-          <button id="loginBtn" class="btn btn-primary">
+          <button
+            id="loginBtn"
+            class="btn btn-primary"
+            data-i18n="loginWithGoogle"
+          >
             <i data-lucide="chrome" style="width: 16px; height: 16px"></i>
             Google 로그인
           </button>
@@ -605,15 +708,23 @@
 
         <!-- 로그인 상태 버튼들 -->
         <div id="loggedInButtons" class="hidden">
-          <button id="dashboardBtn" class="btn btn-success">
+          <button
+            id="dashboardBtn"
+            class="btn btn-success"
+            data-i18n="dashboard"
+          >
             <i data-lucide="home" style="width: 16px; height: 16px"></i>
             대시보드로 가기
           </button>
-          <button id="logoutBtn" class="btn btn-danger">
+          <button id="logoutBtn" class="btn btn-danger" data-i18n="logout">
             <i data-lucide="log-out" style="width: 16px; height: 16px"></i>
             로그아웃
           </button>
-          <button id="closeTabBtn" class="btn btn-secondary">
+          <button
+            id="closeTabBtn"
+            class="btn btn-secondary"
+            data-i18n="closeTab"
+          >
             <i data-lucide="x" style="width: 16px; height: 16px"></i>
             탭 닫기
           </button>
@@ -623,42 +734,58 @@
       <!-- 이메일/패스워드 로그인 섹션 -->
       <div class="email-login-section" id="emailLoginSection">
         <div class="divider">
-          <span>또는</span>
+          <span data-i18n="or">또는</span>
         </div>
 
         <form id="emailLoginForm" class="email-form">
           <div class="form-group">
-            <label for="email" class="form-label">이메일</label>
+            <label for="email" class="form-label" data-i18n="email"
+              >이메일</label
+            >
             <input
               type="email"
               id="email"
               name="email"
               class="form-input"
               placeholder="이메일을 입력하세요"
+              data-i18n-placeholder="emailPlaceholder"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="password" class="form-label">비밀번호</label>
+            <label for="password" class="form-label" data-i18n="password"
+              >비밀번호</label
+            >
             <input
               type="password"
               id="password"
               name="password"
               class="form-input"
               placeholder="비밀번호를 입력하세요"
+              data-i18n-placeholder="passwordPlaceholder"
               required
             />
           </div>
 
-          <button type="submit" class="btn btn-primary" id="emailLoginBtn">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="emailLoginBtn"
+            data-i18n="loginWithEmail"
+          >
             <i data-lucide="mail" style="width: 16px; height: 16px"></i>
             이메일로 로그인
           </button>
         </form>
 
         <div class="auth-switch">
-          <button type="button" id="switchToSignupBtn" class="link-button">
+          <button
+            type="button"
+            id="switchToSignupBtn"
+            class="link-button"
+            data-i18n="noAccountSignup"
+          >
             계정이 없으신가요? 회원가입
           </button>
         </div>
@@ -667,49 +794,61 @@
       <!-- 회원가입 섹션 -->
       <div class="signup-section hidden" id="signupSection">
         <div class="divider">
-          <span>또는</span>
+          <span data-i18n="or">또는</span>
         </div>
 
         <form id="signupForm" class="email-form">
           <div class="form-group">
-            <label for="signupName" class="form-label">사용자명</label>
+            <label for="signupName" class="form-label" data-i18n="displayName"
+              >사용자명</label
+            >
             <input
               type="text"
               id="signupName"
               name="displayName"
               class="form-input"
               placeholder="사용자명을 입력하세요"
+              data-i18n-placeholder="displayNamePlaceholder"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="signupEmail" class="form-label">이메일</label>
+            <label for="signupEmail" class="form-label" data-i18n="email"
+              >이메일</label
+            >
             <input
               type="email"
               id="signupEmail"
               name="email"
               class="form-input"
               placeholder="이메일을 입력하세요"
+              data-i18n-placeholder="emailPlaceholder"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="signupPassword" class="form-label">비밀번호</label>
+            <label for="signupPassword" class="form-label" data-i18n="password"
+              >비밀번호</label
+            >
             <input
               type="password"
               id="signupPassword"
               name="password"
               class="form-input"
               placeholder="비밀번호를 입력하세요 (최소 6자)"
+              data-i18n-placeholder="signupPasswordPlaceholder"
               required
               minlength="6"
             />
           </div>
 
           <div class="form-group">
-            <label for="confirmPassword" class="form-label"
+            <label
+              for="confirmPassword"
+              class="form-label"
+              data-i18n="confirmPassword"
               >비밀번호 확인</label
             >
             <input
@@ -718,37 +857,79 @@
               name="confirmPassword"
               class="form-input"
               placeholder="비밀번호를 다시 입력하세요"
+              data-i18n-placeholder="confirmPasswordPlaceholder"
               required
             />
           </div>
 
-          <button type="submit" class="btn btn-primary" id="signupBtn">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            id="signupBtn"
+            data-i18n="signUp"
+          >
             <i data-lucide="user-plus" style="width: 16px; height: 16px"></i>
             회원가입
           </button>
         </form>
 
         <div class="auth-switch">
-          <button type="button" id="switchToLoginBtn" class="link-button">
+          <button
+            type="button"
+            id="switchToLoginBtn"
+            class="link-button"
+            data-i18n="alreadyHaveAccount"
+          >
             이미 계정이 있으신가요? 로그인
           </button>
         </div>
+      </div>
+
+      <!-- 언어 전환 버튼 -->
+      <div class="language-switcher">
+        <button
+          class="language-btn"
+          data-lang="ko"
+          onclick="changeLanguage('ko')"
+        >
+          한국어
+        </button>
+        <button
+          class="language-btn"
+          data-lang="en"
+          onclick="changeLanguage('en')"
+        >
+          English
+        </button>
+        <button
+          class="language-btn"
+          data-lang="ja"
+          onclick="changeLanguage('ja')"
+        >
+          日本語
+        </button>
       </div>
     </div>
 
     <!-- 디버그 패널 -->
     <div class="debug-panel">
       <div class="debug-header">
-        <div class="debug-title">
+        <div class="debug-title" data-i18n="debugLogs">
           <i data-lucide="bug" style="width: 14px; height: 14px"></i>
           디버그 로그
         </div>
-        <button id="toggleLogsBtn" class="toggle-logs">보기</button>
+        <button id="toggleLogsBtn" class="toggle-logs" data-i18n="viewLogs">
+          보기
+        </button>
       </div>
       <div id="debugContent" class="debug-content">
         <div id="debugLogs" class="logs-container"></div>
         <div id="debugControls" class="debug-controls">
-          <button id="clearLogsBtn" class="clear-logs-btn">
+          <button
+            id="clearLogsBtn"
+            class="clear-logs-btn"
+            data-i18n="clearLogs"
+          >
             <i data-lucide="trash-2" style="width: 12px; height: 12px"></i>
             로그 지우기
           </button>

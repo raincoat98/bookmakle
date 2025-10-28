@@ -11,9 +11,11 @@ import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
 import { Drawer } from "../components/Drawer";
+import { useTranslation } from "react-i18next";
 
 export const DashboardPage: React.FC = () => {
   const { user, isActive, isActiveLoading } = useAuth();
+  const { t } = useTranslation();
   const {
     bookmarks,
     addBookmark,
@@ -27,7 +29,7 @@ export const DashboardPage: React.FC = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>({
     field: "isFavorite",
     direction: "desc",
-    label: "즐겨찾기 우선",
+    label: t("dashboard.sortByFavorite"),
   });
 
   // 모달 상태
@@ -48,7 +50,7 @@ export const DashboardPage: React.FC = () => {
 
       await addBookmark({ ...data, isFavorite: data.isFavorite || false });
       setIsAddModalOpen(false);
-      toast.success("북마크가 추가되었습니다.");
+      toast.success(t("bookmarks.bookmarkAdded"));
     } catch (error) {
       console.error("DashboardPage - 북마크 추가 실패:", error);
       console.error("오류 상세:", {

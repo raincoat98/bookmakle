@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import { getFaviconUrl, findFaviconFromWebsite } from "../utils/favicon";
+import { useTranslation } from "react-i18next";
 
 interface EditBookmarkModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const EditBookmarkModal = ({
   bookmark,
   collections,
 }: EditBookmarkModalProps) => {
+  const { t } = useTranslation();
   const [tagInput, setTagInput] = useState("");
   const [formData, setFormData] = useState<BookmarkFormData>({
     title: "",
@@ -116,9 +118,9 @@ export const EditBookmarkModal = ({
       if (isValidUrl(trimmedUrl)) {
         setFormData({ ...formData, favicon: trimmedUrl });
         setShowCustomFaviconInput(false);
-        toast.success("파비콘이 적용되었습니다.");
+        toast.success(t("bookmarks.faviconApplied"));
       } else {
-        toast.error("올바른 URL 형식을 입력해주세요.");
+        toast.error(t("bookmarks.invalidUrlFormat"));
       }
     }
   };
@@ -135,7 +137,7 @@ export const EditBookmarkModal = ({
         setFormData((prev) => ({ ...prev, favicon: actualFavicon }));
       } catch (error) {
         console.error("파비콘 가져오기 실패:", error);
-        toast.error("파비콘을 가져올 수 없습니다.");
+        toast.error(t("bookmarks.faviconFetchError"));
       } finally {
         setFaviconLoading(false);
       }
@@ -152,7 +154,7 @@ export const EditBookmarkModal = ({
       onClose();
     } catch (error) {
       console.error("Error updating bookmark:", error);
-      toast.error("북마크 수정 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.bookmarkUpdateError"));
     } finally {
       setLoading(false);
     }
@@ -176,7 +178,7 @@ export const EditBookmarkModal = ({
             {/* 헤더 - 고정 */}
             <div className="flex items-center justify-between p-6 sm:p-8 pb-4 sticky top-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-10 border-b border-white/20 dark:border-gray-700/30">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                북마크 수정
+                {t("bookmarks.editBookmark")}
               </h2>
               <button
                 onClick={onClose}
@@ -204,7 +206,7 @@ export const EditBookmarkModal = ({
                 {/* 제목 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    제목 *
+                    {t("bookmarks.bookmarkTitle")} *
                   </label>
                   <input
                     type="text"
@@ -212,7 +214,7 @@ export const EditBookmarkModal = ({
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    placeholder="북마크 제목"
+                    placeholder={t("bookmarks.bookmarkTitlePlaceholder")}
                     className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     required
                   />
@@ -221,7 +223,7 @@ export const EditBookmarkModal = ({
                 {/* URL 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    URL *
+                    {t("bookmarks.bookmarkUrl")} *
                   </label>
                   <input
                     type="url"
@@ -238,7 +240,7 @@ export const EditBookmarkModal = ({
                 {/* 파비콘 설정 */}
                 <div className="space-y-3">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    파비콘
+                    {t("common.favicon")}
                   </label>
 
                   {/* 파비콘 설정 - 한 줄 레이아웃 */}
@@ -249,7 +251,7 @@ export const EditBookmarkModal = ({
                         {formData.favicon ? (
                           <img
                             src={formData.favicon}
-                            alt="파비콘"
+                            alt={t("common.favicon")}
                             className="w-6 h-6 rounded border border-gray-200 dark:border-gray-600"
                             onError={(e) => {
                               e.currentTarget.src = "/favicon.svg";
@@ -273,7 +275,9 @@ export const EditBookmarkModal = ({
                         )}
                       </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {faviconLoading ? "가져오는 중..." : "파비콘"}
+                        {faviconLoading
+                          ? t("common.loading")
+                          : t("common.favicon")}
                       </span>
                     </div>
 
@@ -298,7 +302,7 @@ export const EditBookmarkModal = ({
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                           />
                         </svg>
-                        자동 가져오기
+                        {t("bookmarks.autoFetchFavicon")}
                       </button>
                       <button
                         type="button"
@@ -320,7 +324,7 @@ export const EditBookmarkModal = ({
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
                         </svg>
-                        직접 입력
+                        {t("bookmarks.customFaviconInput")}
                       </button>
                     </div>
                   </div>
@@ -332,7 +336,7 @@ export const EditBookmarkModal = ({
                         type="url"
                         value={customFaviconUrl}
                         onChange={(e) => setCustomFaviconUrl(e.target.value)}
-                        placeholder="https://example.com/favicon.ico"
+                        placeholder={t("bookmarks.customFaviconPlaceholder")}
                         className="w-full px-3 py-2 text-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       />
                       <div className="flex gap-2">
@@ -342,7 +346,7 @@ export const EditBookmarkModal = ({
                           disabled={!customFaviconUrl.trim()}
                           className="flex-1 px-3 py-2 text-sm bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                         >
-                          적용
+                          {t("common.apply")}
                         </button>
                         <button
                           type="button"
@@ -352,7 +356,7 @@ export const EditBookmarkModal = ({
                           }}
                           className="flex-1 px-3 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-all duration-200"
                         >
-                          취소
+                          {t("common.cancel")}
                         </button>
                       </div>
                     </div>
@@ -362,14 +366,15 @@ export const EditBookmarkModal = ({
                 {/* 설명 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    설명 (선택사항)
+                    {t("bookmarks.bookmarkDescription")} ({t("common.optional")}
+                    )
                   </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    placeholder="북마크에 대한 설명을 입력하세요"
+                    placeholder={t("bookmarks.bookmarkDescriptionPlaceholder")}
                     rows={3}
                     className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                   />
@@ -379,7 +384,8 @@ export const EditBookmarkModal = ({
                 {collections.length > 0 && (
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      컬렉션 (선택사항)
+                      {t("bookmarks.bookmarkCollection")} (
+                      {t("common.optional")})
                     </label>
                     <select
                       value={formData.collection}
@@ -388,7 +394,9 @@ export const EditBookmarkModal = ({
                       }
                       className="w-full px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-2xl focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all duration-200 text-gray-900 dark:text-white"
                     >
-                      <option value="">컬렉션 선택 안함</option>
+                      <option value="">
+                        {t("collections.noCollectionSelection")}
+                      </option>
                       {collections.map((collection) => (
                         <option key={collection.id} value={collection.id}>
                           {collection.name}
@@ -401,7 +409,7 @@ export const EditBookmarkModal = ({
                 {/* 태그 입력 */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    태그 (선택사항)
+                    {t("bookmarks.bookmarkTags")} ({t("common.optional")})
                   </label>
                   <div className="space-y-2">
                     <div className="flex flex-wrap gap-2">
@@ -428,14 +436,14 @@ export const EditBookmarkModal = ({
                         onChange={(e) => setTagInput(e.target.value)}
                         onKeyDown={handleTagInputKeyDown}
                         className="flex-1 px-3 py-2 text-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-600/30 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-200 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-                        placeholder="태그를 입력 후 엔터"
+                        placeholder={t("bookmarks.tagInputPlaceholder")}
                       />
                       <button
                         type="button"
                         onClick={handleAddTag}
                         className="px-3 py-2 text-sm bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all duration-200"
                       >
-                        추가
+                        {t("common.add")}
                       </button>
                     </div>
                   </div>
@@ -448,7 +456,7 @@ export const EditBookmarkModal = ({
                     onClick={onClose}
                     className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 hover:scale-105 backdrop-blur-sm"
                   >
-                    취소
+                    {t("common.cancel")}
                   </button>
                   <button
                     type="submit"
@@ -460,10 +468,10 @@ export const EditBookmarkModal = ({
                     {loading ? (
                       <>
                         <div className="spinner w-4 h-4"></div>
-                        <span>수정 중...</span>
+                        <span>{t("common.updating")}</span>
                       </>
                     ) : (
-                      "수정"
+                      t("common.edit")
                     )}
                   </button>
                 </div>

@@ -1,3 +1,396 @@
+// 다국어 번역 데이터
+const translations = {
+  ko: {
+    appName: "북마클",
+    login: "Google 로그인",
+    currentPageInfo: "현재 페이지",
+    quickMode: "⚡ 빠른 실행 모드",
+    quickModeDescription: "(아이콘 클릭시 바로 저장)",
+    collectionOptional: "컬렉션 (선택사항)",
+    saveBookmark: "북마크 저장",
+    bookmarkSafeStorage: "• 북마크는 Firebase에 안전하게 저장됩니다",
+    bookmarkSync: "• 여러 기기에서 동기화됩니다",
+    privacyProtected: "• 개인정보는 보호됩니다",
+    privacyPolicyText: "개인정보처리방침",
+    contactText: "문의:",
+    cancel: "취소",
+    add: "추가",
+    korean: "한국어",
+    english: "English",
+    japanese: "日本語",
+    languageChanged: "언어가 변경되었습니다.",
+    languageSettings: "언어 설정",
+    save: "저장",
+    memoOptional: "메모 (선택사항)",
+    memoPlaceholder: "이 페이지에 대한 메모를 작성하세요...",
+    noCollection: "컬렉션 없음",
+    collectionSearch: "🔍 컬렉션 검색...",
+    tagsOptional: "태그 (선택사항)",
+    tagPlaceholder: "엔터로 태그 추가 (쉼표로 구분)",
+    support: "후원하기",
+    reportBug: "버그 등록하기",
+    separator: "|",
+  },
+  en: {
+    appName: "Bookmarkle",
+    login: "Login with Google",
+    currentPageInfo: "Current Page",
+    quickMode: "⚡ Quick Mode",
+    quickModeDescription: "(Click icon to save directly)",
+    collectionOptional: "Collection (Optional)",
+    saveBookmark: "Save Bookmark",
+    bookmarkSafeStorage: "• Bookmarks are safely stored in Firebase",
+    bookmarkSync: "• Sync across multiple devices",
+    privacyProtected: "• Privacy is protected",
+    privacyPolicyText: "Privacy Policy",
+    contactText: "Contact:",
+    cancel: "Cancel",
+    add: "Add",
+    korean: "한국어",
+    english: "English",
+    japanese: "日本語",
+    languageChanged: "Language has been changed.",
+    languageSettings: "Language Settings",
+    save: "Save",
+    memoOptional: "Memo (Optional)",
+    memoPlaceholder: "Write a memo about this page...",
+    noCollection: "No Collection",
+    collectionSearch: "🔍 Search collections...",
+    tagsOptional: "Tags (Optional)",
+    tagPlaceholder: "Add tags with Enter (separated by commas)",
+    support: "Support",
+    reportBug: "Report Bug",
+    separator: "|",
+  },
+  ja: {
+    appName: "ブックマークル",
+    login: "Googleでログイン",
+    currentPageInfo: "現在のページ",
+    quickMode: "⚡ クイックモード",
+    quickModeDescription: "(アイコンクリックで直接保存)",
+    collectionOptional: "コレクション（オプション）",
+    saveBookmark: "ブックマーク保存",
+    bookmarkSafeStorage: "• ブックマークはFirebaseに安全に保存されます",
+    bookmarkSync: "• 複数のデバイスで同期されます",
+    privacyProtected: "• プライバシーは保護されます",
+    privacyPolicyText: "プライバシーポリシー",
+    contactText: "お問い合わせ：",
+    cancel: "キャンセル",
+    add: "追加",
+    korean: "한국어",
+    english: "English",
+    japanese: "日本語",
+    languageChanged: "言語が変更されました。",
+    languageSettings: "言語設定",
+    save: "保存",
+    memoOptional: "メモ（オプション）",
+    memoPlaceholder: "このページについてメモを書いてください...",
+    noCollection: "コレクションなし",
+    collectionSearch: "🔍 コレクション検索...",
+    tagsOptional: "タグ（オプション）",
+    tagPlaceholder: "Enterでタグ追加（カンマ区切り）",
+    support: "サポート",
+    reportBug: "バグ報告",
+    separator: "|",
+  },
+};
+
+let currentLanguage = "ko";
+
+// 다국어 지원 함수 (개선된 버전)
+function initI18n() {
+  // 저장된 언어 설정 불러오기
+  chrome.storage.local.get(["preferredLanguage"], (result) => {
+    const savedLang = result.preferredLanguage || "ko";
+    currentLanguage = savedLang;
+    updateAllTexts();
+  });
+}
+
+// 모든 텍스트 업데이트 함수
+function updateAllTexts() {
+  const t = translations[currentLanguage];
+
+  // data-i18n 속성을 가진 모든 요소에 번역 적용
+  const elements = document.querySelectorAll("[data-i18n]");
+  elements.forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    if (t[key]) {
+      element.textContent = t[key];
+    }
+  });
+
+  // data-i18n-placeholder 속성을 가진 모든 요소에 번역 적용
+  const placeholderElements = document.querySelectorAll(
+    "[data-i18n-placeholder]"
+  );
+  placeholderElements.forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    if (t[key]) {
+      element.placeholder = t[key];
+    }
+  });
+
+  // 특정 요소들 직접 업데이트
+  const appNameEl = document.querySelector('[data-i18n="appName"]');
+  if (appNameEl) appNameEl.textContent = t.appName;
+
+  const loginBtn = document.querySelector('[data-i18n="login"]');
+  if (loginBtn) loginBtn.textContent = t.login;
+
+  const currentPageEl = document.querySelector('[data-i18n="currentPageInfo"]');
+  if (currentPageEl) currentPageEl.textContent = t.currentPageInfo;
+
+  const quickModeEl = document.querySelector('[data-i18n="quickMode"]');
+  if (quickModeEl) quickModeEl.textContent = t.quickMode;
+
+  const quickModeDescEl = document.querySelector(
+    '[data-i18n="quickModeDescription"]'
+  );
+  if (quickModeDescEl) quickModeDescEl.textContent = t.quickModeDescription;
+
+  const collectionOptEl = document.querySelector(
+    '[data-i18n="collectionOptional"]'
+  );
+  if (collectionOptEl) collectionOptEl.textContent = t.collectionOptional;
+
+  const saveBookmarkEl = document.querySelector('[data-i18n="saveBookmark"]');
+  if (saveBookmarkEl) saveBookmarkEl.textContent = t.saveBookmark;
+
+  const safeStorageEl = document.querySelector(
+    '[data-i18n="bookmarkSafeStorage"]'
+  );
+  if (safeStorageEl) safeStorageEl.textContent = t.bookmarkSafeStorage;
+
+  const syncEl = document.querySelector('[data-i18n="bookmarkSync"]');
+  if (syncEl) syncEl.textContent = t.bookmarkSync;
+
+  const privacyEl = document.querySelector('[data-i18n="privacyProtected"]');
+  if (privacyEl) privacyEl.textContent = t.privacyProtected;
+
+  const privacyPolicyEl = document.querySelector(
+    '[data-i18n="privacyPolicyText"]'
+  );
+  if (privacyPolicyEl) privacyPolicyEl.textContent = t.privacyPolicyText;
+
+  const contactEl = document.querySelector('[data-i18n="contactText"]');
+  if (contactEl) contactEl.textContent = t.contactText;
+
+  const cancelEl = document.querySelector('[data-i18n="cancel"]');
+  if (cancelEl) cancelEl.textContent = t.cancel;
+
+  const addEl = document.querySelector('[data-i18n="add"]');
+  if (addEl) addEl.textContent = t.add;
+
+  // 추가 텍스트들 업데이트
+  const memoOptionalEl = document.querySelector('[data-i18n="memoOptional"]');
+  if (memoOptionalEl) memoOptionalEl.textContent = t.memoOptional;
+
+  const memoPlaceholderEl = document.querySelector(
+    '[data-i18n="memoPlaceholder"]'
+  );
+  if (memoPlaceholderEl) memoPlaceholderEl.placeholder = t.memoPlaceholder;
+
+  const noCollectionEl = document.querySelector('[data-i18n="noCollection"]');
+  if (noCollectionEl) noCollectionEl.textContent = t.noCollection;
+
+  const tagsOptionalEl = document.querySelector('[data-i18n="tagsOptional"]');
+  if (tagsOptionalEl) tagsOptionalEl.textContent = t.tagsOptional;
+
+  const tagPlaceholderEl = document.querySelector(
+    '[data-i18n="tagPlaceholder"]'
+  );
+  if (tagPlaceholderEl) tagPlaceholderEl.placeholder = t.tagPlaceholder;
+
+  const supportEl = document.querySelector('[data-i18n="support"]');
+  if (supportEl) supportEl.textContent = t.support;
+
+  const reportBugEl = document.querySelector('[data-i18n="reportBug"]');
+  if (reportBugEl) reportBugEl.textContent = t.reportBug;
+
+  const separatorEl = document.querySelector('[data-i18n="separator"]');
+  if (separatorEl) separatorEl.textContent = t.separator;
+
+  // 컬렉션 검색 placeholder 업데이트
+  const collectionSearchEl = document.querySelector(
+    '[data-i18n-placeholder="collectionSearch"]'
+  );
+  if (collectionSearchEl) collectionSearchEl.placeholder = t.collectionSearch;
+
+  // 선택된 컬렉션 텍스트 업데이트 (컬렉션 없음인 경우만)
+  const collectionSelectedTextEl = document.getElementById(
+    "collectionSelectedText"
+  );
+  if (
+    collectionSelectedTextEl &&
+    collectionSelectedTextEl.textContent.includes("컬렉션 없음")
+  ) {
+    collectionSelectedTextEl.innerHTML = `<span class="text-gray-500">📄</span> <span class="ml-2" data-i18n="noCollection">${t.noCollection}</span>`;
+  }
+
+  // 언어 설정 버튼의 국기 업데이트
+  const languageSettingsBtn = document.getElementById("languageSettings");
+  if (languageSettingsBtn) {
+    const flagMap = {
+      ko: "🇰🇷",
+      en: "🇺🇸",
+      ja: "🇯🇵",
+    };
+    languageSettingsBtn.textContent = flagMap[currentLanguage] || "🇰🇷";
+  }
+
+  // 모달 내 텍스트들도 업데이트
+  const modalTitle = document.querySelector("#languageModal h3");
+  if (modalTitle) modalTitle.textContent = t.languageSettings;
+
+  const saveBtn = document.getElementById("languageSaveBtn");
+  if (saveBtn) saveBtn.textContent = t.save;
+
+  const cancelBtn = document.getElementById("languageCancelBtn");
+  if (cancelBtn) cancelBtn.textContent = t.cancel;
+
+  console.log("모든 텍스트가 업데이트되었습니다:", currentLanguage);
+}
+
+// 언어 설정 모달 기능
+function initLanguageModal() {
+  console.log("언어 설정 모달 초기화 시작");
+
+  const languageSettingsBtn = document.getElementById("languageSettings");
+  const languageModal = document.getElementById("languageModal");
+  const languageCancelBtn = document.getElementById("languageCancelBtn");
+  const languageSaveBtn = document.getElementById("languageSaveBtn");
+  const currentLanguageDisplay = document.getElementById("currentLanguage");
+  const languageRadios = document.querySelectorAll('input[name="language"]');
+
+  console.log("언어 모달 요소들:", {
+    languageSettingsBtn: !!languageSettingsBtn,
+    languageModal: !!languageModal,
+    languageCancelBtn: !!languageCancelBtn,
+    languageSaveBtn: !!languageSaveBtn,
+    currentLanguageDisplay: !!currentLanguageDisplay,
+    languageRadios: languageRadios.length,
+  });
+
+  // 현재 언어 표시 업데이트
+  function updateCurrentLanguage(lang) {
+    const langMap = {
+      ko: "KO",
+      en: "EN",
+      ja: "JA",
+    };
+
+    const flagMap = {
+      ko: "🇰🇷",
+      en: "🇺🇸",
+      ja: "🇯🇵",
+    };
+
+    if (currentLanguageDisplay) {
+      currentLanguageDisplay.textContent = langMap[lang] || "KO";
+    }
+
+    // 언어 설정 버튼의 국기 업데이트
+    const languageSettingsBtn = document.getElementById("languageSettings");
+    if (languageSettingsBtn) {
+      languageSettingsBtn.textContent = flagMap[lang] || "🇰🇷";
+    }
+  }
+
+  // 언어 설정 버튼 클릭 이벤트
+  if (languageSettingsBtn && languageModal) {
+    languageSettingsBtn.addEventListener("click", (e) => {
+      console.log("언어 설정 버튼 클릭됨");
+      e.preventDefault();
+      e.stopPropagation();
+
+      // 현재 언어로 라디오 버튼 선택
+      chrome.storage.local.get(["preferredLanguage"], (result) => {
+        const savedLang = result.preferredLanguage || "ko";
+        console.log("저장된 언어:", savedLang);
+
+        languageRadios.forEach((radio) => {
+          radio.checked = radio.value === savedLang;
+        });
+
+        // 모달 표시
+        languageModal.classList.remove("hidden");
+        console.log("언어 설정 모달 표시됨");
+      });
+    });
+  }
+
+  // 취소 버튼 클릭 이벤트
+  if (languageCancelBtn && languageModal) {
+    languageCancelBtn.addEventListener("click", (e) => {
+      console.log("언어 설정 취소");
+      e.preventDefault();
+      e.stopPropagation();
+      languageModal.classList.add("hidden");
+    });
+  }
+
+  // 저장 버튼 클릭 이벤트
+  if (languageSaveBtn && languageModal) {
+    languageSaveBtn.addEventListener("click", (e) => {
+      console.log("언어 설정 저장");
+      e.preventDefault();
+      e.stopPropagation();
+
+      // 선택된 언어 가져오기
+      const selectedLang = document.querySelector(
+        'input[name="language"]:checked'
+      );
+      if (selectedLang) {
+        const lang = selectedLang.value;
+        console.log("선택된 언어:", lang);
+
+        // 언어 설정 저장
+        chrome.storage.local.set({ preferredLanguage: lang }, () => {
+          console.log("언어 설정 저장 완료:", lang);
+
+          // 현재 언어 업데이트
+          currentLanguage = lang;
+
+          // 모든 텍스트 즉시 업데이트
+          updateAllTexts();
+
+          // 현재 언어 표시 업데이트
+          updateCurrentLanguage(lang);
+
+          // 모달 숨기기
+          languageModal.classList.add("hidden");
+
+          // 사용자에게 알림
+          const message =
+            translations[currentLanguage].languageChanged ||
+            "언어가 변경되었습니다.";
+          showToast(message);
+        });
+      } else {
+        showToast("언어를 선택해주세요.", "error");
+      }
+    });
+  }
+
+  // 모달 외부 클릭 시 닫기
+  if (languageModal) {
+    languageModal.addEventListener("click", (e) => {
+      if (e.target === languageModal) {
+        console.log("모달 외부 클릭 - 모달 닫기");
+        languageModal.classList.add("hidden");
+      }
+    });
+  }
+
+  // 저장된 언어 설정 불러오기
+  chrome.storage.local.get(["preferredLanguage"], (result) => {
+    const savedLang = result.preferredLanguage || "ko";
+    console.log("저장된 언어 설정:", savedLang);
+    updateCurrentLanguage(savedLang);
+  });
+}
+
 // DOM 요소들 가져오기
 const $btn = document.getElementById("login");
 const $user = document.getElementById("user");
@@ -247,13 +640,13 @@ function renderCollections(collections) {
     <div class="collection-option py-2 px-3 hover:bg-gray-100 cursor-pointer" data-value="">
       <div class="flex items-center">
         <span class="text-gray-500">📄</span>
-        <span class="ml-2 text-sm">컬렉션 없음</span>
+        <span class="ml-2 text-sm" data-i18n="noCollection">${translations[currentLanguage].noCollection}</span>
       </div>
     </div>
   `;
 
   // 숨겨진 select 요소에도 옵션 추가
-  $collectionSelect.innerHTML = '<option value="">📄 컬렉션 없음</option>';
+  $collectionSelect.innerHTML = `<option value="" data-i18n="noCollection">${translations[currentLanguage].noCollection}</option>`;
   collections.forEach((collection) => {
     const option = document.createElement("option");
     option.value = collection.id;
@@ -287,7 +680,7 @@ function renderCollections(collections) {
       console.log(`이전 선택 유지: ${currentValue}`);
     } else {
       $collectionSelect.value = "";
-      $collectionSelectedText.innerHTML = `<span class="text-gray-500">📄</span> <span class="ml-2">컬렉션 없음</span>`;
+      $collectionSelectedText.innerHTML = `<span class="text-gray-500">📄</span> <span class="ml-2" data-i18n="noCollection">${translations[currentLanguage].noCollection}</span>`;
       console.log(
         `삭제된 컬렉션 감지 - "컬렉션 없음"으로 변경: ${currentValue}`
       );
@@ -295,7 +688,7 @@ function renderCollections(collections) {
   } else {
     // 이전 값이 없으면 "컬렉션 없음"으로 설정
     $collectionSelect.value = "";
-    $collectionSelectedText.innerHTML = `<span class="text-gray-500">📄</span> <span class="ml-2">컬렉션 없음</span>`;
+    $collectionSelectedText.innerHTML = `<span class="text-gray-500">📄</span> <span class="ml-2" data-i18n="noCollection">${translations[currentLanguage].noCollection}</span>`;
   }
 
   console.log(`${collections.length}개의 컬렉션이 로드되었습니다`);
@@ -355,7 +748,7 @@ function filterCollections(searchTerm) {
     <div class="collection-option py-2 px-3 hover:bg-gray-100 cursor-pointer" data-value="">
       <div class="flex items-center">
         <span class="text-gray-500">📄</span>
-        <span class="ml-2 text-sm">컬렉션 없음</span>
+        <span class="ml-2 text-sm" data-i18n="noCollection">${translations[currentLanguage].noCollection}</span>
       </div>
     </div>
   `;
@@ -1062,4 +1455,21 @@ if ($sponsorButton) {
     // 현재 비활성화 상태이므로 아무 동작하지 않음
     console.log("후원 링크 준비 중입니다.");
   });
+}
+
+// 페이지 로드 시 다국어 초기화
+document.addEventListener("DOMContentLoaded", () => {
+  initI18n();
+  initLanguageModal();
+});
+
+// 즉시 실행 (DOM이 이미 로드된 경우)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initI18n();
+    initLanguageModal();
+  });
+} else {
+  initI18n();
+  initLanguageModal();
 }
