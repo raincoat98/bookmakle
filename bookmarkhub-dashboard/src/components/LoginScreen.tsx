@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { FirebaseError } from "firebase/app";
@@ -10,7 +10,7 @@ import {
 } from "../utils/browserDetection";
 
 export const LoginScreen = () => {
-  const { login, loginWithEmail, signup, user } = useAuth();
+  const { login, loginWithEmail, signup, user } = useAuthStore();
   const [isSignup, setIsSignup] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();

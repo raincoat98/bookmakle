@@ -1,4 +1,4 @@
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore, useThemeStore, useDrawerStore } from "../stores";
 import { Link } from "react-router-dom";
 import {
   Menu,
@@ -10,8 +10,6 @@ import {
   Globe,
   Shield,
 } from "lucide-react";
-import { useDrawer } from "../contexts/DrawerContext";
-import { useTheme } from "../contexts/ThemeContext";
 import { isAdminUser } from "../firebase";
 import { useState, useEffect } from "react";
 import { NotificationCenter } from "./NotificationCenter";
@@ -21,9 +19,9 @@ interface HeaderProps {
 }
 
 export const Header = ({ showMenuButton = false }: HeaderProps) => {
-  const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
-  const { setIsDrawerOpen } = useDrawer();
+  const { user, logout } = useAuthStore();
+  const { theme, setTheme } = useThemeStore();
+  const { setIsDrawerOpen } = useDrawerStore();
   const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleTheme = () => {

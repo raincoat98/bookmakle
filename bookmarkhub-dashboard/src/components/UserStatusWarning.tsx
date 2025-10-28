@@ -1,8 +1,8 @@
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { UserX, Mail } from "lucide-react";
 
 export function UserStatusWarning() {
-  const { user, isActive, isActiveLoading } = useAuth();
+  const { user, isActive, isActiveLoading } = useAuthStore();
 
   // 로딩 중이거나 사용자가 없거나 활성화된 경우 표시하지 않음
   if (isActiveLoading || !user || isActive) {

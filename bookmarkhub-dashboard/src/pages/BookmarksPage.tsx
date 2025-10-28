@@ -5,10 +5,8 @@ import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
 import { EditCollectionModal } from "../components/EditCollectionModal";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore, useBookmarkStore, useCollectionStore } from "../stores";
 import { DisabledUserMessage } from "../components/DisabledUserMessage";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useCollections } from "../hooks/useCollections";
 import { useNotifications } from "../hooks/useNotifications";
 import type {
   Bookmark,
@@ -22,7 +20,7 @@ import { Drawer } from "../components/Drawer";
 import { useTranslation } from "react-i18next";
 
 export const BookmarksPage: React.FC = () => {
-  const { user, isActive, isActiveLoading } = useAuth();
+  const { user, isActive, isActiveLoading } = useAuthStore();
   const { t } = useTranslation();
 
   // 상태 관리
@@ -41,7 +39,20 @@ export const BookmarksPage: React.FC = () => {
     updateCollection,
     deleteCollection,
     setPinned,
-  } = useCollections(user?.uid || "");
+  } = useCollectionStore();
+
+  const {
+    getFilteredBookmarks,
+    addBookmark,
+    updateBookmark,
+    deleteBookmark,
+    reorderBookmarks,
+    toggleFavorite,
+    updateBookmarkFavicon,
+    subscribeToBookmarks,
+    setSelectedCollection: setBookmarkSelectedCollection,
+    setCollections: setBookmarkCollections,
+  } = useBookmarkStore();
 
   // 핀된 컬렉션을 기본 탭으로 설정
   React.useEffect(() => {
@@ -54,17 +65,38 @@ export const BookmarksPage: React.FC = () => {
       }
     }
   }, [collections]);
-  const {
-    bookmarks,
-    addBookmark,
-    updateBookmark,
-    deleteBookmark,
-    reorderBookmarks,
-    toggleFavorite,
-    updateBookmarkFavicon, // 파비콘 새로고침 함수 추가
-  } = useBookmarks(user?.uid || "", selectedCollection, collections);
 
   const { createNotification } = useNotifications(user?.uid || "");
+
+  // 북마크 데이터 가져오기
+  const bookmarks = getFilteredBookmarks();
+
+  // 북마크 스토어 상태 동기화
+  React.useEffect(() => {
+    setBookmarkSelectedCollection(selectedCollection);
+    setBookmarkCollections(collections);
+  }, [
+    selectedCollection,
+    collections,
+    setBookmarkSelectedCollection,
+    setBookmarkCollections,
+  ]);
+
+  // 컬렉션 데이터 가져오기
+  React.useEffect(() => {
+    if (user?.uid) {
+      const { fetchCollections } = useCollectionStore.getState();
+      fetchCollections(user.uid);
+    }
+  }, [user?.uid]);
+
+  // 북마크 구독 설정
+  React.useEffect(() => {
+    if (user?.uid) {
+      const unsubscribe = subscribeToBookmarks(user.uid);
+      return unsubscribe;
+    }
+  }, [user?.uid, subscribeToBookmarks]);
 
   // 나머지 상태 관리
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -154,13 +186,16 @@ export const BookmarksPage: React.FC = () => {
     }
 
     try {
-      const collectionId = await addCollection({
-        name,
-        description,
-        icon,
-        parentId: parentId ?? null,
-        isPinned: isPinned ?? false,
-      });
+      const collectionId = await addCollection(
+        {
+          name,
+          description,
+          icon,
+          parentId: parentId ?? null,
+          isPinned: isPinned ?? false,
+        },
+        user?.uid || ""
+      );
 
       // 핀이 설정된 경우, 다른 컬렉션들의 핀을 해제
       if (isPinned && collectionId) {
@@ -257,10 +292,13 @@ export const BookmarksPage: React.FC = () => {
     try {
       console.log("BookmarksPage - 북마크 추가 시도:", bookmarkData);
 
-      const bookmarkId = await addBookmark({
-        ...bookmarkData,
-        isFavorite: bookmarkData.isFavorite || false,
-      });
+      const bookmarkId = await addBookmark(
+        {
+          ...bookmarkData,
+          isFavorite: bookmarkData.isFavorite || false,
+        },
+        user?.uid || ""
+      );
       setIsAddModalOpen(false);
       toast.success(t("bookmarks.bookmarkAdded"));
 
@@ -295,10 +333,14 @@ export const BookmarksPage: React.FC = () => {
     bookmarkData: BookmarkFormData
   ) => {
     try {
-      await updateBookmark(id, {
-        ...bookmarkData,
-        isFavorite: bookmarkData.isFavorite || false,
-      });
+      await updateBookmark(
+        id,
+        {
+          ...bookmarkData,
+          isFavorite: bookmarkData.isFavorite || false,
+        },
+        user?.uid || ""
+      );
       setEditingBookmark(null);
       toast.success(t("bookmarks.bookmarkUpdated"));
 
@@ -350,7 +392,7 @@ export const BookmarksPage: React.FC = () => {
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
     try {
-      await toggleFavorite(id, isFavorite);
+      await toggleFavorite(id, isFavorite, user?.uid || "");
       toast.success(
         isFavorite
           ? t("bookmarks.addToFavorites")
@@ -365,7 +407,11 @@ export const BookmarksPage: React.FC = () => {
   // 파비콘 새로고침 핸들러 추가
   const handleRefreshFavicon = async (bookmarkId: string, url: string) => {
     try {
-      const newFavicon = await updateBookmarkFavicon(bookmarkId, url);
+      const newFavicon = await updateBookmarkFavicon(
+        bookmarkId,
+        url,
+        user?.uid || ""
+      );
       toast.success(t("bookmarks.faviconRefreshed"));
       return newFavicon;
     } catch (error) {
@@ -378,7 +424,7 @@ export const BookmarksPage: React.FC = () => {
   const handleDeleteCollection = async (collectionId: string) => {
     setDeletingCollectionId(collectionId);
     try {
-      await deleteCollection(collectionId);
+      await deleteCollection(collectionId, user?.uid || "");
       toast.success(t("collections.collectionDeleted"));
       setDeletingCollectionId(null);
       setShowDeleteModal(false);
@@ -430,7 +476,7 @@ export const BookmarksPage: React.FC = () => {
 
     try {
       // Firestore에 순서 업데이트
-      await reorderBookmarks(newBookmarks);
+      await reorderBookmarks(newBookmarks, user?.uid || "");
 
       console.log("Bookmarks reordered successfully"); // 디버깅 로그
       console.log("Updated bookmarks length:", newBookmarks.length); // 업데이트 후 상태 로그

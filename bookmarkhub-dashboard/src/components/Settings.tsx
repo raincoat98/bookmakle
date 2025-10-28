@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useAuth } from "../hooks/useAuth";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useCollections } from "../hooks/useCollections";
+import {
+  useAuthStore,
+  useBookmarkStore,
+  useCollectionStore,
+  useThemeStore,
+} from "../stores";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../contexts/ThemeContext";
 import { useTranslation } from "react-i18next";
 import {
   getNotificationPermission,
@@ -69,10 +71,10 @@ export const Settings: React.FC<SettingsProps> = ({
   onRestoreBackup,
   isRestoring = false,
 }) => {
-  const { user, logout } = useAuth();
-  const { bookmarks } = useBookmarks(user?.uid || "", "all");
-  const { collections } = useCollections(user?.uid || "");
-  const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuthStore();
+  const { rawBookmarks } = useBookmarkStore();
+  const { collections } = useCollectionStore();
+  const { theme, setTheme } = useThemeStore();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,9 +126,9 @@ export const Settings: React.FC<SettingsProps> = ({
     if (
       backupSettings.enabled &&
       user?.uid &&
-      bookmarks &&
+      rawBookmarks &&
       collections &&
-      bookmarks.length > 0 &&
+      rawBookmarks.length > 0 &&
       collections.length > 0
     ) {
       // 주기(ms) 계산
@@ -139,14 +141,14 @@ export const Settings: React.FC<SettingsProps> = ({
 
       // 즉시 1회 실행
       if (shouldBackup()) {
-        const created = performBackup(bookmarks, collections, user.uid);
+        const created = performBackup(rawBookmarks, collections, user.uid);
         if (created) syncBackups();
       }
 
       // 주기적으로 실행
       backupIntervalRef.current = setInterval(() => {
         if (shouldBackup()) {
-          const created = performBackup(bookmarks, collections, user.uid);
+          const created = performBackup(rawBookmarks, collections, user.uid);
           if (created) syncBackups();
         }
       }, intervalMs);
@@ -162,7 +164,7 @@ export const Settings: React.FC<SettingsProps> = ({
     backupSettings.enabled,
     backupSettings.frequency,
     user?.uid,
-    bookmarks,
+    rawBookmarks,
     collections,
   ]);
 
@@ -252,7 +254,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
     // 백업이 활성화되면 무조건 1회 백업 실행 및 동기화
     if (!backupSettings.enabled && user?.uid) {
-      const created = performBackup(bookmarks, collections, user.uid);
+      const created = performBackup(rawBookmarks, collections, user.uid);
       if (created) syncBackups();
     }
   };
@@ -279,11 +281,11 @@ export const Settings: React.FC<SettingsProps> = ({
   const handleManualBackup = () => {
     if (
       user?.uid &&
-      bookmarks &&
+      rawBookmarks &&
       collections &&
-      (bookmarks.length > 0 || collections.length > 0)
+      (rawBookmarks.length > 0 || collections.length > 0)
     ) {
-      const created = performBackup(bookmarks, collections, user.uid);
+      const created = performBackup(rawBookmarks, collections, user.uid);
       if (created) {
         syncBackups();
         toast.success("새 백업이 생성되었습니다.");
@@ -382,7 +384,7 @@ export const Settings: React.FC<SettingsProps> = ({
       const exportData = {
         version: "1.0",
         exportedAt: new Date().toISOString(),
-        bookmarks: bookmarks,
+        bookmarks: rawBookmarks,
         collections: collections,
       };
 
@@ -836,10 +838,12 @@ export const Settings: React.FC<SettingsProps> = ({
   );
 
   const renderStatsSettings = () => {
-    const totalBookmarks = bookmarks.length;
+    const totalBookmarks = rawBookmarks.length;
     const totalCollections = collections.length;
-    const unassignedBookmarks = bookmarks.filter((b) => !b.collection).length;
-    const favoriteBookmarks = bookmarks.filter((b) => b.isFavorite).length;
+    const unassignedBookmarks = rawBookmarks.filter(
+      (b) => !b.collection
+    ).length;
+    const favoriteBookmarks = rawBookmarks.filter((b) => b.isFavorite).length;
 
     const StatsCard = ({
       title,
@@ -929,7 +933,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 </h4>
                 <div className="space-y-2">
                   {collections.map((collection) => {
-                    const count = bookmarks.filter(
+                    const count = rawBookmarks.filter(
                       (b) => b.collection === collection.id
                     ).length;
                     const percentage =

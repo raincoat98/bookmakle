@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DashboardOverview } from "../components/DashboardWidgets";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore, useBookmarkStore, useCollectionStore } from "../stores";
 import { DisabledUserMessage } from "../components/DisabledUserMessage";
-import { useBookmarks } from "../hooks/useBookmarks";
-import { useCollections } from "../hooks/useCollections";
 import { useNotifications } from "../hooks/useNotifications";
 import type { Bookmark, BookmarkFormData, SortOption } from "../types";
 import toast from "react-hot-toast";
@@ -15,17 +13,44 @@ import { Drawer } from "../components/Drawer";
 import { useTranslation } from "react-i18next";
 
 export const DashboardPage: React.FC = () => {
-  const { user, isActive, isActiveLoading } = useAuth();
+  const { user, isActive, isActiveLoading } = useAuthStore();
   const { t } = useTranslation();
   const {
-    bookmarks,
+    getFilteredBookmarks,
     addBookmark,
     updateBookmark,
     deleteBookmark,
     toggleFavorite,
-  } = useBookmarks(user?.uid || "", "all");
-  const { collections, addCollection } = useCollections(user?.uid || "");
+    subscribeToBookmarks,
+    setSelectedCollection: setBookmarkSelectedCollection,
+    setCollections: setBookmarkCollections,
+  } = useBookmarkStore();
+  const { collections, addCollection, fetchCollections } = useCollectionStore();
   const { createNotification } = useNotifications(user?.uid || "");
+
+  // 북마크 데이터 가져오기
+  const bookmarks = getFilteredBookmarks();
+
+  // 북마크 스토어 상태 동기화 (대시보드는 "all" 컬렉션 사용)
+  useEffect(() => {
+    setBookmarkSelectedCollection("all");
+    setBookmarkCollections(collections);
+  }, [collections, setBookmarkSelectedCollection, setBookmarkCollections]);
+
+  // 컬렉션 데이터 가져오기
+  useEffect(() => {
+    if (user?.uid) {
+      fetchCollections(user.uid);
+    }
+  }, [user?.uid, fetchCollections]);
+
+  // 북마크 구독 설정
+  useEffect(() => {
+    if (user?.uid) {
+      const unsubscribe = subscribeToBookmarks(user.uid);
+      return unsubscribe;
+    }
+  }, [user?.uid, subscribeToBookmarks]);
 
   // 정렬 상태 관리
   const [currentSort, setCurrentSort] = useState<SortOption>({
@@ -50,10 +75,13 @@ export const DashboardPage: React.FC = () => {
     try {
       console.log("DashboardPage - 북마크 추가 시도:", data);
 
-      const bookmarkId = await addBookmark({
-        ...data,
-        isFavorite: data.isFavorite || false,
-      });
+      const bookmarkId = await addBookmark(
+        {
+          ...data,
+          isFavorite: data.isFavorite || false,
+        },
+        user?.uid || ""
+      );
       setIsAddModalOpen(false);
       toast.success(t("bookmarks.bookmarkAdded"));
 
@@ -86,10 +114,14 @@ export const DashboardPage: React.FC = () => {
   // 북마크 수정
   const handleUpdateBookmark = async (id: string, data: BookmarkFormData) => {
     try {
-      await updateBookmark(id, {
-        ...data,
-        isFavorite: data.isFavorite || false,
-      });
+      await updateBookmark(
+        id,
+        {
+          ...data,
+          isFavorite: data.isFavorite || false,
+        },
+        user?.uid || ""
+      );
       setEditingBookmark(null);
       toast.success(t("bookmarks.bookmarkUpdated"));
 
@@ -141,7 +173,7 @@ export const DashboardPage: React.FC = () => {
   // 즐겨찾기 토글
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
     try {
-      await toggleFavorite(id, isFavorite);
+      await toggleFavorite(id, isFavorite, user?.uid || "");
       toast.success(
         isFavorite
           ? t("bookmarks.addToFavorites")
@@ -170,12 +202,15 @@ export const DashboardPage: React.FC = () => {
     parentId?: string | null
   ) => {
     try {
-      await addCollection({
-        name,
-        description,
-        icon,
-        parentId: parentId ?? null,
-      });
+      await addCollection(
+        {
+          name,
+          description,
+          icon,
+          parentId: parentId ?? null,
+        },
+        user?.uid || ""
+      );
       setIsAddCollectionModalOpen(false);
       toast.success(t("collections.collectionAdded"));
     } catch {
