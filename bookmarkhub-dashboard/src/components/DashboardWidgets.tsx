@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -619,10 +625,32 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     useNotifications(user?.uid || "");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     const saved = localStorage.getItem("bookmarkNotifications");
     return saved ? JSON.parse(saved) : true;
   });
+
+  // 외부 클릭 감지로 알림 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationDropdownRef.current &&
+        !notificationDropdownRef.current.contains(event.target as Node) &&
+        isNotificationOpen
+      ) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    if (isNotificationOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotificationOpen]);
 
   // 모바일 감지
   useEffect(() => {
@@ -770,7 +798,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
 
               {/* 알림 드롭다운 - 데스크톱에서만 표시 */}
               {isNotificationOpen && !isMobile && (
-                <div className="absolute right-0 top-12 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[600px] flex flex-col">
+                <div
+                  ref={notificationDropdownRef}
+                  className="absolute right-0 top-12 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[600px] flex flex-col"
+                >
                   {/* 헤더 */}
                   <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
