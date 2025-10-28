@@ -1,0 +1,276 @@
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { useNotifications } from "../hooks/useNotifications";
+import { Drawer } from "../components/Drawer";
+import {
+  Bell,
+  Check,
+  Trash2,
+  BookOpen,
+  Edit,
+  ArrowLeft,
+  Settings,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+export const NotificationCenterPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    deleteReadNotifications,
+  } = useNotifications(user?.uid || "");
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem("bookmarkNotifications");
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // 설정 페이지에서 북마크 알림 상태 변경 감지
+  useEffect(() => {
+    const handleBookmarkNotificationsChange = (event: CustomEvent) => {
+      setNotificationsEnabled(event.detail.enabled);
+    };
+
+    window.addEventListener(
+      "bookmarkNotificationsChanged",
+      handleBookmarkNotificationsChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "bookmarkNotificationsChanged",
+        handleBookmarkNotificationsChange as EventListener
+      );
+    };
+  }, []);
+
+  const handleNotificationToggle = () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    localStorage.setItem("bookmarkNotifications", JSON.stringify(newValue));
+    window.dispatchEvent(
+      new CustomEvent("bookmarkNotificationsChanged", {
+        detail: { enabled: newValue },
+      })
+    );
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "bookmark_added":
+        return <BookOpen className="w-5 h-5" />;
+      case "bookmark_updated":
+        return <Edit className="w-5 h-5" />;
+      case "bookmark_deleted":
+        return <Trash2 className="w-5 h-5" />;
+      default:
+        return <Bell className="w-5 h-5" />;
+    }
+  };
+
+  const formatDate = (date: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return "방금 전";
+    if (minutes < 60) return `${minutes}분 전`;
+    if (hours < 24) return `${hours}시간 전`;
+    if (days < 7) return `${days}일 전`;
+    return date.toLocaleDateString("ko-KR");
+  };
+
+  return (
+    <Drawer>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        {/* 헤더 */}
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div className="flex items-center space-x-2">
+                  <Bell className="w-6 h-6 text-brand-600" />
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    알림센터
+                  </h1>
+                  {unreadCount > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/settings")}
+                className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <Settings className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* 알림 설정 카드 */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              알림 설정
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    북마크 알림
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    북마크 추가, 수정, 삭제 시 알림을 받습니다
+                  </p>
+                </div>
+                <button
+                  onClick={handleNotificationToggle}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    notificationsEnabled
+                      ? "bg-brand-600"
+                      : "bg-gray-200 dark:bg-gray-700"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      notificationsEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+              {unreadCount > 0 && (
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    읽지 않은 알림 {unreadCount}개
+                  </p>
+                  <button
+                    onClick={markAllAsRead}
+                    className="text-sm text-brand-600 hover:text-brand-700 dark:hover:text-brand-400"
+                  >
+                    모두 읽음 처리
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 알림 목록 */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                알림 목록
+              </h3>
+            </div>
+
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {notifications.length === 0 ? (
+                <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+                  <Bell className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">알림이 없습니다</p>
+                  <p className="text-sm">
+                    새로운 북마크 활동이 있으면 여기에 표시됩니다
+                  </p>
+                </div>
+              ) : (
+                notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    className={`p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                      !notification.isRead
+                        ? "bg-blue-50/50 dark:bg-blue-900/10"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start space-x-4">
+                      {/* 아이콘 */}
+                      <div
+                        className={`p-3 rounded-lg ${
+                          notification.type === "bookmark_added"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                            : notification.type === "bookmark_updated"
+                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                            : notification.type === "bookmark_deleted"
+                            ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                        }`}
+                      >
+                        {getNotificationIcon(notification.type)}
+                      </div>
+
+                      {/* 내용 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <p className="text-base font-medium text-gray-900 dark:text-white mb-1">
+                              {notification.title}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                              {formatDate(notification.createdAt)}
+                            </p>
+                          </div>
+
+                          {/* 액션 버튼들 */}
+                          <div className="flex items-center space-x-2 ml-4">
+                            {!notification.isRead && (
+                              <button
+                                onClick={() => markAsRead(notification.id)}
+                                className="p-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title="읽음 처리"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() =>
+                                deleteNotification(notification.id)
+                              }
+                              className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                              title="삭제"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* 푸터 */}
+            {notifications.filter((n) => n.isRead).length > 0 && (
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={deleteReadNotifications}
+                  className="w-full text-sm text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-center py-2"
+                >
+                  읽은 알림 모두 삭제
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </Drawer>
+  );
+};

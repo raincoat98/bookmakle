@@ -9,6 +9,7 @@ import { BookmarksPage } from "./pages/BookmarksPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { AdminPage } from "./pages/AdminPage";
 import { ExtensionLoginSuccessPage } from "./pages/ExtensionLoginSuccessPage";
+import { NotificationCenterPage } from "./pages/NotificationCenterPage";
 import { LoginScreen } from "./components/LoginScreen";
 import { AdminProtected } from "./components/AdminProtected";
 import ExtensionBridge from "./components/ExtensionBridge";
@@ -141,6 +142,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/bookmarks" element={<BookmarksPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/notifications" element={<NotificationCenterPage />} />
             <Route
               path="/admin"
               element={
