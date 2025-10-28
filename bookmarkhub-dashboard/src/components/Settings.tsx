@@ -5,6 +5,11 @@ import { useCollections } from "../hooks/useCollections";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import {
+  getNotificationPermission,
+  requestNotificationPermission,
+  showTestNotification,
+} from "../utils/browserNotifications";
+import {
   Settings as SettingsIcon,
   User,
   Palette,
@@ -71,6 +76,12 @@ export const Settings: React.FC<SettingsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("general");
   const [notifications, setNotifications] = useState(true);
+  const [bookmarkNotifications, setBookmarkNotifications] = useState(() => {
+    const saved = localStorage.getItem("bookmarkNotifications");
+    return saved ? JSON.parse(saved) : true;
+  });
+  const [browserNotificationPermission, setBrowserNotificationPermission] =
+    useState(() => getNotificationPermission());
   const [backupSettings, setBackupSettings] = useState<BackupSettings>(() =>
     loadBackupSettings()
   );
@@ -175,10 +186,49 @@ export const Settings: React.FC<SettingsProps> = ({
     toast.success(`테마가 ${themeText} 모드로 변경되었습니다.`);
   };
 
-  const handleNotificationToggle = () => {
-    setNotifications(!notifications);
+  const handleNotificationToggle = async () => {
+    if (!notifications) {
+      // 알림을 켜려고 할 때 권한 요청
+      const hasPermission = await requestNotificationPermission();
+      if (hasPermission) {
+        setNotifications(true);
+        setBrowserNotificationPermission(getNotificationPermission());
+        toast.success("브라우저 알림이 활성화되었습니다.");
+      } else {
+        toast.error(
+          "브라우저 알림 권한이 필요합니다. 브라우저 설정에서 권한을 허용해주세요."
+        );
+      }
+    } else {
+      setNotifications(false);
+      toast.success("브라우저 알림이 비활성화되었습니다.");
+    }
+  };
+
+  const handleTestNotification = async () => {
+    const hasPermission = await requestNotificationPermission();
+    if (hasPermission) {
+      showTestNotification();
+      toast.success("테스트 알림을 보냈습니다.");
+    } else {
+      toast.error("브라우저 알림 권한이 필요합니다.");
+    }
+  };
+
+  const handleBookmarkNotificationToggle = () => {
+    const newValue = !bookmarkNotifications;
+    setBookmarkNotifications(newValue);
+    localStorage.setItem("bookmarkNotifications", JSON.stringify(newValue));
+
+    // 다른 컴포넌트에서 상태 변경을 감지할 수 있도록 이벤트 발생
+    window.dispatchEvent(
+      new CustomEvent("bookmarkNotificationsChanged", {
+        detail: { enabled: newValue },
+      })
+    );
+
     toast.success(
-      `알림이 ${!notifications ? "활성화" : "비활성화"}되었습니다.`
+      `북마크 알림이 ${newValue ? "활성화" : "비활성화"}되었습니다.`
     );
   };
 
@@ -654,18 +704,74 @@ export const Settings: React.FC<SettingsProps> = ({
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 북마크 관련 알림을 받습니다
               </p>
+              {browserNotificationPermission.denied && (
+                <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                  브라우저에서 알림 권한이 거부되었습니다
+                </p>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleTestNotification}
+                className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                테스트
+              </button>
+              <button
+                onClick={handleNotificationToggle}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  notifications
+                    ? "bg-brand-600"
+                    : "bg-gray-200 dark:bg-gray-700"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    notifications ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">
+                북마크 알림
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                북마크 추가, 수정, 삭제 시 알림을 받습니다
+              </p>
             </div>
             <button
-              onClick={handleNotificationToggle}
+              onClick={handleBookmarkNotificationToggle}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                notifications ? "bg-brand-600" : "bg-gray-200 dark:bg-gray-700"
+                bookmarkNotifications
+                  ? "bg-brand-600"
+                  : "bg-gray-200 dark:bg-gray-700"
               }`}
             >
               <span
                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  notifications ? "translate-x-6" : "translate-x-1"
+                  bookmarkNotifications ? "translate-x-6" : "translate-x-1"
                 }`}
               />
+            </button>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div>
+              <p className="font-medium text-gray-900 dark:text-white">
+                알림센터
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                모든 알림을 한 곳에서 확인하고 관리합니다
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/notifications")}
+              className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors flex items-center space-x-2"
+            >
+              <Bell className="w-4 h-4" />
+              <span>알림센터 보기</span>
             </button>
           </div>
         </div>
