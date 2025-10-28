@@ -789,10 +789,62 @@ async function fetchBookmarks(userId, collectionId = null) {
   }
 }
 
+// Firebase에 알림 생성
+async function createNotification(userId, type, message, bookmarkId = null) {
+  console.log("🔔 createNotification called with:", {
+    userId,
+    type,
+    message,
+    bookmarkId,
+  });
+
+  if (!userId) {
+    throw new Error("User ID is required for notification");
+  }
+
+  try {
+    console.log("🔔 Creating notification in Firestore...");
+    console.log("🔔 Firebase auth state:", {
+      currentUser: auth.currentUser?.uid,
+      isAuthenticated: !!auth.currentUser,
+      email: auth.currentUser?.email,
+    });
+
+    const notificationsRef = collection(db, "notifications");
+
+    const notificationData = {
+      userId: userId,
+      type: type,
+      title: "북마크 알림",
+      message: message,
+      isRead: false,
+      createdAt: serverTimestamp(),
+      bookmarkId: bookmarkId,
+      metadata: {
+        source: "extension",
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    console.log("🔔 Notification data prepared:", notificationData);
+    console.log("🔔 Attempting to add document to notifications collection...");
+
+    const docRef = await addDoc(notificationsRef, notificationData);
+    console.log("🔔 Notification created with ID:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("🔔 Error creating notification:", error);
+    console.error("🔔 Error details:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+    });
+    throw error;
+  }
+}
+
 // Firestore에 북마크 저장
 async function saveBookmark(bookmarkData) {
-  console.log("saveBookmark 함수 호출됨, 입력 데이터:", bookmarkData);
-
   if (!bookmarkData.userId) {
     throw new Error("User ID is required");
   }
@@ -832,7 +884,17 @@ async function saveBookmark(bookmarkData) {
 
     // Firestore에 저장
     const docRef = await addDoc(bookmarksRef, newBookmark);
-    console.log("Bookmark saved with ID:", docRef.id);
+    try {
+      const notificationId = await createNotification(
+        bookmarkData.userId,
+        "bookmark_added",
+        `"${bookmarkData.title}" 북마크가 추가되었습니다`,
+        docRef.id
+      );
+    } catch (notificationError) {
+      // 알림 생성 실패해도 북마크 저장은 성공으로 처리
+      console.error("Failed to create notification:", notificationError);
+    }
 
     return docRef.id;
   } catch (error) {
