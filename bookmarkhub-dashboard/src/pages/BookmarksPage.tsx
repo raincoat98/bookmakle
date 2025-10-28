@@ -269,7 +269,7 @@ export const BookmarksPage: React.FC = () => {
         await createNotification(
           "bookmark_added",
           undefined,
-          undefined,
+          `"${bookmarkData.title}" 북마크가 추가되었습니다`,
           bookmarkId
         );
       } catch (notifError) {
@@ -304,7 +304,12 @@ export const BookmarksPage: React.FC = () => {
 
       // 알림 생성 (에러가 나도 알림은 생성되도록)
       try {
-        await createNotification("bookmark_updated", undefined, undefined, id);
+        await createNotification(
+          "bookmark_updated",
+          undefined,
+          `"${bookmarkData.title}" 북마크가 수정되었습니다`,
+          id
+        );
       } catch (notifError) {
         console.error("알림 생성 실패:", notifError);
       }
@@ -328,7 +333,7 @@ export const BookmarksPage: React.FC = () => {
           await createNotification(
             "bookmark_deleted",
             undefined,
-            undefined,
+            `"${bookmark.title}" 북마크가 삭제되었습니다`,
             id
           );
         } catch (notifError) {
