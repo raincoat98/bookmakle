@@ -119,6 +119,17 @@
     "listView": "リストビュー",
     "bookmarkAddError": "ブックマークの追加に失敗しました",
     "bookmarkUpdateError": "ブックマークの更新中にエラーが発生しました。",
+    "faviconApplied": "ファビコンが適用されました",
+    "invalidUrlFormat": "正しいURL形式を入力してください",
+    "faviconFetchError": "ファビコンを取得できません",
+    "bookmarkTitlePlaceholder": "ブックマークタイトル",
+    "bookmarkDescriptionPlaceholder": "ブックマークの説明を入力してください",
+    "autoFetchFavicon": "自動取得",
+    "customFaviconInput": "直接入力",
+    "customFaviconPlaceholder": "https://example.com/favicon.ico",
+    "faviconLoading": "ファビコン取得中...",
+    "faviconPreview": "ファビコンプレビュー",
+    "tagInputPlaceholder": "タグを入力してEnterキーを押してください",
     "totalBookmarks": "合計{{count}}個のブックマーク",
     "hideSubCollections": "サブコレクションを非表示",
     "showSubCollections": "サブコレクションを表示",
@@ -143,10 +154,6 @@
     "faviconFetchError": "ファビコンを取得できません",
     "bookmarkTitlePlaceholder": "ブックマークタイトル",
     "bookmarkDescriptionPlaceholder": "ブックマークの説明を入力してください",
-    "autoFetchFavicon": "自動取得",
-    "customFaviconInput": "カスタム入力",
-    "customFaviconPlaceholder": "https://example.com/favicon.ico",
-    "faviconLoading": "ファビコン読み込み中...",
     "faviconPreview": "ファビコンプレビュー",
     "tagInputPlaceholder": "タグを入力してEnterキーを押してください",
     "bookmarkOrderChanged": "ブックマークの順序が変更されました！",
@@ -296,19 +303,6 @@
     "restore": "復元",
     "mobileIconView": {
       "editModeDescription": "編集モード - 1秒以上長押し、ドラッグで順序変更"
-    },
-    "bookmarks": {
-      "faviconApplied": "ファビコンが適用されました",
-      "invalidUrlFormat": "正しいURL形式を入力してください",
-      "faviconFetchError": "ファビコンを取得できません",
-      "bookmarkTitlePlaceholder": "ブックマークタイトル",
-      "bookmarkDescriptionPlaceholder": "ブックマークの説明を入力してください",
-      "autoFetchFavicon": "自動取得",
-      "customFaviconInput": "直接入力",
-      "customFaviconPlaceholder": "https://example.com/favicon.ico",
-      "faviconLoading": "ファビコン取得中...",
-      "faviconPreview": "ファビコンプレビュー",
-      "tagInputPlaceholder": "タグを入力してEnterキーを押してください"
     }
   },
   "admin": {

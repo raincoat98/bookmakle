@@ -119,6 +119,17 @@
     "listView": "List View",
     "bookmarkAddError": "Failed to add bookmark",
     "bookmarkUpdateError": "An error occurred while updating the bookmark.",
+    "faviconApplied": "Favicon applied successfully",
+    "invalidUrlFormat": "Please enter a valid URL format",
+    "faviconFetchError": "Unable to fetch favicon",
+    "bookmarkTitlePlaceholder": "Bookmark title",
+    "bookmarkDescriptionPlaceholder": "Enter a description for the bookmark",
+    "autoFetchFavicon": "Auto Fetch",
+    "customFaviconInput": "Custom Input",
+    "customFaviconPlaceholder": "https://example.com/favicon.ico",
+    "faviconLoading": "Loading favicon...",
+    "faviconPreview": "Favicon preview",
+    "tagInputPlaceholder": "Enter tag and press Enter",
     "totalBookmarks": "Total {{count}} bookmarks",
     "hideSubCollections": "Hide Sub Collections",
     "showSubCollections": "Show Sub Collections",
@@ -143,10 +154,6 @@
     "faviconFetchError": "Unable to fetch favicon",
     "bookmarkTitlePlaceholder": "Bookmark title",
     "bookmarkDescriptionPlaceholder": "Enter a description for the bookmark",
-    "autoFetchFavicon": "Auto Fetch",
-    "customFaviconInput": "Custom Input",
-    "customFaviconPlaceholder": "https://example.com/favicon.ico",
-    "faviconLoading": "Loading favicon...",
     "faviconPreview": "Favicon preview",
     "tagInputPlaceholder": "Enter tag and press Enter",
     "bookmarkOrderChanged": "Bookmark order changed!",
@@ -296,19 +303,6 @@
     "restore": "Restore",
     "mobileIconView": {
       "editModeDescription": "Edit Mode - Hold for 1+ seconds, drag to reorder"
-    },
-    "bookmarks": {
-      "faviconApplied": "Favicon applied successfully",
-      "invalidUrlFormat": "Please enter a valid URL format",
-      "faviconFetchError": "Unable to fetch favicon",
-      "bookmarkTitlePlaceholder": "Bookmark title",
-      "bookmarkDescriptionPlaceholder": "Enter a description for the bookmark",
-      "autoFetchFavicon": "Auto Fetch",
-      "customFaviconInput": "Custom Input",
-      "customFaviconPlaceholder": "https://example.com/favicon.ico",
-      "faviconLoading": "Loading favicon...",
-      "faviconPreview": "Favicon preview",
-      "tagInputPlaceholder": "Enter tag and press Enter"
     }
   },
   "admin": {
