@@ -24,6 +24,7 @@ export const NotificationCenter = () => {
     markAllAsRead,
     deleteNotification,
     deleteReadNotifications,
+    deleteAllNotifications,
   } = useNotifications(user?.uid || "");
 
   const [isOpen, setIsOpen] = useState(false);
@@ -102,6 +103,14 @@ export const NotificationCenter = () => {
                 {t("notifications.title")}
               </h3>
               <div className="flex items-center space-x-2">
+                {notifications.length > 0 && (
+                  <button
+                    onClick={deleteAllNotifications}
+                    className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400"
+                  >
+                    모두 삭제
+                  </button>
+                )}
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}

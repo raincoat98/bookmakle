@@ -621,8 +621,14 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   // 알림 관련 상태
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { notifications, unreadCount, markAsRead, deleteNotification } =
-    useNotifications(user?.uid || "");
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    deleteAllNotifications,
+  } = useNotifications(user?.uid || "");
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const notificationDropdownRef = useRef<HTMLDivElement>(null);
@@ -807,12 +813,30 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {t("notifications.title")}
                     </h3>
-                    <button
-                      onClick={() => setIsNotificationOpen(false)}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={deleteAllNotifications}
+                          className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400"
+                        >
+                          모두 삭제
+                        </button>
+                      )}
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                        >
+                          {t("notifications.markAllAsRead")}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* 알림 목록 */}

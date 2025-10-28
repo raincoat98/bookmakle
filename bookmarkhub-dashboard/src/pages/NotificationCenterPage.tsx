@@ -25,6 +25,7 @@ export const NotificationCenterPage: React.FC = () => {
     markAllAsRead,
     deleteNotification,
     deleteReadNotifications,
+    deleteAllNotifications,
   } = useNotifications(user?.uid || "");
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
@@ -175,9 +176,29 @@ export const NotificationCenterPage: React.FC = () => {
           {/* 알림 목록 */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t("notifications.title")}
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  {t("notifications.title")}
+                </h3>
+                <div className="flex items-center space-x-3">
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={deleteAllNotifications}
+                      className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                    >
+                      모두 삭제
+                    </button>
+                  )}
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-3 py-1 rounded-md hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                    >
+                      {t("notifications.markAllAsRead")}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="divide-y divide-gray-200 dark:divide-gray-700">

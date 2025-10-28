@@ -182,6 +182,17 @@ export const useNotifications = (userId: string) => {
     await Promise.all(batch);
   };
 
+  // 모든 알림 삭제
+  const deleteAllNotifications = async () => {
+    if (!userId) return;
+
+    const batch = notifications.map((n) =>
+      deleteDoc(doc(db, "notifications", n.id))
+    );
+
+    await Promise.all(batch);
+  };
+
   return {
     notifications,
     loading,
@@ -191,5 +202,6 @@ export const useNotifications = (userId: string) => {
     markAllAsRead,
     deleteNotification,
     deleteReadNotifications,
+    deleteAllNotifications,
   };
 };
