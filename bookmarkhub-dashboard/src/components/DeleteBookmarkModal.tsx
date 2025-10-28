@@ -1,3 +1,4 @@
+import { useEffect, useCallback } from "react";
 import type { Bookmark } from "../types";
 
 interface DeleteBookmarkModalProps {
@@ -15,11 +16,32 @@ export const DeleteBookmarkModal = ({
   bookmark,
   isDeleting,
 }: DeleteBookmarkModalProps) => {
-  if (!isOpen || !bookmark) return null;
+  const handleDelete = useCallback(() => {
+    if (bookmark) {
+      onDelete(bookmark.id);
+    }
+  }, [bookmark, onDelete]);
 
-  const handleDelete = () => {
-    onDelete(bookmark.id);
-  };
+  // 엔터키로 삭제, ESC키로 취소 기능
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !isDeleting && bookmark) {
+        handleDelete();
+      } else if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, isDeleting, handleDelete, onClose, bookmark]);
+
+  if (!isOpen || !bookmark) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-40 transition-opacity duration-200 animate-fade-in">
@@ -50,15 +72,23 @@ export const DeleteBookmarkModal = ({
             onClick={onClose}
             className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-150 hover:scale-105 active:scale-95"
             disabled={isDeleting}
+            title="ESC키로 취소 가능"
           >
-            취소
+            취소 <span className="text-xs opacity-70">(ESC)</span>
           </button>
           <button
             onClick={handleDelete}
             className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition-colors duration-150 hover:scale-105 active:scale-95"
             disabled={isDeleting}
+            title="엔터키로 삭제 가능"
           >
-            {isDeleting ? "삭제 중..." : "삭제"}
+            {isDeleting ? (
+              "삭제 중..."
+            ) : (
+              <>
+                삭제 <span className="text-xs opacity-70">(Enter)</span>
+              </>
+            )}
           </button>
         </div>
       </div>
