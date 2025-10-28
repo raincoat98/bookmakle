@@ -813,11 +813,11 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {t("notifications.title")}
                     </h3>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2">
                       {notifications.length > 0 && (
                         <button
                           onClick={deleteAllNotifications}
-                          className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400"
+                          className="text-xs sm:text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-1 sm:px-0"
                         >
                           모두 삭제
                         </button>
@@ -825,7 +825,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                       {unreadCount > 0 && (
                         <button
                           onClick={markAllAsRead}
-                          className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                          className="text-xs sm:text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-1 sm:px-0"
                         >
                           {t("notifications.markAllAsRead")}
                         </button>

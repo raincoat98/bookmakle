@@ -813,8 +813,8 @@ export const Settings: React.FC<SettingsProps> = ({
               />
             </button>
           </div>
-          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3 sm:space-y-0">
+            <div className="flex-1">
               <p className="font-medium text-gray-900 dark:text-white">
                 {t("notifications.center")}
               </p>
@@ -824,7 +824,7 @@ export const Settings: React.FC<SettingsProps> = ({
             </div>
             <button
               onClick={() => navigate("/notifications")}
-              className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors flex items-center space-x-2"
+              className="px-3 sm:px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base whitespace-nowrap"
             >
               <Bell className="w-4 h-4" />
               <span>{t("notifications.viewCenter")}</span>

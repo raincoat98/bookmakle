@@ -96,17 +96,17 @@ export const NotificationCenter = () => {
             className="fixed inset-0 bg-black/20 z-[9998]"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed right-4 top-16 lg:absolute lg:right-0 lg:top-10 lg:mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-[9999] max-h-[600px] flex flex-col">
+          <div className="fixed right-2 left-2 top-16 sm:right-4 sm:left-auto sm:w-80 lg:absolute lg:right-0 lg:top-10 lg:mt-2 lg:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-[9999] max-h-[600px] flex flex-col">
             {/* 헤더 */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {t("notifications.title")}
               </h3>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 {notifications.length > 0 && (
                   <button
                     onClick={deleteAllNotifications}
-                    className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400"
+                    className="text-xs sm:text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-1 sm:px-0"
                   >
                     모두 삭제
                   </button>
@@ -114,7 +114,7 @@ export const NotificationCenter = () => {
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllAsRead}
-                    className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+                    className="text-xs sm:text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-1 sm:px-0"
                   >
                     {t("notifications.markAllAsRead")}
                   </button>

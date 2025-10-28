@@ -158,16 +158,10 @@ export const NotificationCenterPage: React.FC = () => {
                 </button>
               </div>
               {unreadCount > 0 && (
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {t("notifications.unreadCount", { count: unreadCount })}
                   </p>
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-sm text-brand-600 hover:text-brand-700 dark:hover:text-brand-400"
-                  >
-                    {t("notifications.markAllAsRead")}
-                  </button>
                 </div>
               )}
             </div>
@@ -180,11 +174,11 @@ export const NotificationCenterPage: React.FC = () => {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {t("notifications.title")}
                 </h3>
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                   {notifications.length > 0 && (
                     <button
                       onClick={deleteAllNotifications}
-                      className="text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="text-xs sm:text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-2 sm:px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       모두 삭제
                     </button>
@@ -192,7 +186,7 @@ export const NotificationCenterPage: React.FC = () => {
                   {unreadCount > 0 && (
                     <button
                       onClick={markAllAsRead}
-                      className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-3 py-1 rounded-md hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                      className="text-xs sm:text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-2 sm:px-3 py-1 rounded-md hover:bg-brand-50 dark:hover:bg-brand-900/20"
                     >
                       {t("notifications.markAllAsRead")}
                     </button>
