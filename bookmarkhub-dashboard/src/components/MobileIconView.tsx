@@ -463,7 +463,7 @@ export const MobileIconView: React.FC<MobileIconViewProps> = ({
       {isEditMode && (
         <div className="mb-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-center rounded-lg relative">
           <p className="text-xs font-medium">
-            {t("mobileIconView.editModeDescription")}
+            {t("settings.mobileIconView.editModeDescription")}
           </p>
           <button
             onClick={handleExitEditMode}
