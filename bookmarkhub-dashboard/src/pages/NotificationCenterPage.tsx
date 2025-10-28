@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { useNotifications } from "../hooks/useNotifications";
 import { Drawer } from "../components/Drawer";
 import {
@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 
 export const NotificationCenterPage: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const {
     notifications,

@@ -50,7 +50,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useWidgetOrder } from "../hooks/useWidgetOrder";
 import type { WidgetId, WidgetConfig } from "../hooks/useWidgetOrder";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 
@@ -619,7 +619,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   } = useWidgetOrder(userId);
 
   // 알림 관련 상태
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const {
     notifications,

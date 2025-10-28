@@ -11,12 +11,12 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNotifications } from "../hooks/useNotifications";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import type { Notification } from "../types";
 
 export const NotificationCenter = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const {
     notifications,
     unreadCount,

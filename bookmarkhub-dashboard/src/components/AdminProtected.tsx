@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { isAdminUser } from "../firebase";
 import { useState, useEffect } from "react";
 
@@ -8,7 +8,7 @@ interface AdminProtectedProps {
 }
 
 export function AdminProtected({ children }: AdminProtectedProps) {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthStore();
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminLoading, setAdminLoading] = useState(true);
 

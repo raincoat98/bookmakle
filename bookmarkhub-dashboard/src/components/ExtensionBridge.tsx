@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { useNavigate, useLocation } from "react-router-dom";
 
 interface ExtensionBridgeProps {
@@ -7,7 +7,7 @@ interface ExtensionBridgeProps {
 }
 
 export default function ExtensionBridge({}: ExtensionBridgeProps) {
-  const { user, logout } = useAuth();
+  const { user, logout } = useAuthStore();
   const [isFromExtension, setIsFromExtension] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();

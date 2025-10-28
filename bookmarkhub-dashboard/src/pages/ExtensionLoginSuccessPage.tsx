@@ -1,9 +1,9 @@
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 
 export const ExtensionLoginSuccessPage = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 

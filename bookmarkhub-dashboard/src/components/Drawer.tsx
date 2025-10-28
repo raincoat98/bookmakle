@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useDrawer } from "../contexts/DrawerContext";
+import { useDrawerStore } from "../stores";
 import {
   Home,
   BookOpen,
@@ -46,7 +46,7 @@ export const Drawer: React.FC<DrawerProps> = ({
     setIsDrawerOpen,
     isDrawerCollapsed,
     setIsDrawerCollapsed,
-  } = useDrawer();
+  } = useDrawerStore();
   const location = useLocation();
 
   const navigation = [

@@ -1,14 +1,14 @@
 // src/components/AuthButtons.tsx
 import { useState } from "react";
 import { loginWithGoogle, logout } from "../firebase";
-import { useAuth } from "../hooks/useAuth";
+import { useAuthStore } from "../stores";
 import EmailLogin from "./EmailLogin";
 import EmailSignup from "./EmailSignup";
 
 type AuthMode = "buttons" | "email-login" | "email-signup";
 
 export default function AuthButtons() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthStore();
   const [authMode, setAuthMode] = useState<AuthMode>("buttons");
 
   if (loading) return <p>로딩중...</p>;

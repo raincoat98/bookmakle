@@ -13,7 +13,6 @@ import { NotificationCenterPage } from "./pages/NotificationCenterPage";
 import { LoginScreen } from "./components/LoginScreen";
 import { AdminProtected } from "./components/AdminProtected";
 import ExtensionBridge from "./components/ExtensionBridge";
-import { useAuth } from "./hooks/useAuth";
 import { Toaster } from "react-hot-toast";
 import { useEffect, useState, useRef } from "react";
 import { getUserDefaultPage } from "./firebase";
@@ -22,18 +21,30 @@ import {
   performBackup,
   loadBackupSettings,
 } from "./utils/backup";
-import { useBookmarks } from "./hooks/useBookmarks";
-import { useCollections } from "./hooks/useCollections";
-import { ThemeProvider } from "./contexts/ThemeContext";
+import {
+  useAuthStore,
+  useBookmarkStore,
+  useCollectionStore,
+  initializeTheme,
+} from "./stores";
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, initializeAuth } = useAuthStore();
+  const { rawBookmarks } = useBookmarkStore();
+  const { collections } = useCollectionStore();
   const [defaultPage, setDefaultPage] = useState<string | null>(null);
   const backupIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 백업을 위한 데이터 가져오기
-  const { bookmarks } = useBookmarks(user?.uid || "", "all");
-  const { collections } = useCollections(user?.uid || "");
+  // 인증 및 테마 초기화
+  useEffect(() => {
+    const unsubscribeAuth = initializeAuth();
+    const unsubscribeTheme = initializeTheme();
+
+    return () => {
+      unsubscribeAuth();
+      unsubscribeTheme();
+    };
+  }, [initializeAuth]);
 
   useEffect(() => {
     if (user?.uid) {
@@ -54,9 +65,9 @@ function App() {
     if (
       user?.uid &&
       settings.enabled &&
-      bookmarks &&
+      rawBookmarks &&
       collections &&
-      bookmarks.length > 0 &&
+      rawBookmarks.length > 0 &&
       collections.length > 0
     ) {
       // 주기(ms) 계산
@@ -67,13 +78,13 @@ function App() {
 
       // 즉시 1회 실행
       if (shouldBackup()) {
-        performBackup(bookmarks, collections, user.uid);
+        performBackup(rawBookmarks, collections, user.uid);
       }
 
       // 주기적으로 실행
       backupIntervalRef.current = setInterval(() => {
         if (shouldBackup()) {
-          performBackup(bookmarks, collections, user.uid);
+          performBackup(rawBookmarks, collections, user.uid);
         }
       }, intervalMs);
     }
@@ -84,7 +95,7 @@ function App() {
         clearInterval(backupIntervalRef.current);
       }
     };
-  }, [user?.uid, bookmarks, collections]);
+  }, [user?.uid, rawBookmarks, collections]);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -123,53 +134,51 @@ function App() {
   }
 
   return (
-    <ThemeProvider>
-      <Router>
-        <ExtensionBridge />
-        {!user ? (
-          <LoginScreen />
-        ) : (
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to={defaultPage === "bookmarks" ? "/bookmarks" : "/dashboard"}
-                  replace
-                />
-              }
-            />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/bookmarks" element={<BookmarksPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/notifications" element={<NotificationCenterPage />} />
-            <Route
-              path="/admin"
-              element={
-                <AdminProtected>
-                  <AdminPage />
-                </AdminProtected>
-              }
-            />
-            <Route
-              path="/extension-login-success"
-              element={<ExtensionLoginSuccessPage />}
-            />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        )}
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: "#363636",
-              color: "#fff",
-            },
-          }}
-        />
-      </Router>
-    </ThemeProvider>
+    <Router>
+      <ExtensionBridge />
+      {!user ? (
+        <LoginScreen />
+      ) : (
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Navigate
+                to={defaultPage === "bookmarks" ? "/bookmarks" : "/dashboard"}
+                replace
+              />
+            }
+          />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/bookmarks" element={<BookmarksPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/notifications" element={<NotificationCenterPage />} />
+          <Route
+            path="/admin"
+            element={
+              <AdminProtected>
+                <AdminPage />
+              </AdminProtected>
+            }
+          />
+          <Route
+            path="/extension-login-success"
+            element={<ExtensionLoginSuccessPage />}
+          />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      )}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+        }}
+      />
+    </Router>
   );
 }
 
