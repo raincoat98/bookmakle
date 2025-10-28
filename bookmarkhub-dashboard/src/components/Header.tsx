@@ -14,6 +14,7 @@ import { useDrawer } from "../contexts/DrawerContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { isAdminUser } from "../firebase";
 import { useState, useEffect } from "react";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface HeaderProps {
   showMenuButton?: boolean;
@@ -83,6 +84,9 @@ export const Header = ({ showMenuButton = false }: HeaderProps) => {
 
           {/* 오른쪽: 사용자 메뉴 및 테마 토글 */}
           <div className="flex items-center space-x-2">
+            {/* 알림 센터 */}
+            {user && <NotificationCenter />}
+
             {/* 테마 토글 */}
             <button
               onClick={toggleTheme}

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -16,6 +22,9 @@ import {
   Edit,
   Trash2,
   Heart,
+  Bell,
+  X,
+  Check,
 } from "lucide-react";
 import type { Bookmark, Collection, SortOption } from "../types";
 import { sortBookmarks } from "../utils/sortBookmarks";
@@ -41,6 +50,9 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useWidgetOrder } from "../hooks/useWidgetOrder";
 import type { WidgetId, WidgetConfig } from "../hooks/useWidgetOrder";
+import { useAuth } from "../hooks/useAuth";
+import { useNotifications } from "../hooks/useNotifications";
+import { useNavigate } from "react-router-dom";
 
 interface BookmarksWidgetProps {
   bookmarks: Bookmark[];
@@ -606,6 +618,84 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
     moveWidgetDown,
   } = useWidgetOrder(userId);
 
+  // 알림 관련 상태
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    deleteAllNotifications,
+  } = useNotifications(user?.uid || "");
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const notificationDropdownRef = useRef<HTMLDivElement>(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    const saved = localStorage.getItem("bookmarkNotifications");
+    return saved ? JSON.parse(saved) : true;
+  });
+
+  // 외부 클릭 감지로 알림 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationDropdownRef.current &&
+        !notificationDropdownRef.current.contains(event.target as Node) &&
+        isNotificationOpen
+      ) {
+        setIsNotificationOpen(false);
+      }
+    };
+
+    if (isNotificationOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isNotificationOpen]);
+
+  // 모바일 감지
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  // 알림이 비활성화되면 드롭다운 닫기
+  useEffect(() => {
+    if (!notificationsEnabled) {
+      setIsNotificationOpen(false);
+    }
+  }, [notificationsEnabled]);
+
+  // 설정 페이지에서 북마크 알림 상태 변경 감지
+  useEffect(() => {
+    const handleBookmarkNotificationsChange = (event: CustomEvent) => {
+      setNotificationsEnabled(event.detail.enabled);
+    };
+
+    window.addEventListener(
+      "bookmarkNotificationsChanged",
+      handleBookmarkNotificationsChange as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "bookmarkNotificationsChanged",
+        handleBookmarkNotificationsChange as EventListener
+      );
+    };
+  }, []);
+
   // 드래그 앤 드롭 센서 설정
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -690,6 +780,224 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
           {t("dashboard.title")}
         </h2>
         <div className="flex items-center space-x-2">
+          {/* 알림 버튼 - 알림이 활성화된 경우에만 표시 */}
+          {notificationsEnabled && (
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (isMobile) {
+                    navigate("/notifications");
+                  } else {
+                    setIsNotificationOpen(!isNotificationOpen);
+                  }
+                }}
+                className="relative p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
+                aria-label={t("notifications.title")}
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* 알림 드롭다운 - 데스크톱에서만 표시 */}
+              {isNotificationOpen && !isMobile && (
+                <div
+                  ref={notificationDropdownRef}
+                  className="absolute right-0 top-12 mt-2 w-80 sm:w-96 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 max-h-[600px] flex flex-col"
+                >
+                  {/* 헤더 */}
+                  <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      {t("notifications.title")}
+                    </h3>
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      {notifications.length > 0 && (
+                        <button
+                          onClick={deleteAllNotifications}
+                          className="text-xs sm:text-sm text-red-500 hover:text-red-600 dark:hover:text-red-400 px-1 sm:px-0"
+                        >
+                          모두 삭제
+                        </button>
+                      )}
+                      {unreadCount > 0 && (
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-xs sm:text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400 px-1 sm:px-0"
+                        >
+                          {t("notifications.markAllAsRead")}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 알림 목록 */}
+                  <div className="overflow-y-auto flex-1">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                        <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                        <p>{t("notifications.noNotifications")}</p>
+                      </div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`border-b border-gray-100 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
+                            !notification.isRead
+                              ? "bg-blue-50/50 dark:bg-blue-900/10"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3">
+                            {/* 아이콘 */}
+                            <div
+                              className={`p-2 rounded-lg ${
+                                notification.type === "bookmark_added"
+                                  ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400"
+                                  : notification.type === "bookmark_updated"
+                                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                                  : notification.type === "bookmark_deleted"
+                                  ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400"
+                                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                              }`}
+                            >
+                              {notification.type === "bookmark_added" ? (
+                                <BookOpen className="w-4 h-4" />
+                              ) : notification.type === "bookmark_updated" ? (
+                                <Edit className="w-4 h-4" />
+                              ) : notification.type === "bookmark_deleted" ? (
+                                <Trash2 className="w-4 h-4" />
+                              ) : (
+                                <Bell className="w-4 h-4" />
+                              )}
+                            </div>
+
+                            {/* 내용 */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                                {(() => {
+                                  const now = new Date();
+                                  const notificationDate = new Date(
+                                    notification.createdAt
+                                  );
+                                  const diffTime =
+                                    now.getTime() - notificationDate.getTime();
+                                  const diffMinutes = Math.floor(
+                                    diffTime / (1000 * 60)
+                                  );
+                                  const diffHours = Math.floor(
+                                    diffTime / (1000 * 60 * 60)
+                                  );
+                                  const diffDays = Math.floor(
+                                    diffTime / (1000 * 60 * 60 * 24)
+                                  );
+
+                                  if (diffMinutes < 1) {
+                                    return t("notifications.justNow");
+                                  } else if (diffMinutes < 60) {
+                                    return t("notifications.minutesAgo", {
+                                      count: diffMinutes,
+                                    });
+                                  } else if (diffHours < 24) {
+                                    return t("notifications.hoursAgo", {
+                                      count: diffHours,
+                                    });
+                                  } else {
+                                    return t("notifications.daysAgo", {
+                                      count: diffDays,
+                                    });
+                                  }
+                                })()}
+                              </p>
+                            </div>
+
+                            {/* 액션 버튼 */}
+                            <div className="flex flex-col space-y-1">
+                              {!notification.isRead && (
+                                <button
+                                  onClick={() => markAsRead(notification.id)}
+                                  className="p-1 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  title={t("notifications.markAsRead")}
+                                >
+                                  <Check className="w-4 h-4" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() =>
+                                  deleteNotification(notification.id)
+                                }
+                                className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                                title={t("notifications.deleteNotification")}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* 알림 설정 */}
+                  <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {t("notifications.bookmarkNotifications")}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {t("notifications.browserNotificationsDescription")}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const newValue = !notificationsEnabled;
+                          setNotificationsEnabled(newValue);
+                          localStorage.setItem(
+                            "bookmarkNotifications",
+                            JSON.stringify(newValue)
+                          );
+                          window.dispatchEvent(
+                            new CustomEvent("bookmarkNotificationsChanged", {
+                              detail: { enabled: newValue },
+                            })
+                          );
+                        }}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          notificationsEnabled
+                            ? "bg-blue-600"
+                            : "bg-gray-200 dark:bg-gray-700"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            notificationsEnabled
+                              ? "translate-x-6"
+                              : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             onClick={() => setIsEditMode(!isEditMode)}
             className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${

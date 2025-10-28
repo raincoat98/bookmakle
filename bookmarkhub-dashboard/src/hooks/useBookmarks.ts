@@ -13,6 +13,10 @@ import {
 import { db } from "../firebase";
 import type { Bookmark, BookmarkFormData, Collection } from "../types";
 import { getFaviconUrl, refreshFavicon } from "../utils/favicon";
+import {
+  showBookmarkNotification,
+  getNotificationPermission,
+} from "../utils/browserNotifications";
 
 export const useBookmarks = (
   userId: string,
@@ -252,6 +256,13 @@ export const useBookmarks = (
       // Firestore에 저장
       const docRef = await addDoc(collection(db, "bookmarks"), newBookmark);
       console.log("북마크 추가 성공, 문서 ID:", docRef.id);
+
+      // 브라우저 알림 표시
+      const permission = getNotificationPermission();
+      if (permission.granted) {
+        showBookmarkNotification("added", bookmarkData.title);
+      }
+
       return docRef.id;
     } catch (error) {
       console.error("북마크 추가 실패 - 상세 오류:", error);
@@ -291,10 +302,27 @@ export const useBookmarks = (
       tags: bookmarkData.tags || [],
       isFavorite: bookmarkData.isFavorite || false, // 즐겨찾기 필드 추가
     });
+
+    // 브라우저 알림 표시
+    const permission = getNotificationPermission();
+    if (permission.granted) {
+      showBookmarkNotification("updated", bookmarkData.title);
+    }
   };
 
   const deleteBookmark = async (bookmarkId: string) => {
+    // 삭제 전에 북마크 정보 가져오기 (알림용)
+    const bookmarkToDelete = rawBookmarks.find((b) => b.id === bookmarkId);
+
     await deleteDoc(doc(db, "bookmarks", bookmarkId));
+
+    // 브라우저 알림 표시
+    if (bookmarkToDelete) {
+      const permission = getNotificationPermission();
+      if (permission.granted) {
+        showBookmarkNotification("deleted", bookmarkToDelete.title);
+      }
+    }
   };
 
   const reorderBookmarks = async (newBookmarks: Bookmark[]) => {

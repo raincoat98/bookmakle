@@ -221,7 +221,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       {/* 메인 콘텐츠 */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* 모바일 헤더 */}
-        <div className="lg:hidden p-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl">
+        <div className="lg:hidden p-3 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl flex items-center justify-between">
           <button
             onClick={() => setIsDrawerOpen(true)}
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"

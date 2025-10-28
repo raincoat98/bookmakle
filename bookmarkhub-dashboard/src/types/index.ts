@@ -100,3 +100,22 @@ export interface AdminUser {
   lastLoginAt?: Date;
   isActive: boolean; // 사용자 활성화 상태
 }
+
+// 알림 관련 타입
+export type NotificationType =
+  | "bookmark_added"
+  | "bookmark_updated"
+  | "bookmark_deleted"
+  | "system";
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: Date;
+  bookmarkId?: string;
+  metadata?: Record<string, unknown>;
+}
