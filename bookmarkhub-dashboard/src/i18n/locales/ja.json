@@ -365,6 +365,8 @@
   "notifications": {
     "title": "通知",
     "center": "通知センター",
+    "centerDescription": "すべての通知を一箇所で確認・管理します",
+    "viewCenter": "センター表示",
     "settings": "通知設定",
     "enable": "通知を有効にする",
     "disable": "通知を無効にする",

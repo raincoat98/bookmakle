@@ -792,10 +792,10 @@ export const Settings: React.FC<SettingsProps> = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                북마크 알림
+                {t("notifications.bookmarkNotifications")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                북마크 추가, 수정, 삭제 시 알림을 받습니다
+                {t("notifications.bookmarkNotificationsDescription")}
               </p>
             </div>
             <button
@@ -816,10 +816,10 @@ export const Settings: React.FC<SettingsProps> = ({
           <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                알림센터
+                {t("notifications.center")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                모든 알림을 한 곳에서 확인하고 관리합니다
+                {t("notifications.centerDescription")}
               </p>
             </div>
             <button
@@ -827,7 +827,7 @@ export const Settings: React.FC<SettingsProps> = ({
               className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors flex items-center space-x-2"
             >
               <Bell className="w-4 h-4" />
-              <span>알림센터 보기</span>
+              <span>{t("notifications.viewCenter")}</span>
             </button>
           </div>
         </div>

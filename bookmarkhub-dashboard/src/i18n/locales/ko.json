@@ -354,6 +354,8 @@
   "notifications": {
     "title": "알림",
     "center": "알림센터",
+    "centerDescription": "모든 알림을 한 곳에서 확인하고 관리합니다",
+    "viewCenter": "알림센터 보기",
     "settings": "알림 설정",
     "enable": "알림 활성화",
     "disable": "알림 비활성화",

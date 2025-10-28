@@ -365,6 +365,8 @@
   "notifications": {
     "title": "Notifications",
     "center": "Notification Center",
+    "centerDescription": "View and manage all notifications in one place",
+    "viewCenter": "View Center",
     "settings": "Notification Settings",
     "enable": "Enable Notifications",
     "disable": "Disable Notifications",

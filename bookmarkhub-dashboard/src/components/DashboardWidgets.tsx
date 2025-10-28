@@ -774,7 +774,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                   {/* 헤더 */}
                   <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      알림
+                      {t("notifications.title")}
                     </h3>
                     <button
                       onClick={() => setIsNotificationOpen(false)}
@@ -789,7 +789,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                         <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p>알림이 없습니다</p>
+                        <p>{t("notifications.noNotifications")}</p>
                       </div>
                     ) : (
                       notifications.map((notification) => (
@@ -834,14 +834,39 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                                 {notification.message}
                               </p>
                               <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                                {new Date(
-                                  notification.createdAt
-                                ).toLocaleDateString("ko-KR", {
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                {(() => {
+                                  const now = new Date();
+                                  const notificationDate = new Date(
+                                    notification.createdAt
+                                  );
+                                  const diffTime =
+                                    now.getTime() - notificationDate.getTime();
+                                  const diffMinutes = Math.floor(
+                                    diffTime / (1000 * 60)
+                                  );
+                                  const diffHours = Math.floor(
+                                    diffTime / (1000 * 60 * 60)
+                                  );
+                                  const diffDays = Math.floor(
+                                    diffTime / (1000 * 60 * 60 * 24)
+                                  );
+
+                                  if (diffMinutes < 1) {
+                                    return t("notifications.justNow");
+                                  } else if (diffMinutes < 60) {
+                                    return t("notifications.minutesAgo", {
+                                      count: diffMinutes,
+                                    });
+                                  } else if (diffHours < 24) {
+                                    return t("notifications.hoursAgo", {
+                                      count: diffHours,
+                                    });
+                                  } else {
+                                    return t("notifications.daysAgo", {
+                                      count: diffDays,
+                                    });
+                                  }
+                                })()}
                               </p>
                             </div>
 
@@ -851,7 +876,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                                 <button
                                   onClick={() => markAsRead(notification.id)}
                                   className="p-1 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                                  title="읽음 처리"
+                                  title={t("notifications.markAsRead")}
                                 >
                                   <Check className="w-4 h-4" />
                                 </button>
@@ -861,7 +886,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                                   deleteNotification(notification.id)
                                 }
                                 className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="삭제"
+                                title={t("notifications.deleteNotification")}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -877,10 +902,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          북마크 알림
+                          {t("notifications.bookmarkNotifications")}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          북마크 관련 알림을 받습니다
+                          {t("notifications.browserNotificationsDescription")}
                         </p>
                       </div>
                       <button
