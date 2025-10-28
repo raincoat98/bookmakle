@@ -12,9 +12,11 @@ import { EditBookmarkModal } from "../components/EditBookmarkModal";
 import { DeleteBookmarkModal } from "../components/DeleteBookmarkModal";
 import { AddCollectionModal } from "../components/AddCollectionModal";
 import { Drawer } from "../components/Drawer";
+import { useTranslation } from "react-i18next";
 
 export const DashboardPage: React.FC = () => {
   const { user, isActive, isActiveLoading } = useAuth();
+  const { t } = useTranslation();
   const {
     bookmarks,
     addBookmark,
@@ -29,7 +31,7 @@ export const DashboardPage: React.FC = () => {
   const [currentSort, setCurrentSort] = useState<SortOption>({
     field: "isFavorite",
     direction: "desc",
-    label: "즐겨찾기 우선",
+    label: t("dashboard.sortByFavorite"),
   });
 
   // 모달 상태
@@ -53,15 +55,19 @@ export const DashboardPage: React.FC = () => {
         isFavorite: data.isFavorite || false,
       });
       setIsAddModalOpen(false);
-      toast.success("북마크가 추가되었습니다.");
+      toast.success(t("bookmarks.bookmarkAdded"));
 
       // 알림 생성
-      await createNotification(
-        "bookmark_added",
-        "새 북마크 추가됨",
-        `"${data.title}" 북마크가 추가되었습니다.`,
-        bookmarkId
-      );
+      try {
+        await createNotification(
+          "bookmark_added",
+          undefined,
+          undefined,
+          bookmarkId
+        );
+      } catch (notifError) {
+        console.error("알림 생성 실패:", notifError);
+      }
     } catch (error) {
       console.error("DashboardPage - 북마크 추가 실패:", error);
       console.error("오류 상세:", {
@@ -85,16 +91,11 @@ export const DashboardPage: React.FC = () => {
         isFavorite: data.isFavorite || false,
       });
       setEditingBookmark(null);
-      toast.success("북마크가 수정되었습니다.");
+      toast.success(t("bookmarks.bookmarkUpdated"));
 
       // 알림 생성 (에러가 나도 알림은 생성되도록)
       try {
-        await createNotification(
-          "bookmark_updated",
-          "북마크 수정됨",
-          `"${data.title}" 북마크가 수정되었습니다.`,
-          id
-        );
+        await createNotification("bookmark_updated", undefined, undefined, id);
       } catch (notifError) {
         console.error("알림 생성 실패:", notifError);
       }
@@ -110,16 +111,20 @@ export const DashboardPage: React.FC = () => {
       const bookmark = deleteBookmarkModal.bookmark;
       await deleteBookmark(id);
       setDeleteBookmarkModal({ isOpen: false, bookmark: null });
-      toast.success("북마크가 삭제되었습니다.");
+      toast.success(t("bookmarks.bookmarkDeleted"));
 
       // 알림 생성
       if (bookmark) {
-        await createNotification(
-          "bookmark_deleted",
-          "북마크 삭제됨",
-          `"${bookmark.title}" 북마크가 삭제되었습니다.`,
-          id
-        );
+        try {
+          await createNotification(
+            "bookmark_deleted",
+            undefined,
+            undefined,
+            id
+          );
+        } catch (notifError) {
+          console.error("알림 생성 실패:", notifError);
+        }
       }
     } catch {
       toast.error("북마크 삭제 중 오류가 발생했습니다.");
@@ -134,11 +139,11 @@ export const DashboardPage: React.FC = () => {
       await toggleFavorite(id, isFavorite);
       toast.success(
         isFavorite
-          ? "즐겨찾기에 추가되었습니다."
-          : "즐겨찾기에서 제거되었습니다."
+          ? t("bookmarks.addToFavorites")
+          : t("bookmarks.removeFromFavorites")
       );
     } catch {
-      toast.error("즐겨찾기 상태 변경 중 오류가 발생했습니다.");
+      toast.error(t("bookmarks.favoriteToggleError"));
     }
   };
 
@@ -167,9 +172,9 @@ export const DashboardPage: React.FC = () => {
         parentId: parentId ?? null,
       });
       setIsAddCollectionModalOpen(false);
-      toast.success("컬렉션이 추가되었습니다.");
+      toast.success(t("collections.collectionAdded"));
     } catch {
-      toast.error("컬렉션 추가 중 오류가 발생했습니다.");
+      toast.error(t("collections.collectionAddError"));
     }
   };
 
@@ -178,10 +183,10 @@ export const DashboardPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            로그인이 필요합니다
+            {t("auth.loginRequired")}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            북마크를 관리하려면 먼저 로그인해주세요.
+            {t("auth.loginRequiredDescription")}
           </p>
         </div>
       </div>

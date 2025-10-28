@@ -1,6 +1,7 @@
 import { useState } from "react";
 import * as LucideIcons from "lucide-react";
 import EmojiPicker from "emoji-picker-react";
+import { useTranslation } from "react-i18next";
 
 // 자주 사용되는 아이콘들만 선별
 const POPULAR_ICONS = [
@@ -81,7 +82,7 @@ const POPULAR_ICONS = [
 
 // 카테고리별 아이콘 그룹
 const ICON_CATEGORIES: Record<string, string[]> = {
-  일반: [
+  general: [
     "Folder",
     "FolderOpen",
     "BookOpen",
@@ -90,7 +91,7 @@ const ICON_CATEGORIES: Record<string, string[]> = {
     "Heart",
     "Star",
   ],
-  업무: [
+  work: [
     "Briefcase",
     "Work",
     "Code",
@@ -99,12 +100,20 @@ const ICON_CATEGORIES: Record<string, string[]> = {
     "Calendar",
     "Clock",
   ],
-  개인: ["User", "Home", "Coffee", "Music", "Camera", "Gamepad2", "Heart"],
-  기술: ["Code", "Database", "Smartphone", "Laptop", "Monitor", "Cpu", "Globe"],
-  여행: ["Map", "MapPin", "Car", "Plane", "Train", "Mountain", "Camera"],
-  건강: ["Stethoscope", "Dumbbell", "Bike", "Utensils", "Apple", "Heart"],
-  자연: ["Sun", "Moon", "Cloud", "Leaf", "Flower", "Tree", "Mountain"],
-  쇼핑: ["ShoppingCart", "CreditCard", "Package", "Gift", "Truck"],
+  personal: ["User", "Home", "Coffee", "Music", "Camera", "Gamepad2", "Heart"],
+  technology: [
+    "Code",
+    "Database",
+    "Smartphone",
+    "Laptop",
+    "Monitor",
+    "Cpu",
+    "Globe",
+  ],
+  travel: ["Map", "MapPin", "Car", "Plane", "Train", "Mountain", "Camera"],
+  health: ["Stethoscope", "Dumbbell", "Bike", "Utensils", "Apple", "Heart"],
+  nature: ["Sun", "Moon", "Cloud", "Leaf", "Flower", "Tree", "Mountain"],
+  shopping: ["ShoppingCart", "CreditCard", "Package", "Gift", "Truck"],
 };
 
 export type IconType = "emoji" | "lucide";
@@ -122,8 +131,9 @@ export const IconPicker = ({
   isOpen,
   onClose,
 }: IconPickerProps) => {
+  const { t } = useTranslation();
   const [iconType, setIconType] = useState<IconType>("emoji");
-  const [activeCategory, setActiveCategory] = useState("일반");
+  const [activeCategory, setActiveCategory] = useState("general");
   const [searchQuery, setSearchQuery] = useState("");
 
   if (!isOpen) return null;
@@ -172,7 +182,7 @@ export const IconPicker = ({
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              아이콘 선택
+              {t("collections.selectIcon")}
             </h3>
             <button
               onClick={onClose}
@@ -193,7 +203,7 @@ export const IconPicker = ({
               }`}
             >
               <LucideIcons.Package className="w-4 h-4 inline mr-2" />
-              Lucide 아이콘
+              {t("collections.lucideIcons")}
             </button>
             <button
               onClick={() => setIconType("emoji")}
@@ -203,7 +213,7 @@ export const IconPicker = ({
                   : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              😀 이모지
+              😀 {t("collections.emojis")}
             </button>
           </div>
 
@@ -213,7 +223,7 @@ export const IconPicker = ({
               <LucideIcons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="아이콘 검색..."
+                placeholder={t("collections.searchIcons")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
@@ -239,7 +249,7 @@ export const IconPicker = ({
                           : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                       }`}
                     >
-                      {category}
+                      {t(`collections.iconCategories.${category}`)}
                     </button>
                   ))}
                 </div>
@@ -254,7 +264,9 @@ export const IconPicker = ({
 
               {filteredIcons.length === 0 && (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  {searchQuery ? "검색 결과가 없습니다." : "아이콘이 없습니다."}
+                  {searchQuery
+                    ? t("collections.noSearchResults")
+                    : t("collections.noIcons")}
                 </div>
               )}
             </div>
@@ -281,14 +293,16 @@ export const IconPicker = ({
         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              선택된 아이콘:{" "}
-              <span className="font-medium">{selectedIcon || "없음"}</span>
+              {t("collections.selectedIcon")}:{" "}
+              <span className="font-medium">
+                {selectedIcon || t("collections.none")}
+              </span>
             </div>
             <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
             >
-              취소
+              {t("common.cancel")}
             </button>
           </div>
         </div>

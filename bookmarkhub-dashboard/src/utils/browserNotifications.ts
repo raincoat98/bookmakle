@@ -92,43 +92,48 @@ export const showBrowserNotification = (
 };
 
 /**
- * 북마크 관련 알림을 표시합니다
+ * 북마크 관련 알림을 표시합니다 (다국어 지원)
  */
 export const showBookmarkNotification = (
   type: "added" | "updated" | "deleted",
-  bookmarkTitle: string
+  bookmarkTitle: string,
+  title?: string,
+  message?: string
 ): Notification | null => {
-  const messages = {
+  const defaultMessages = {
     added: {
-      title: "새 북마크 추가됨",
-      body: `"${bookmarkTitle}" 북마크가 추가되었습니다.`,
+      title: title || "새 북마크 추가됨",
+      body: message || `"${bookmarkTitle}" 북마크가 추가되었습니다.`,
       icon: "/icons/bookmark-added.png",
     },
     updated: {
-      title: "북마크 수정됨",
-      body: `"${bookmarkTitle}" 북마크가 수정되었습니다.`,
+      title: title || "북마크 수정됨",
+      body: message || `"${bookmarkTitle}" 북마크가 수정되었습니다.`,
       icon: "/icons/bookmark-updated.png",
     },
     deleted: {
-      title: "북마크 삭제됨",
-      body: `"${bookmarkTitle}" 북마크가 삭제되었습니다.`,
+      title: title || "북마크 삭제됨",
+      body: message || `"${bookmarkTitle}" 북마크가 삭제되었습니다.`,
       icon: "/icons/bookmark-deleted.png",
     },
   };
 
-  const message = messages[type];
-  return showBrowserNotification(message.title, {
-    body: message.body,
-    icon: message.icon,
+  const messageConfig = defaultMessages[type];
+  return showBrowserNotification(messageConfig.title, {
+    body: messageConfig.body,
+    icon: messageConfig.icon,
   });
 };
 
 /**
- * 테스트 알림을 표시합니다
+ * 테스트 알림을 표시합니다 (다국어 지원)
  */
-export const showTestNotification = (): Notification | null => {
-  return showBrowserNotification("테스트 알림", {
-    body: "브라우저 알림이 정상적으로 작동합니다!",
+export const showTestNotification = (
+  title?: string,
+  message?: string
+): Notification | null => {
+  return showBrowserNotification(title || "테스트 알림", {
+    body: message || "브라우저 알림이 정상적으로 작동합니다!",
     icon: "/favicon.ico",
   });
 };

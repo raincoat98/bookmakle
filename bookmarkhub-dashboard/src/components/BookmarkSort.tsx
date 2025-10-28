@@ -1,30 +1,53 @@
 import React from "react";
 import { ChevronDown, ArrowUpDown } from "lucide-react";
 import type { SortOption } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface BookmarkSortProps {
   currentSort: SortOption;
   onSortChange: (sort: SortOption) => void;
 }
 
-const sortOptions: SortOption[] = [
-  { field: "order", direction: "asc", label: "사용자 순서" },
-  { field: "title", direction: "asc", label: "제목 (A-Z)" },
-  { field: "title", direction: "desc", label: "제목 (Z-A)" },
-  { field: "url", direction: "asc", label: "URL (A-Z)" },
-  { field: "url", direction: "desc", label: "URL (Z-A)" },
-  { field: "createdAt", direction: "desc", label: "최신순" },
-  { field: "createdAt", direction: "asc", label: "오래된순" },
-  { field: "updatedAt", direction: "desc", label: "최근 수정순" },
-  { field: "updatedAt", direction: "asc", label: "오래된 수정순" },
-  { field: "isFavorite", direction: "desc", label: "즐겨찾기 우선" },
-];
-
 export const BookmarkSort: React.FC<BookmarkSortProps> = ({
   currentSort,
   onSortChange,
 }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
+
+  // 다국어 정렬 옵션 생성
+  const localizedSortOptions: SortOption[] = [
+    { field: "order", direction: "asc", label: t("bookmarks.sortByUserOrder") },
+    { field: "title", direction: "asc", label: t("bookmarks.sortByTitleAZ") },
+    { field: "title", direction: "desc", label: t("bookmarks.sortByTitleZA") },
+    { field: "url", direction: "asc", label: t("bookmarks.sortByUrlAZ") },
+    { field: "url", direction: "desc", label: t("bookmarks.sortByUrlZA") },
+    {
+      field: "createdAt",
+      direction: "desc",
+      label: t("bookmarks.sortByNewest"),
+    },
+    {
+      field: "createdAt",
+      direction: "asc",
+      label: t("bookmarks.sortByOldest"),
+    },
+    {
+      field: "updatedAt",
+      direction: "desc",
+      label: t("bookmarks.sortByRecentlyModified"),
+    },
+    {
+      field: "updatedAt",
+      direction: "asc",
+      label: t("bookmarks.sortByOldestModified"),
+    },
+    {
+      field: "isFavorite",
+      direction: "desc",
+      label: t("bookmarks.sortByFavorite"),
+    },
+  ];
 
   const handleSortChange = (option: SortOption) => {
     onSortChange(option);
@@ -32,11 +55,11 @@ export const BookmarkSort: React.FC<BookmarkSortProps> = ({
   };
 
   const currentLabel =
-    sortOptions.find(
+    localizedSortOptions.find(
       (option) =>
         option.field === currentSort.field &&
         option.direction === currentSort.direction
-    )?.label || "정렬";
+    )?.label || t("bookmarks.sort");
 
   return (
     <div className="relative">
@@ -64,7 +87,7 @@ export const BookmarkSort: React.FC<BookmarkSortProps> = ({
           {/* 드롭다운 메뉴 */}
           <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-20">
             <div className="py-1">
-              {sortOptions.map((option) => (
+              {localizedSortOptions.map((option) => (
                 <button
                   key={`${option.field}-${option.direction}`}
                   onClick={() => handleSortChange(option)}

@@ -1,10 +1,10 @@
 {
   "appName": {
-    "message": "bookmarkHub",
+    "message": "Bookmarkle",
     "description": "Extension name"
   },
   "appDescription": {
-    "message": "bookmarkHub extension",
+    "message": "Bookmark extension for easily saving and managing web pages",
     "description": "Extension description"
   },
   "login": {
@@ -94,5 +94,53 @@
   "contactText": {
     "message": "Contact:",
     "description": "Contact label"
+  },
+  "quickMode": {
+    "message": "⚡ Quick Mode",
+    "description": "Quick mode label"
+  },
+  "quickModeDescription": {
+    "message": "(Click icon to save directly)",
+    "description": "Quick mode description"
+  },
+  "collectionOptional": {
+    "message": "Collection (Optional)",
+    "description": "Collection selection label"
+  },
+  "bookmarkSafeStorage": {
+    "message": "• Bookmarks are safely stored in Firebase",
+    "description": "Bookmark safe storage notice"
+  },
+  "bookmarkSync": {
+    "message": "• Syncs across multiple devices",
+    "description": "Bookmark sync notice"
+  },
+  "privacyProtected": {
+    "message": "• Privacy is protected",
+    "description": "Privacy protection notice"
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "Cancel button text"
+  },
+  "add": {
+    "message": "Add",
+    "description": "Add button text"
+  },
+  "korean": {
+    "message": "한국어",
+    "description": "Korean language name"
+  },
+  "english": {
+    "message": "English",
+    "description": "English language name"
+  },
+  "japanese": {
+    "message": "日本語",
+    "description": "Japanese language name"
+  },
+  "languageChanged": {
+    "message": "Language has been changed. Please reload the extension.",
+    "description": "Language change notification message"
   }
 }

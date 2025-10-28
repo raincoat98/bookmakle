@@ -9,6 +9,7 @@ import {
   X,
   RefreshCw,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface WeatherData {
   temperature: number;
@@ -131,6 +132,7 @@ const WeeklyWeatherModal: React.FC<{
 };
 
 export const WeatherWidget: React.FC = () => {
+  const { t } = useTranslation();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [weeklyWeather, setWeeklyWeather] = useState<WeeklyWeatherData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -419,7 +421,7 @@ export const WeatherWidget: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Cloud className="w-6 h-6 text-gray-400" />
           <span className="text-sm text-gray-500 dark:text-gray-400">
-            날씨 정보 없음
+            {t("weather.noWeatherData")}
           </span>
         </div>
       </div>
@@ -510,7 +512,7 @@ export const WeatherWidget: React.FC = () => {
               handleRefreshLocation();
             }}
             className="p-1.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all duration-200 hover:scale-110"
-            title="위치 새로고침"
+            title={t("weather.refreshLocation")}
           >
             <RefreshCw className="w-4 h-4 text-white" />
           </button>
@@ -519,7 +521,7 @@ export const WeatherWidget: React.FC = () => {
         {/* 컨텐츠 */}
         <div className="relative z-10 p-3 sm:p-4">
           <h3 className="text-sm sm:text-md font-semibold text-white mb-2 sm:mb-3 drop-shadow-lg">
-            날씨
+            {t("weather.title")}
           </h3>
 
           {loading ? (
@@ -530,7 +532,7 @@ export const WeatherWidget: React.FC = () => {
             <div className="text-center py-8">
               <p className="text-red-200 text-sm mb-2 drop-shadow">{error}</p>
               <p className="text-xs text-white/80 drop-shadow">
-                날씨 정보를 가져올 수 없습니다
+                {t("weather.fetchError")}
               </p>
             </div>
           ) : weather ? (
@@ -559,7 +561,7 @@ export const WeatherWidget: React.FC = () => {
                     {weather.city}
                   </p>
                   <p className="text-xs text-white/80 drop-shadow">
-                    체감 {weather.feelsLike}°C
+                    {t("weather.feelsLike")} {weather.feelsLike}°C
                   </p>
                 </div>
               </div>
@@ -567,13 +569,17 @@ export const WeatherWidget: React.FC = () => {
               {/* 상세 정보 */}
               <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/30">
                 <div className="text-center">
-                  <p className="text-xs text-white/80 mb-1 drop-shadow">습도</p>
+                  <p className="text-xs text-white/80 mb-1 drop-shadow">
+                    {t("weather.humidity")}
+                  </p>
                   <p className="text-sm font-semibold text-white drop-shadow">
                     {weather.humidity}%
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-xs text-white/80 mb-1 drop-shadow">풍속</p>
+                  <p className="text-xs text-white/80 mb-1 drop-shadow">
+                    {t("weather.windSpeed")}
+                  </p>
                   <p className="text-sm font-semibold text-white drop-shadow">
                     {weather.windSpeed} km/h
                   </p>

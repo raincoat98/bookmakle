@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Bookmark, Collection } from "../types";
 import { renderCollectionIcon } from "../utils/iconRenderer";
+import { useTranslation } from "react-i18next";
 
 interface SortableBookmarkListItemProps {
   bookmark: Bookmark;
@@ -35,6 +36,7 @@ export const SortableBookmarkListItem = ({
   isMoving = false, // 이동 중인지 여부
   moveDirection = null, // 이동 방향
 }: SortableBookmarkListItemProps) => {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -164,7 +166,7 @@ export const SortableBookmarkListItem = ({
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
             className="p-2 text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-            title="위로 이동"
+            title={t("common.moveUp")}
           >
             <svg
               className="w-4 h-4"
@@ -187,7 +189,7 @@ export const SortableBookmarkListItem = ({
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
             className="p-2 text-gray-700 hover:text-green-600 dark:text-gray-200 dark:hover:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-            title="아래로 이동"
+            title={t("common.moveDown")}
           >
             <svg
               className="w-4 h-4"
@@ -214,7 +216,7 @@ export const SortableBookmarkListItem = ({
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
             className="p-2 text-gray-500 hover:text-brand-600 dark:text-gray-400 dark:hover:text-brand-400 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
-            title="수정"
+            title={t("common.edit")}
           >
             <svg
               className="w-4 h-4"
@@ -247,7 +249,11 @@ export const SortableBookmarkListItem = ({
                 ? "text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                 : "text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
             }`}
-            title={bookmark.isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+            title={
+              bookmark.isFavorite
+                ? t("bookmarks.removeFromFavorites")
+                : t("bookmarks.addToFavorites")
+            }
           >
             <svg
               className={`w-4 h-4 ${
@@ -275,7 +281,7 @@ export const SortableBookmarkListItem = ({
             onTouchStart={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
             className="p-2 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 min-w-[36px] min-h-[36px] flex items-center justify-center bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm hover:shadow-md active:scale-95 touch-manipulation"
-            title="삭제"
+            title={t("common.delete")}
           >
             <svg
               className="w-4 h-4"
@@ -304,11 +310,11 @@ export const SortableBookmarkListItem = ({
                 <div
                   className="relative w-8 h-8 sm:w-8 sm:h-8 rounded-lg overflow-hidden hover:scale-110 transition-all duration-200 cursor-pointer [&:hover_>_.overlay]:opacity-100"
                   onClick={handleRefreshFavicon}
-                  title="파비콘 새로고침"
+                  title={t("common.refreshFavicon")}
                 >
                   <img
                     src={bookmark.favicon}
-                    alt="파비콘"
+                    alt={t("common.favicon")}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = "none";
@@ -337,7 +343,7 @@ export const SortableBookmarkListItem = ({
                 <div
                   className="relative w-6 h-6 sm:w-6 sm:h-6 hover:scale-110 transition-all duration-200 cursor-pointer [&:hover_>_.overlay]:opacity-100"
                   onClick={handleRefreshFavicon}
-                  title="파비콘 새로고침"
+                  title={t("common.refreshFavicon")}
                 >
                   <svg
                     className="w-full h-full text-gray-500 dark:text-gray-400"
@@ -401,7 +407,7 @@ export const SortableBookmarkListItem = ({
                 </span>
               ) : (
                 <span className="inline-flex items-center px-3 py-2 sm:px-3 sm:py-1.5 rounded-full text-sm sm:text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 shadow-sm">
-                  컬렉션 없음
+                  {t("collections.noCollection")}
                 </span>
               )}
               <div className="text-sm sm:text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-2 sm:px-2 sm:py-1 rounded-md">
@@ -423,7 +429,7 @@ export const SortableBookmarkListItem = ({
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center w-full sm:w-auto space-x-2 px-4 py-3 sm:px-4 sm:py-2 text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-300 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md active:scale-95 min-h-[44px] sm:min-h-[36px]"
           >
-            <span>방문하기</span>
+            <span>{t("common.visit")}</span>
             <svg
               className="w-4 h-4"
               fill="none"

@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import type { Notification, NotificationType } from "../types";
+import i18n from "../i18n";
 
 export const useNotifications = (userId: string) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -71,11 +72,11 @@ export const useNotifications = (userId: string) => {
     return () => unsubscribe();
   }, [userId]);
 
-  // 알림 생성
+  // 알림 생성 (다국어 지원)
   const createNotification = async (
     type: NotificationType,
-    title: string,
-    message: string,
+    title?: string,
+    message?: string,
     bookmarkId?: string,
     metadata?: Record<string, unknown>
   ) => {
@@ -85,11 +86,45 @@ export const useNotifications = (userId: string) => {
     }
 
     try {
+      // 다국어 메시지 생성
+      const getLocalizedMessage = (type: NotificationType) => {
+        const t = i18n.t;
+        switch (type) {
+          case "bookmark_added":
+            return {
+              title: title || t("notifications.types.bookmarkAdded"),
+              message: message || t("notifications.messages.bookmarkAdded"),
+            };
+          case "bookmark_updated":
+            return {
+              title: title || t("notifications.types.bookmarkUpdated"),
+              message: message || t("notifications.messages.bookmarkUpdated"),
+            };
+          case "bookmark_deleted":
+            return {
+              title: title || t("notifications.types.bookmarkDeleted"),
+              message: message || t("notifications.messages.bookmarkDeleted"),
+            };
+          case "system":
+            return {
+              title: title || t("notifications.types.system"),
+              message: message || t("notifications.messages.systemUpdate"),
+            };
+          default:
+            return {
+              title: title || t("notifications.title"),
+              message: message || "",
+            };
+        }
+      };
+
+      const localizedMessage = getLocalizedMessage(type);
+
       const notificationData = {
         userId,
         type,
-        title,
-        message,
+        title: localizedMessage.title,
+        message: localizedMessage.message,
         isRead: false,
         createdAt: Timestamp.now(),
         bookmarkId: bookmarkId || null,

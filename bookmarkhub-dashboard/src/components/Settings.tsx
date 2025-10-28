@@ -4,6 +4,7 @@ import { useBookmarks } from "../hooks/useBookmarks";
 import { useCollections } from "../hooks/useCollections";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
+import { useTranslation } from "react-i18next";
 import {
   getNotificationPermission,
   requestNotificationPermission,
@@ -72,6 +73,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const { bookmarks } = useBookmarks(user?.uid || "", "all");
   const { collections } = useCollections(user?.uid || "");
   const { theme, setTheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState("general");
@@ -208,10 +210,15 @@ export const Settings: React.FC<SettingsProps> = ({
   const handleTestNotification = async () => {
     const hasPermission = await requestNotificationPermission();
     if (hasPermission) {
-      showTestNotification();
-      toast.success("테스트 알림을 보냈습니다.");
+      showTestNotification(
+        t("notifications.testNotificationTitle"),
+        t("notifications.testNotificationMessage")
+      );
+      toast.success(
+        t("notifications.testNotification") + " " + t("common.success")
+      );
     } else {
-      toast.error("브라우저 알림 권한이 필요합니다.");
+      toast.error(t("notifications.permissionDenied"));
     }
   };
 
@@ -468,28 +475,28 @@ export const Settings: React.FC<SettingsProps> = ({
   };
 
   const tabs = [
-    { id: "general", label: "일반", icon: SettingsIcon },
-    { id: "stats", label: "통계", icon: BarChart3 },
-    { id: "backup", label: "백업", icon: Download },
-    { id: "account", label: "계정", icon: User },
-    { id: "appearance", label: "외관", icon: Palette },
-    { id: "notifications", label: "알림", icon: Bell },
-    { id: "privacy", label: "개인정보", icon: Shield },
+    { id: "general", label: t("settings.general"), icon: SettingsIcon },
+    { id: "stats", label: t("admin.statistics"), icon: BarChart3 },
+    { id: "backup", label: t("settings.backup"), icon: Download },
+    { id: "account", label: t("settings.account"), icon: User },
+    { id: "appearance", label: t("settings.appearance"), icon: Palette },
+    { id: "notifications", label: t("settings.notifications"), icon: Bell },
+    { id: "privacy", label: t("settings.privacy"), icon: Shield },
   ];
 
   const renderGeneralSettings = () => (
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          기본 설정
+          {t("settings.basicSettings")}
         </h3>
         <div className="space-y-6">
           <div>
             <p className="font-medium text-gray-900 dark:text-white mb-3">
-              메인 페이지
+              {t("settings.mainPage")}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              앱을 처음 열 때 표시할 페이지를 선택하세요
+              {t("settings.mainPageDescription")}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <button
@@ -506,10 +513,10 @@ export const Settings: React.FC<SettingsProps> = ({
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      대시보드
+                      {t("settings.dashboard")}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      통계 및 즐겨찾기
+                      {t("settings.dashboardDescription")}
                     </p>
                   </div>
                 </div>
@@ -528,10 +535,10 @@ export const Settings: React.FC<SettingsProps> = ({
                   </div>
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">
-                      북마크 목록
+                      {t("settings.bookmarkList")}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      전체 북마크 관리
+                      {t("settings.bookmarkListDescription")}
                     </p>
                   </div>
                 </div>
@@ -543,16 +550,16 @@ export const Settings: React.FC<SettingsProps> = ({
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          데이터 관리
+          {t("settings.dataManagement")}
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                데이터 내보내기
+                {t("settings.exportData")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                북마크 데이터를 파일로 내보냅니다
+                {t("settings.exportDataDescription")}
               </p>
             </div>
             <button
@@ -560,16 +567,16 @@ export const Settings: React.FC<SettingsProps> = ({
               className="inline-flex items-center px-3 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
             >
               <Download className="w-4 h-4 mr-2" />
-              내보내기
+              {t("settings.export")}
             </button>
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                데이터 가져오기
+                {t("settings.importData")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                파일에서 북마크 데이터를 가져옵니다
+                {t("settings.importDataDescription")}
               </p>
             </div>
             <button
@@ -577,7 +584,7 @@ export const Settings: React.FC<SettingsProps> = ({
               className="inline-flex items-center px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
               <Upload className="w-4 h-4 mr-2" />
-              가져오기
+              {t("settings.import")}
             </button>
           </div>
         </div>
@@ -589,7 +596,7 @@ export const Settings: React.FC<SettingsProps> = ({
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          계정 정보
+          {t("settings.accountInfo")}
         </h3>
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -602,7 +609,7 @@ export const Settings: React.FC<SettingsProps> = ({
             )}
             <div>
               <p className="text-lg font-medium text-gray-900 dark:text-white">
-                {user?.displayName || "사용자"}
+                {user?.displayName || t("settings.user")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {user?.email}
@@ -614,7 +621,7 @@ export const Settings: React.FC<SettingsProps> = ({
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          계정 관리
+          {t("settings.accountManagement")}
         </h3>
         <div className="space-y-4">
           <button
@@ -622,14 +629,14 @@ export const Settings: React.FC<SettingsProps> = ({
             className="w-full flex items-center justify-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
           >
             <Key className="w-4 h-4 mr-2" />
-            로그아웃
+            {t("auth.logout")}
           </button>
           <button
             onClick={handleDeleteAccount}
             className="w-full flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             <Trash2 className="w-4 h-4 mr-2" />
-            계정 삭제
+            {t("settings.deleteAccount")}
           </button>
         </div>
       </div>
@@ -640,7 +647,7 @@ export const Settings: React.FC<SettingsProps> = ({
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          테마 설정
+          {t("settings.theme")}
         </h3>
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -654,7 +661,7 @@ export const Settings: React.FC<SettingsProps> = ({
             >
               <Sun className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                라이트
+                {t("settings.themeLight")}
               </p>
             </button>
             <button
@@ -667,7 +674,7 @@ export const Settings: React.FC<SettingsProps> = ({
             >
               <Moon className="w-8 h-8 mx-auto mb-2 text-blue-500" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                다크
+                {t("settings.themeDark")}
               </p>
             </button>
             <button
@@ -680,7 +687,56 @@ export const Settings: React.FC<SettingsProps> = ({
             >
               <Globe className="w-8 h-8 mx-auto mb-2 text-green-500" />
               <p className="text-sm font-medium text-gray-900 dark:text-white">
-                자동
+                {t("settings.themeSystem")}
+              </p>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          {t("settings.language")}
+        </h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <button
+              onClick={() => i18n.changeLanguage("ko")}
+              className={`p-4 rounded-lg border-2 transition-colors ${
+                i18n.language === "ko"
+                  ? "border-brand-500 bg-brand-50 dark:bg-brand-900"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <span className="text-2xl mb-2 block">🇰🇷</span>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {t("languages.korean")}
+              </p>
+            </button>
+            <button
+              onClick={() => i18n.changeLanguage("en")}
+              className={`p-4 rounded-lg border-2 transition-colors ${
+                i18n.language === "en"
+                  ? "border-brand-500 bg-brand-50 dark:bg-brand-900"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <span className="text-2xl mb-2 block">🇺🇸</span>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {t("languages.english")}
+              </p>
+            </button>
+            <button
+              onClick={() => i18n.changeLanguage("ja")}
+              className={`p-4 rounded-lg border-2 transition-colors ${
+                i18n.language === "ja"
+                  ? "border-brand-500 bg-brand-50 dark:bg-brand-900"
+                  : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+              }`}
+            >
+              <span className="text-2xl mb-2 block">🇯🇵</span>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {t("languages.japanese")}
               </p>
             </button>
           </div>
@@ -693,20 +749,20 @@ export const Settings: React.FC<SettingsProps> = ({
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          알림 설정
+          {t("settings.notifications")}
         </h3>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-gray-900 dark:text-white">
-                브라우저 알림
+                {t("settings.browserNotifications")}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                북마크 관련 알림을 받습니다
+                {t("settings.browserNotificationsDescription")}
               </p>
               {browserNotificationPermission.denied && (
                 <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                  브라우저에서 알림 권한이 거부되었습니다
+                  {t("notifications.permissionDenied")}
                 </p>
               )}
             </div>
@@ -715,7 +771,7 @@ export const Settings: React.FC<SettingsProps> = ({
                 onClick={handleTestNotification}
                 className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
-                테스트
+                {t("notifications.testNotification")}
               </button>
               <button
                 onClick={handleNotificationToggle}
@@ -826,36 +882,36 @@ export const Settings: React.FC<SettingsProps> = ({
       <div className="space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            북마크 통계
+            {t("settings.bookmarkStatistics")}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="전체 북마크"
+              title={t("settings.totalBookmarks")}
               value={totalBookmarks}
               icon={<BookOpen className="w-6 h-6" />}
               color="bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-              description="총 북마크 수"
+              description={t("settings.totalBookmarksDescription")}
             />
             <StatsCard
-              title="컬렉션"
+              title={t("collections.title")}
               value={totalCollections}
               icon={<Folder className="w-6 h-6" />}
               color="bg-gradient-to-r from-purple-500 to-purple-600 text-white"
-              description="총 컬렉션 수"
+              description={t("settings.totalCollectionsDescription")}
             />
             <StatsCard
-              title="즐겨찾기"
+              title={t("settings.favorites")}
               value={favoriteBookmarks}
               icon={<Sparkles className="w-6 h-6" />}
               color="bg-gradient-to-r from-yellow-500 to-orange-500 text-white"
-              description="즐겨찾기 북마크"
+              description={t("settings.favoritesDescription")}
             />
             <StatsCard
-              title="미분류"
+              title={t("settings.unassigned")}
               value={unassignedBookmarks}
               icon={<FileText className="w-6 h-6" />}
               color="bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-              description="컬렉션 없는 북마크"
+              description={t("settings.unassignedDescription")}
             />
           </div>
         </div>
@@ -863,13 +919,13 @@ export const Settings: React.FC<SettingsProps> = ({
         {/* 추가 통계 정보 */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            상세 분석
+            {t("settings.detailedAnalysis")}
           </h3>
           <div className="space-y-4">
             {collections.length > 0 && (
               <div>
                 <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                  컬렉션별 북마크 분포
+                  {t("settings.bookmarkDistributionByCollection")}
                 </h4>
                 <div className="space-y-2">
                   {collections.map((collection) => {
@@ -904,7 +960,7 @@ export const Settings: React.FC<SettingsProps> = ({
                   {unassignedBookmarks > 0 && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        미분류
+                        {t("settings.unassigned")}
                       </span>
                       <div className="flex items-center space-x-2">
                         <div className="w-20 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -938,13 +994,12 @@ export const Settings: React.FC<SettingsProps> = ({
     <div className="space-y-6">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          개인정보 보호
+          {t("settings.privacy")}
         </h3>
         <div className="space-y-4">
           <div className="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
             <p className="text-sm text-blue-800 dark:text-blue-200">
-              북마클은 사용자의 개인정보를 안전하게 보호합니다. 모든 데이터는
-              암호화되어 저장되며, Google 계정을 통한 안전한 인증을 사용합니다.
+              {t("settings.privacyDescription")}
             </p>
           </div>
         </div>
@@ -958,17 +1013,17 @@ export const Settings: React.FC<SettingsProps> = ({
       <div className="space-y-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            백업 관리
+            {t("settings.backupManagement")}
           </h3>
           <div className="space-y-4">
             {/* 자동 백업 토글 UI 추가 */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  자동 백업
+                  {t("settings.autoBackup")}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  주기적으로 북마크와 컬렉션을 자동으로 백업합니다.
+                  {t("settings.autoBackupDescription")}
                 </p>
               </div>
               <button
@@ -980,7 +1035,7 @@ export const Settings: React.FC<SettingsProps> = ({
                     : "bg-gray-300 dark:bg-gray-600"
                 }`}
                 aria-pressed={backupSettings.enabled}
-                aria-label="자동 백업 토글"
+                aria-label={t("settings.autoBackupToggle")}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
@@ -994,10 +1049,10 @@ export const Settings: React.FC<SettingsProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    자동 백업 주기
+                    {t("settings.autoBackupFrequency")}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    자동 백업이 실행되는 간격을 선택하세요.
+                    {t("settings.autoBackupFrequencyDescription")}
                   </p>
                 </div>
                 <select
@@ -1009,9 +1064,9 @@ export const Settings: React.FC<SettingsProps> = ({
                     )
                   }
                 >
-                  <option value="daily">매일</option>
-                  <option value="weekly">매주</option>
-                  <option value="monthly">매월</option>
+                  <option value="daily">{t("settings.daily")}</option>
+                  <option value="weekly">{t("settings.weekly")}</option>
+                  <option value="monthly">{t("settings.monthly")}</option>
                 </select>
               </div>
             )}
@@ -1019,25 +1074,27 @@ export const Settings: React.FC<SettingsProps> = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-gray-900 dark:text-white">
-                  백업 상태
+                  {t("settings.backupStatus")}
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  총 {backupStatus.backupCount}개 백업, {backupStatus.totalSize}
-                  MB 사용
+                  {t("settings.backupStatusDescription", {
+                    count: backupStatus.backupCount,
+                    size: backupStatus.totalSize,
+                  })}
                 </p>
               </div>
               <button
                 onClick={handleManualBackup}
                 className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
               >
-                새 백업 생성
+                {t("settings.createNewBackup")}
               </button>
             </div>
 
             {backups.length > 0 && (
               <div className="space-y-3">
                 <p className="font-medium text-gray-900 dark:text-white">
-                  백업 목록
+                  {t("settings.backupList")}
                 </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {backups.map(({ timestamp, data }) => (
@@ -1050,8 +1107,10 @@ export const Settings: React.FC<SettingsProps> = ({
                           {new Date(timestamp).toLocaleString()}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          북마크 {data.bookmarks?.length || 0}개, 컬렉션{" "}
-                          {data.collections?.length || 0}개
+                          {t("settings.backupItemDescription", {
+                            bookmarkCount: data.bookmarks?.length || 0,
+                            collectionCount: data.collections?.length || 0,
+                          })}
                         </p>
                       </div>
                       <div className="flex space-x-2">
@@ -1059,13 +1118,13 @@ export const Settings: React.FC<SettingsProps> = ({
                           onClick={() => handleBackupRestore(timestamp)}
                           className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                         >
-                          복원
+                          {t("settings.restore")}
                         </button>
                         <button
                           onClick={() => handleBackupDelete(timestamp)}
                           className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                         >
-                          삭제
+                          {t("common.delete")}
                         </button>
                       </div>
                     </div>
@@ -1116,7 +1175,7 @@ export const Settings: React.FC<SettingsProps> = ({
               <div className="flex items-center space-x-2">
                 <SettingsIcon className="w-6 h-6 text-brand-600" />
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  설정
+                  {t("settings.title")}
                 </h1>
               </div>
             </div>

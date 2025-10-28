@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import { useNotifications } from "../hooks/useNotifications";
 import { Drawer } from "../components/Drawer";
@@ -14,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export const NotificationCenterPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const {
@@ -80,11 +82,11 @@ export const NotificationCenterPage: React.FC = () => {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (minutes < 1) return "방금 전";
-    if (minutes < 60) return `${minutes}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    if (days < 7) return `${days}일 전`;
-    return date.toLocaleDateString("ko-KR");
+    if (minutes < 1) return t("notifications.justNow");
+    if (minutes < 60) return t("notifications.minutesAgo", { count: minutes });
+    if (hours < 24) return t("notifications.hoursAgo", { count: hours });
+    if (days < 7) return t("notifications.daysAgo", { count: days });
+    return date.toLocaleDateString();
   };
 
   return (
@@ -104,7 +106,7 @@ export const NotificationCenterPage: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Bell className="w-6 h-6 text-brand-600" />
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    알림센터
+                    {t("notifications.center")}
                   </h1>
                   {unreadCount > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center min-w-[20px]">
@@ -127,16 +129,16 @@ export const NotificationCenterPage: React.FC = () => {
           {/* 알림 설정 카드 */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              알림 설정
+              {t("notifications.settings")}
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-gray-900 dark:text-white">
-                    북마크 알림
+                    {t("notifications.bookmarkNotifications")}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    북마크 추가, 수정, 삭제 시 알림을 받습니다
+                    {t("notifications.bookmarkNotificationsDescription")}
                   </p>
                 </div>
                 <button
@@ -157,13 +159,13 @@ export const NotificationCenterPage: React.FC = () => {
               {unreadCount > 0 && (
                 <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    읽지 않은 알림 {unreadCount}개
+                    {t("notifications.unreadCount", { count: unreadCount })}
                   </p>
                   <button
                     onClick={markAllAsRead}
                     className="text-sm text-brand-600 hover:text-brand-700 dark:hover:text-brand-400"
                   >
-                    모두 읽음 처리
+                    {t("notifications.markAllAsRead")}
                   </button>
                 </div>
               )}
@@ -174,7 +176,7 @@ export const NotificationCenterPage: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                알림 목록
+                {t("notifications.title")}
               </h3>
             </div>
 
@@ -182,9 +184,11 @@ export const NotificationCenterPage: React.FC = () => {
               {notifications.length === 0 ? (
                 <div className="p-12 text-center text-gray-500 dark:text-gray-400">
                   <Bell className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium mb-2">알림이 없습니다</p>
+                  <p className="text-lg font-medium mb-2">
+                    {t("notifications.noNotifications")}
+                  </p>
                   <p className="text-sm">
-                    새로운 북마크 활동이 있으면 여기에 표시됩니다
+                    {t("notifications.noNotificationsDescription")}
                   </p>
                 </div>
               ) : (
@@ -234,7 +238,7 @@ export const NotificationCenterPage: React.FC = () => {
                               <button
                                 onClick={() => markAsRead(notification.id)}
                                 className="p-2 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                                title="읽음 처리"
+                                title={t("notifications.markAsRead")}
                               >
                                 <Check className="w-4 h-4" />
                               </button>
@@ -244,7 +248,7 @@ export const NotificationCenterPage: React.FC = () => {
                                 deleteNotification(notification.id)
                               }
                               className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                              title="삭제"
+                              title={t("notifications.deleteNotification")}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -264,7 +268,7 @@ export const NotificationCenterPage: React.FC = () => {
                   onClick={deleteReadNotifications}
                   className="w-full text-sm text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-center py-2"
                 >
-                  읽은 알림 모두 삭제
+                  {t("notifications.deleteAllRead")}
                 </button>
               </div>
             )}

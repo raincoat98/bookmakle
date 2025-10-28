@@ -9,11 +9,13 @@ import {
   Trash,
   Info,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNotifications } from "../hooks/useNotifications";
 import { useAuth } from "../hooks/useAuth";
 import type { Notification } from "../types";
 
 export const NotificationCenter = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const {
     notifications,
@@ -62,11 +64,11 @@ export const NotificationCenter = () => {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (minutes < 1) return "방금 전";
-    if (minutes < 60) return `${minutes}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    if (days < 7) return `${days}일 전`;
-    return date.toLocaleDateString("ko-KR");
+    if (minutes < 1) return t("notifications.justNow");
+    if (minutes < 60) return t("notifications.minutesAgo", { count: minutes });
+    if (hours < 24) return t("notifications.hoursAgo", { count: hours });
+    if (days < 7) return t("notifications.daysAgo", { count: days });
+    return date.toLocaleDateString();
   };
 
   return (
@@ -75,7 +77,7 @@ export const NotificationCenter = () => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-xl transition-all duration-200 hover:scale-110 hover:bg-white/50 dark:hover:bg-gray-700/50 backdrop-blur-sm"
-        aria-label="알림"
+        aria-label={t("notifications.title")}
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
@@ -97,7 +99,7 @@ export const NotificationCenter = () => {
             {/* 헤더 */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                알림
+                {t("notifications.title")}
               </h3>
               <div className="flex items-center space-x-2">
                 {unreadCount > 0 && (
@@ -105,7 +107,7 @@ export const NotificationCenter = () => {
                     onClick={markAllAsRead}
                     className="text-sm text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
                   >
-                    모두 읽음
+                    {t("notifications.markAllAsRead")}
                   </button>
                 )}
                 <button
@@ -122,7 +124,7 @@ export const NotificationCenter = () => {
               {notifications.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>알림이 없습니다</p>
+                  <p>{t("notifications.noNotifications")}</p>
                 </div>
               ) : (
                 notifications.map((notification) => (
@@ -169,7 +171,7 @@ export const NotificationCenter = () => {
                           <button
                             onClick={() => markAsRead(notification.id)}
                             className="p-1 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                            title="읽음 처리"
+                            title={t("notifications.markAsRead")}
                           >
                             <Check className="w-4 h-4" />
                           </button>
@@ -177,7 +179,7 @@ export const NotificationCenter = () => {
                         <button
                           onClick={() => deleteNotification(notification.id)}
                           className="p-1 text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                          title="삭제"
+                          title={t("notifications.deleteNotification")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -195,7 +197,7 @@ export const NotificationCenter = () => {
                   onClick={deleteReadNotifications}
                   className="w-full text-sm text-gray-500 hover:text-red-500 dark:hover:text-red-400 text-center"
                 >
-                  읽은 알림 모두 삭제
+                  {t("notifications.deleteAllRead")}
                 </button>
               </div>
             )}
