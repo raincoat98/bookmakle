@@ -377,6 +377,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
               tabId: activeTab.id,
             });
 
+            // 성공 알림
+            chrome.notifications.create({
+              type: "basic",
+              iconUrl: "public/bookmark.png",
+              title: "북마크 저장 완료",
+              message: `"${msg.bookmarkData.title}" 북마크가 저장되었습니다.`,
+              priority: 2,
+            });
+
             // 3초 후 제거
             setTimeout(() => {
               chrome.action.setBadgeText({ text: "", tabId: activeTab.id });
