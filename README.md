@@ -48,6 +48,11 @@
 │   ├── build.sh                    # 빌드 스크립트
 │   └── setup-env.sh                # 환경변수 설정 스크립트
 │
+├── 🔑 Configuration/                # 설정 파일들
+│   ├── serviceAccountKey.json      # Firebase Admin SDK 키
+│   ├── firebase.json               # Firebase 프로젝트 설정
+│   └── firestore.rules             # Firestore 보안 규칙
+│
 └── 📚 Documentation/
     ├── README.md                    # 메인 문서
     └── ADMIN_GUIDE.md               # 관리자 가이드
@@ -114,6 +119,12 @@
 # Authentication 활성화
 # - Sign-in method에서 Google 활성화
 # - 승인된 도메인에 localhost 추가
+
+# Service Account Key 발급
+# - 프로젝트 설정 > 서비스 계정
+# - "새 비공개 키 생성" 클릭
+# - serviceAccountKey.json 파일 다운로드
+# - 프로젝트 루트에 저장
 ```
 
 #### 2. 환경변수 설정
@@ -262,6 +273,7 @@ npm run build:extension
 - **북마클 대시보드**: `bookmarkle-web-dashboard/.env.local`
 - **SignIn Popup**: `bookmarkle-signin-popup/config.js`
 - **Chrome Extension**: `bookmarkle-browser-extension/firebase-config.js`
+- **Service Account Key**: `serviceAccountKey.json` (프로젝트 루트에 저장)
 
 ## 📚 프로젝트 구성
 
