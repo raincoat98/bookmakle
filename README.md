@@ -14,37 +14,44 @@
 
 ```
 📚 북마클/
-├── 🧩 my-extension/         # Chrome Extension (Manifest V3)
-│   ├── popup.html/js       # Extension Popup UI
-│   ├── background.js       # Service Worker
-│   ├── offscreen.js        # Offscreen Document
-│   └── manifest.json       # Extension Configuration
+├── 🧩 bookmarkle-browser-extension/  # Chrome Extension (Manifest V3)
+│   ├── popup.html/js/css            # Extension Popup UI
+│   ├── background.js                # Service Worker
+│   ├── offscreen.js/html            # Offscreen Document
+│   ├── manifest.json                # Extension Configuration
+│   ├── firebase-config.js           # Firebase 설정
+│   └── public/                      # 다국어 지원 파일들
 │
-├── 📊 bookmarkhub-dashboard/ # 북마클 웹 대시보드
+├── 📊 bookmarkle-web-dashboard/     # 북마클 웹 대시보드
 │   ├── src/
-│   │   ├── components/     # UI Components (북마크 관리, 인증 등)
-│   │   ├── hooks/         # Custom Hooks (useAuth, useBookmarks 등)
-│   │   ├── contexts/      # React Contexts (AuthContext, ThemeContext)
-│   │   ├── pages/         # 페이지 컴포넌트 (대시보드, 북마크, 설정)
-│   │   └── utils/         # 유틸리티 함수들
-│   ├── dist/             # Build Output
-│   └── firebase.json     # Firebase Hosting Config
+│   │   ├── components/              # UI Components (북마크 관리, 인증 등)
+│   │   ├── hooks/                   # Custom Hooks (useAuth, useBookmarks 등)
+│   │   ├── pages/                   # 페이지 컴포넌트 (대시보드, 북마크, 설정)
+│   │   ├── stores/                  # 상태 관리 (Zustand)
+│   │   ├── utils/                   # 유틸리티 함수들
+│   │   └── i18n/                    # 다국어 지원
+│   ├── dist/                        # Build Output
+│   └── firebase.json                # Firebase Hosting Config
 │
-├── 🔐 signin-popup/         # Standalone Auth Popup
-│   ├── index.html        # Popup Interface
-│   ├── signInWithPopup.js # Firebase Auth Logic
-│   └── firebase.json     # Hosting Configuration
+├── 🔐 bookmarkle-signin-popup/      # Standalone Auth Popup
+│   ├── index.html                   # Popup Interface
+│   ├── signInWithPopup.js           # Firebase Auth Logic
+│   ├── firebase.json                # Hosting Configuration
+│   └── i18n.js                      # 다국어 지원
 │
 ├── 🛠 DevOps/
-│   ├── deploy.sh         # 통합 배포 스크립트
-│   ├── dev.sh           # 개발 서버 스크립트
-│   ├── build.sh         # 빌드 스크립트
-│   └── serve.sh         # Firebase 로컬 서버
+│   ├── deploy.sh                    # 통합 배포 스크립트
+│   ├── dev.sh                      # 개발 서버 스크립트
+│   └── build.sh                    # 빌드 스크립트
+│
+├── 📦 build/                        # 빌드 결과물
+│   └── bookmarkle-browser-extension/ # 패키징된 Extension
 │
 └── 📚 Documentation/
-    ├── README.md        # 메인 문서
-    ├── PROJECT_INFO.md  # 프로젝트 상세 정보
-    └── package.json     # 프로젝트 메타데이터
+    ├── README.md                    # 메인 문서
+    ├── PROJECT_INFO.md              # 프로젝트 상세 정보
+    ├── ADMIN_GUIDE.md               # 관리자 가이드
+    └── GETTING_STARTED.md           # 시작 가이드
 ```
 
 ## ✨ 주요 기능
@@ -115,16 +122,12 @@ npm run dev:all
 npm run dev:signin
 ./dev.sh signin-popup 8000
 
-# Firebase 서버
-npm run serve
-./serve.sh signin-popup 5000
-
 # 빌드 & 배포
 npm run build:signin
 npm run deploy:signin
 ```
 
-#### 북마클 대시보드 (bookmarkhub-dashboard)
+#### 북마클 대시보드 (bookmarkle-web-dashboard)
 
 ```bash
 # 개발 서버
@@ -136,7 +139,7 @@ npm run build:dashboard
 ./build.sh dashboard
 ```
 
-#### Chrome Extension (my-extension)
+#### Chrome Extension (bookmarkle-browser-extension)
 
 ```bash
 # 개발 환경 안내
@@ -157,7 +160,6 @@ npm run build:extension
 | `./deploy.sh` | 통합 배포      | `./deploy.sh [프로젝트] [메시지]` |
 | `./dev.sh`    | 통합 개발 서버 | `./dev.sh [프로젝트] [포트]`      |
 | `./build.sh`  | 통합 빌드      | `./build.sh [프로젝트]`           |
-| `./serve.sh`  | Firebase 서버  | `./serve.sh [프로젝트] [포트]`    |
 
 ### 📋 NPM 스크립트
 
@@ -182,7 +184,7 @@ npm run build:extension
 
 각 프로젝트에서 사용하는 Firebase 설정 파일들입니다.
 
-#### 1. 북마클 웹 대시보드 (`bookmarkhub-dashboard/src/firebase.ts`)
+#### 1. 북마클 웹 대시보드 (`bookmarkle-web-dashboard/src/firebase.ts`)
 
 ```typescript
 import { initializeApp } from "firebase/app";
@@ -204,7 +206,7 @@ export const db = getFirestore(app);
 export default app;
 ```
 
-#### 2. 북마클 브라우저 확장 (`my-extension/firebase-config.js`)
+#### 2. 북마클 브라우저 확장 (`bookmarkle-browser-extension/firebase-config.js`)
 
 ```javascript
 const firebaseConfig = {
@@ -228,7 +230,7 @@ const db = getFirestore(app);
 export { auth, db };
 ```
 
-#### 3. 북마클 로그인 팝업 (`signin-popup/signInWithPopup.js`)
+#### 3. 북마클 로그인 팝업 (`bookmarkle-signin-popup/signInWithPopup.js`)
 
 ```javascript
 const firebaseConfig = {
@@ -268,7 +270,7 @@ VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
 
 ### Firebase Hosting 설정
 
-#### 북마클 웹 대시보드 (`bookmarkhub-dashboard/firebase.json`)
+#### 북마클 웹 대시보드 (`bookmarkle-web-dashboard/firebase.json`)
 
 ```json
 {
@@ -305,7 +307,7 @@ VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
 }
 ```
 
-#### 북마클 로그인 팝업 (`signin-popup/firebase.json`)
+#### 북마클 로그인 팝업 (`bookmarkle-signin-popup/firebase.json`)
 
 ```json
 {
@@ -321,7 +323,7 @@ VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
 
 ### Chrome Extension 설정
 
-#### Manifest V3 (`my-extension/manifest.json`)
+#### Manifest V3 (`bookmarkle-browser-extension/manifest.json`)
 
 ```json
 {
@@ -385,7 +387,7 @@ VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
 
 ### Vite 설정
 
-#### 북마클 웹 대시보드 (`bookmarkhub-dashboard/vite.config.ts`)
+#### 북마클 웹 대시보드 (`bookmarkle-web-dashboard/vite.config.ts`)
 
 ```typescript
 import { defineConfig } from "vite";
@@ -406,23 +408,27 @@ export default defineConfig({
 
 ## 🔧 각 프로젝트별 상세 정보
 
-### 1. SignIn Popup (`signin-popup/`)
+### 1. SignIn Popup (`bookmarkle-signin-popup/`)
 
 - Firebase Authentication용 팝업 구현
 - Chrome Extension에서 사용
-- 배포 URL: https://bookmarkhub-5ea6c.web.app
+- 다국어 지원 (한국어, 영어, 일본어)
+- 배포 URL: https://bookmarkhub-5ea6c-sign.web.app
 
-### 2. 북마클 대시보드 (`bookmarkhub-dashboard/`)
+### 2. 북마클 대시보드 (`bookmarkle-web-dashboard/`)
 
 - React + TypeScript + Vite 기반 웹 대시보드
 - Firebase Authentication 및 Firestore 통합
 - 북마크 관리, 컬렉션 시스템, 위젯 등 완전한 기능
+- Zustand 상태 관리
+- 다국어 지원 (한국어, 영어, 일본어)
 
-### 3. Chrome Extension (`my-extension/`)
+### 3. Chrome Extension (`bookmarkle-browser-extension/`)
 
 - Manifest V3
 - Firebase 통합
 - Offscreen Document 사용
+- 다국어 지원 (한국어, 영어, 일본어)
 
 ## 🛠 개발 팁
 
