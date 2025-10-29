@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Collection } from "../types";
 import { renderCollectionIcon } from "../utils/iconRenderer";
 import { useTranslation } from "react-i18next";
-
+import { PinIcon } from "lucide-react";
 interface CollectionListProps {
   collections: Collection[];
   loading: boolean;
@@ -129,15 +129,18 @@ export const CollectionList = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            {renderCollectionIcon(collection.icon, "w-5 h-5")}
+            {/* PIN 버튼 - 왼쪽에 배치 */}
             {collection.isPinned && (
-              <span
-                className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-                title={t("collections.pinnedCollection")}
-              >
-                PIN
-              </span>
+              <div className="flex-shrink-0">
+                <div
+                  className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/30"
+                  title={t("collections.pinnedCollection")}
+                >
+                  <PinIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
             )}
+            {renderCollectionIcon(collection.icon, "w-5 h-5")}
           </div>
 
           <div className="flex-1">
@@ -180,13 +183,10 @@ export const CollectionList = ({
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  strokeWidth={2}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="m18.5 2.5 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
 
@@ -206,13 +206,13 @@ export const CollectionList = ({
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  strokeWidth={2}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  <line x1="10" y1="11" x2="10" y2="17" />
+                  <line x1="14" y1="11" x2="14" y2="17" />
                 </svg>
               </button>
             </div>
@@ -279,9 +279,19 @@ export const CollectionList = ({
                   {renderCollectionIcon(collection.icon, "w-5 h-5")}
                 </button>
                 {collection.isPinned && (
-                  <span className="absolute -top-1 -right-1 inline-flex items-center px-1 py-0.5 rounded-full text-xs font-bold bg-yellow-400 text-yellow-900 border border-yellow-500">
-                    P
-                  </span>
+                  <div className="absolute -top-1 -right-1">
+                    <div className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                      <svg
+                        className="w-2.5 h-2.5 text-blue-600 dark:text-blue-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                      >
+                        <path d="M12 2l-2 2H6a2 2 0 0 0 0 4h2l-1 8H8a2 2 0 0 0 0 4h8a2 2 0 0 0 0-4h-1l-1-8h2a2 2 0 0 0 0-4h-4l-2-2z" />
+                      </svg>
+                    </div>
+                  </div>
                 )}
               </div>
             ))}
@@ -326,7 +336,9 @@ export const CollectionList = ({
           }
           className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-bold"
         >
-          {openIds.length === allIds.length ? t("collections.closeAll") : t("collections.openAll")}
+          {openIds.length === allIds.length
+            ? t("collections.closeAll")
+            : t("collections.openAll")}
         </button>
       </div>
 
@@ -366,7 +378,9 @@ export const CollectionList = ({
           {collections.length === 0 && !loading && (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
               <p>{t("collections.noCollectionsFound")}</p>
-              <p className="text-sm mt-1">{t("collections.createNewCollection")}</p>
+              <p className="text-sm mt-1">
+                {t("collections.createNewCollection")}
+              </p>
             </div>
           )}
 
@@ -400,7 +414,9 @@ export const CollectionList = ({
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          <span className="transition-all duration-300">{t("collections.newCollection")}</span>
+          <span className="transition-all duration-300">
+            {t("collections.newCollection")}
+          </span>
         </button>
       </div>
     </div>

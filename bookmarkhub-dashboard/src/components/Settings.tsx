@@ -1190,7 +1190,7 @@ export const Settings: React.FC<SettingsProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* 사이드바 */}
-          <div className="lg:w-64 flex-shrink-0">
+          <div className="lg:w-72 flex-shrink-0">
             <nav className="space-y-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon;

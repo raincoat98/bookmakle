@@ -83,7 +83,7 @@ export const Drawer: React.FC<DrawerProps> = ({
       {/* 사이드바 */}
       <div
         className={`fixed inset-y-0 left-0 z-[9999] transform transition-all duration-500 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-          isDrawerCollapsed ? "w-16 lg:w-16" : "w-64 lg:w-64"
+          isDrawerCollapsed ? "w-16 lg:w-16" : "w-72 lg:w-72"
         } ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex h-full flex-col bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-r border-white/30 dark:border-gray-700/30 shadow-glass">
