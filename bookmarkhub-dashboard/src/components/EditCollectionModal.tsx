@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import type { Collection, CollectionFormData } from "../types";
 import { IconPicker } from "./IconPicker";
 import * as LucideIcons from "lucide-react";
+import { PinIcon } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface EditCollectionModalProps {
@@ -203,9 +204,9 @@ export const EditCollectionModal = ({
                 htmlFor="isPinned"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center space-x-2"
               >
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                  PIN
-                </span>
+                <div className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/30">
+                  <PinIcon className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                </div>
                 <span>고정하기 (기본 탭으로 설정)</span>
               </label>
             </div>
