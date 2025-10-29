@@ -19,7 +19,6 @@
     "dev:signin": "./dev.sh signin-popup",
     "dev:dashboard": "./dev.sh dashboard",
     "dev:extension": "./dev.sh my-extension",
-    "serve": "./serve.sh signin-popup",
     "start": "./dev.sh dashboard"
   },
   "keywords": [

@@ -39,19 +39,18 @@
 │   ├── firebase.json                # Hosting Configuration
 │   └── i18n.js                      # 다국어 지원
 │
-├── 🛠 DevOps/
-│   ├── deploy.sh                    # 통합 배포 스크립트
-│   ├── dev.sh                      # 개발 서버 스크립트
-│   └── build.sh                    # 빌드 스크립트
-│
 ├── 📦 build/                        # 빌드 결과물
 │   └── bookmarkle-browser-extension/ # 패키징된 Extension
 │
+├── 🛠 Scripts/                      # 배포 및 개발 스크립트
+│   ├── deploy.sh                    # 통합 배포 스크립트
+│   ├── dev.sh                      # 개발 서버 스크립트
+│   ├── build.sh                    # 빌드 스크립트
+│   └── setup-env.sh                # 환경변수 설정 스크립트
+│
 └── 📚 Documentation/
     ├── README.md                    # 메인 문서
-    ├── PROJECT_INFO.md              # 프로젝트 상세 정보
-    ├── ADMIN_GUIDE.md               # 관리자 가이드
-    └── GETTING_STARTED.md           # 시작 가이드
+    └── ADMIN_GUIDE.md               # 관리자 가이드
 ```
 
 ## ✨ 주요 기능
@@ -237,6 +236,7 @@ npm run build:extension
 | `npm run dev:signin`       | SignIn Popup 개발 서버         |
 | `npm run dev:dashboard`    | 북마클 대시보드 개발 서버      |
 | `npm run dev:extension`    | Extension 개발 환경            |
+| `npm run start`            | 대시보드 개발 서버 (기본)      |
 | `npm run build:signin`     | SignIn Popup 빌드              |
 | `npm run build:dashboard`  | 북마클 대시보드 빌드           |
 | `npm run build:extension`  | Extension 빌드 & 패키징        |

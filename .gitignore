@@ -26,8 +26,8 @@ serviceAccountKey.json
 
 # Configuration files (contains sensitive data)
 my-app/.env*
-signin-popup/config.js
-my-extension/firebase-config.js
+bookmarkle-signin-popup/config.js
+bookmarkle-browser-extension/firebase-config.js
 
 # IDE
 .vscode/
