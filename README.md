@@ -95,7 +95,73 @@
 - PostMessage 기반 통신
 - Firebase Hosting 배포
 
+## 📋 사전 요구사항
+
+- **Node.js** 18+
+- **npm** 또는 **yarn**
+- **Firebase CLI** (`npm install -g firebase-tools`)
+- **Chrome Browser** (Extension 개발용)
+
 ## 🚀 빠른 시작
+
+### 🔧 초기 설정
+
+#### 1. Firebase 프로젝트 생성
+
+```bash
+# Firebase 콘솔에서 새 프로젝트 생성
+# https://console.firebase.google.com/
+
+# Authentication 활성화
+# - Sign-in method에서 Google 활성화
+# - 승인된 도메인에 localhost 추가
+```
+
+#### 2. 환경변수 설정
+
+##### 북마클 웹 대시보드 환경 변수 (`bookmarkle-web-dashboard/.env.local`)
+
+```bash
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+```
+
+##### SignIn Popup 설정 (`bookmarkle-signin-popup/config.js`)
+
+```javascript
+export const firebaseConfig = {
+  apiKey: "your_api_key_here",
+  authDomain: "your_project.firebaseapp.com",
+  projectId: "your_project_id",
+  appId: "your_app_id",
+  messagingSenderId: "your_sender_id",
+};
+```
+
+##### Chrome Extension 설정 (`bookmarkle-browser-extension/firebase-config.js`)
+
+```javascript
+export const firebaseConfig = {
+  apiKey: "your_api_key_here",
+  authDomain: "your_project.firebaseapp.com",
+  projectId: "your_project_id",
+  appId: "your_app_id",
+  messagingSenderId: "your_sender_id",
+};
+```
+
+#### 3. Firebase Hosting 사이트 생성
+
+```bash
+# 메인 웹앱용 사이트 (기본)
+firebase hosting:sites:create YOUR_PROJECT_ID
+
+# SignIn Popup용 별도 사이트
+firebase hosting:sites:create YOUR_PROJECT_ID-sign
+```
 
 ### 📦 전체 프로젝트 관리
 
@@ -178,263 +244,51 @@ npm run build:extension
 | `npm run deploy:dashboard` | 북마클 대시보드 배포           |
 | `npm run deploy:extension` | Extension 패키징               |
 
-## 🔧 설정 파일 샘플
+## 🔧 설정
 
-### Firebase 설정
-
-각 프로젝트에서 사용하는 Firebase 설정 파일들입니다.
-
-#### 1. 북마클 웹 대시보드 (`bookmarkle-web-dashboard/src/firebase.ts`)
-
-```typescript
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-
-const firebaseConfig = {
-  apiKey: "test_api_key_123456789",
-  authDomain: "test-project-12345.firebaseapp.com",
-  projectId: "test-project-12345",
-  storageBucket: "test-project-12345.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456789",
-};
-
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export default app;
-```
-
-#### 2. 북마클 브라우저 확장 (`bookmarkle-browser-extension/firebase-config.js`)
-
-```javascript
-const firebaseConfig = {
-  apiKey: "test_api_key_123456789",
-  authDomain: "test-project-12345.firebaseapp.com",
-  projectId: "test-project-12345",
-  storageBucket: "test-project-12345.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "1:123456789:web:abcdef123456789",
-};
-
-// Firebase 초기화
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export { auth, db };
-```
-
-#### 3. 북마클 로그인 팝업 (`bookmarkle-signin-popup/signInWithPopup.js`)
-
-```javascript
-const firebaseConfig = {
-  apiKey: "test_api_key_123456789",
-  authDomain: "test-project-12345.firebaseapp.com",
-  projectId: "test-project-12345",
-  appId: "1:123456789:web:abcdef123456789",
-  messagingSenderId: "123456789",
-};
-
-// Firebase 초기화
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-```
-
-### 환경 변수 설정
-
-#### 북마클 웹 대시보드 환경 변수 (`.env.local`)
+### 환경변수 자동 설정
 
 ```bash
-# Firebase 설정
-VITE_FIREBASE_API_KEY=test_api_key_123456789
-VITE_FIREBASE_AUTH_DOMAIN=test-project-12345.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=test-project-12345
-VITE_FIREBASE_STORAGE_BUCKET=test-project-12345.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456789
+# 환경변수 설정 스크립트 실행
+./setup-env.sh
 
-# 앱 설정
-VITE_APP_NAME=북마클
-VITE_APP_VERSION=1.0.0
-VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
+# Firebase 설정 정보 입력 후 자동으로 모든 설정 파일 생성
 ```
 
-### Firebase Hosting 설정
+### 수동 설정
 
-#### 북마클 웹 대시보드 (`bookmarkle-web-dashboard/firebase.json`)
+각 프로젝트의 Firebase 설정 파일을 수동으로 생성할 수 있습니다:
 
-```json
-{
-  "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.@(js|jsx|ts|tsx)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(css)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "public, max-age=31536000, immutable"
-          }
-        ]
-      }
-    ]
-  }
-}
+- **북마클 대시보드**: `bookmarkle-web-dashboard/.env.local`
+- **SignIn Popup**: `bookmarkle-signin-popup/config.js`
+- **Chrome Extension**: `bookmarkle-browser-extension/firebase-config.js`
+
+## 📚 프로젝트 구성
+
+- **🧩 Chrome Extension**: Manifest V3 기반 북마크 관리 확장 프로그램
+- **📊 웹 대시보드**: React + TypeScript 기반 완전한 북마크 관리 대시보드
+- **🔐 Auth Popup**: Chrome Extension용 독립 인증 페이지
+- **🚀 통합 배포**: Firebase Hosting 자동 배포 시스템
+
+## 🔍 문제 해결
+
+### Chrome Extension 로드 실패
+
+- `manifest.json` 문법 확인
+- 권한 설정 확인
+- 개발자 도구에서 에러 로그 확인
+
+### Firebase 설정 오류
+
+```bash
+firebase login
+firebase projects:list
 ```
 
-#### 북마클 로그인 팝업 (`bookmarkle-signin-popup/firebase.json`)
+### CORS 에러
 
-```json
-{
-  "hosting": [
-    {
-      "target": "signin",
-      "public": ".",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
-    }
-  ]
-}
-```
-
-### Chrome Extension 설정
-
-#### Manifest V3 (`bookmarkle-browser-extension/manifest.json`)
-
-```json
-{
-  "manifest_version": 3,
-  "name": "북마클",
-  "version": "1.0.3",
-  "description": "웹 페이지를 쉽게 저장하고 관리하는 북마크 확장 프로그램",
-  "homepage_url": "https://chromewebstore.google.com/detail/북마클/lkkbdejelaagaipenlheijafnjggkdcm",
-  "default_locale": "ko",
-  "icons": {
-    "16": "public/bookmark.png",
-    "32": "public/bookmark.png",
-    "48": "public/bookmark.png",
-    "128": "public/bookmark.png"
-  },
-  "action": {
-    "default_popup": "popup.html",
-    "default_title": "북마클"
-  },
-  "background": {
-    "service_worker": "background.js"
-  },
-  "permissions": ["activeTab", "storage", "tabs", "scripting"],
-  "host_permissions": [
-    "https://bookmarkhub-5ea6c.web.app/*",
-    "https://bookmarkhub-5ea6c-sign.web.app/*"
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  }
-}
-```
-
-### TypeScript 설정
-
-#### 루트 TypeScript 설정 (`tsconfig.json`)
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
-}
-```
-
-### Vite 설정
-
-#### 북마클 웹 대시보드 (`bookmarkle-web-dashboard/vite.config.ts`)
-
-```typescript
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    host: true,
-  },
-  build: {
-    outDir: "dist",
-    sourcemap: true,
-  },
-});
-```
-
-## 🔧 각 프로젝트별 상세 정보
-
-### 1. SignIn Popup (`bookmarkle-signin-popup/`)
-
-- Firebase Authentication용 팝업 구현
-- Chrome Extension에서 사용
-- 다국어 지원 (한국어, 영어, 일본어)
-- 배포 URL: https://bookmarkhub-5ea6c-sign.web.app
-
-### 2. 북마클 대시보드 (`bookmarkle-web-dashboard/`)
-
-- React + TypeScript + Vite 기반 웹 대시보드
-- Firebase Authentication 및 Firestore 통합
-- 북마크 관리, 컬렉션 시스템, 위젯 등 완전한 기능
-- Zustand 상태 관리
-- 다국어 지원 (한국어, 영어, 일본어)
-
-### 3. Chrome Extension (`bookmarkle-browser-extension/`)
-
-- Manifest V3
-- Firebase 통합
-- Offscreen Document 사용
-- 다국어 지원 (한국어, 영어, 일본어)
-
-## 🛠 개발 팁
-
-1. **루트에서 배포**: `./deploy.sh`로 signin-popup 배포
-2. **개별 프로젝트**: 각 디렉토리에서 개별적으로 작업
-3. **통합 관리**: 루트 레벨에서 공통 작업 수행
+- Firebase Hosting 도메인이 승인된 도메인에 추가되었는지 확인
+- `manifest.json`의 `host_permissions` 확인
 
 ## 🔑 Firebase 프로젝트
 

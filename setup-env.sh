@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🔥 FireAuth Suite - 환경변수 설정 스크립트
+# 🔥 북마클 - 환경변수 설정 스크립트
 # 사용법: ./setup-env.sh
 
 set -e
@@ -31,8 +31,8 @@ log_error() {
 
 # 배너 출력
 echo -e "${BLUE}"
-echo "🔥 FireAuth Suite - 환경변수 설정"
-echo "================================"
+echo "🔥 북마클 - 환경변수 설정"
+echo "======================="
 echo -e "${NC}"
 
 log_info "Firebase 설정 정보를 입력해주세요:"
@@ -49,7 +49,7 @@ echo ""
 log_info "설정 파일들을 생성하고 있습니다..."
 
 # 북마클 대시보드 환경변수 파일 생성
-cat > bookmarkhub-dashboard/.env.local << EOF
+cat > bookmarkle-web-dashboard/.env.local << EOF
 # Firebase Configuration
 VITE_FIREBASE_API_KEY=$API_KEY
 VITE_FIREBASE_AUTH_DOMAIN=$AUTH_DOMAIN
@@ -58,10 +58,10 @@ VITE_FIREBASE_APP_ID=$APP_ID
 VITE_FIREBASE_MESSAGING_SENDER_ID=$SENDER_ID
 EOF
 
-log_success "북마클 대시보드 환경변수 파일 생성됨: bookmarkhub-dashboard/.env.local"
+log_success "북마클 대시보드 환경변수 파일 생성됨: bookmarkle-web-dashboard/.env.local"
 
 # SignIn Popup 설정 파일 생성
-cat > signin-popup/config.js << EOF
+cat > bookmarkle-signin-popup/config.js << EOF
 // Firebase Configuration
 export const firebaseConfig = {
   apiKey: "$API_KEY",
@@ -72,10 +72,10 @@ export const firebaseConfig = {
 };
 EOF
 
-log_success "SignIn Popup 설정 파일 생성됨: signin-popup/config.js"
+log_success "SignIn Popup 설정 파일 생성됨: bookmarkle-signin-popup/config.js"
 
 # Chrome Extension 설정 파일 생성
-cat > my-extension/firebase-config.js << EOF
+cat > bookmarkle-browser-extension/firebase-config.js << EOF
 // 확장 내부에서만 쓰는 Config (민감 정보 아님 - 공개키 성격)
 export const firebaseConfig = {
   apiKey: "$API_KEY",
@@ -86,13 +86,13 @@ export const firebaseConfig = {
 };
 EOF
 
-log_success "Chrome Extension 설정 파일 생성됨: my-extension/firebase-config.js"
+log_success "Chrome Extension 설정 파일 생성됨: bookmarkle-browser-extension/firebase-config.js"
 
 # Firebase 프로젝트 설정 파일 업데이트
 log_info "Firebase 프로젝트 설정 파일을 업데이트합니다..."
 
-# bookmarkhub-dashboard/.firebaserc 업데이트
-cat > bookmarkhub-dashboard/.firebaserc << EOF
+# bookmarkle-web-dashboard/.firebaserc 업데이트
+cat > bookmarkle-web-dashboard/.firebaserc << EOF
 {
   "projects": {
     "default": "$PROJECT_ID"
@@ -100,8 +100,8 @@ cat > bookmarkhub-dashboard/.firebaserc << EOF
 }
 EOF
 
-# signin-popup/.firebaserc 업데이트
-cat > signin-popup/.firebaserc << EOF
+# bookmarkle-signin-popup/.firebaserc 업데이트
+cat > bookmarkle-signin-popup/.firebaserc << EOF
 {
   "projects": {
     "default": "$PROJECT_ID"
@@ -127,6 +127,6 @@ echo "2. Google Sign-in 방법을 활성화하세요"
 echo "3. Firebase Hosting 사이트를 생성하세요:"
 echo "   - firebase hosting:sites:create $PROJECT_ID"
 echo "   - firebase hosting:sites:create $PROJECT_ID-sign"
-echo "4. 개발 서버를 시작하세요: npm run dev:all"
+echo "4. 개발 서버를 시작하세요: ./dev.sh"
 echo ""
 log_warning "주의: 생성된 설정 파일들은 .gitignore에 의해 Git에서 제외됩니다"
