@@ -48,7 +48,7 @@ read -p "Messaging Sender ID: " SENDER_ID
 echo ""
 log_info "설정 파일들을 생성하고 있습니다..."
 
-# 북마크 허브 대시보드 환경변수 파일 생성
+# 북마클 대시보드 환경변수 파일 생성
 cat > bookmarkhub-dashboard/.env.local << EOF
 # Firebase Configuration
 VITE_FIREBASE_API_KEY=$API_KEY
@@ -58,7 +58,7 @@ VITE_FIREBASE_APP_ID=$APP_ID
 VITE_FIREBASE_MESSAGING_SENDER_ID=$SENDER_ID
 EOF
 
-log_success "북마크 허브 대시보드 환경변수 파일 생성됨: bookmarkhub-dashboard/.env.local"
+log_success "북마클 대시보드 환경변수 파일 생성됨: bookmarkhub-dashboard/.env.local"
 
 # SignIn Popup 설정 파일 생성
 cat > signin-popup/config.js << EOF

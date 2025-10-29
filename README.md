@@ -1,4 +1,4 @@
-# 📚 북마크 허브 (Bookmark Hub)
+# 📚 북마클 (Bookmark Hub)
 
 **통합 북마크 관리 시스템**
 
@@ -13,14 +13,14 @@
 ## 📁 프로젝트 구조
 
 ```
-📚 북마크 허브/
+📚 북마클/
 ├── 🧩 my-extension/         # Chrome Extension (Manifest V3)
 │   ├── popup.html/js       # Extension Popup UI
 │   ├── background.js       # Service Worker
 │   ├── offscreen.js        # Offscreen Document
 │   └── manifest.json       # Extension Configuration
 │
-├── 📊 bookmarkhub-dashboard/ # 북마크 허브 웹 대시보드
+├── 📊 bookmarkhub-dashboard/ # 북마클 웹 대시보드
 │   ├── src/
 │   │   ├── components/     # UI Components (북마크 관리, 인증 등)
 │   │   ├── hooks/         # Custom Hooks (useAuth, useBookmarks 등)
@@ -124,7 +124,7 @@ npm run build:signin
 npm run deploy:signin
 ```
 
-#### 북마크 허브 대시보드 (bookmarkhub-dashboard)
+#### 북마클 대시보드 (bookmarkhub-dashboard)
 
 ```bash
 # 개발 서버
@@ -167,14 +167,242 @@ npm run build:extension
 | `npm run deploy`           | 모든 프로젝트 배포             |
 | `npm run dev:all`          | 모든 프로젝트 개발 서버 (병렬) |
 | `npm run dev:signin`       | SignIn Popup 개발 서버         |
-| `npm run dev:dashboard`    | 북마크 허브 대시보드 개발 서버 |
+| `npm run dev:dashboard`    | 북마클 대시보드 개발 서버      |
 | `npm run dev:extension`    | Extension 개발 환경            |
 | `npm run build:signin`     | SignIn Popup 빌드              |
-| `npm run build:dashboard`  | 북마크 허브 대시보드 빌드      |
+| `npm run build:dashboard`  | 북마클 대시보드 빌드           |
 | `npm run build:extension`  | Extension 빌드 & 패키징        |
 | `npm run deploy:signin`    | SignIn Popup 배포              |
-| `npm run deploy:dashboard` | 북마크 허브 대시보드 배포      |
+| `npm run deploy:dashboard` | 북마클 대시보드 배포           |
 | `npm run deploy:extension` | Extension 패키징               |
+
+## 🔧 설정 파일 샘플
+
+### Firebase 설정
+
+각 프로젝트에서 사용하는 Firebase 설정 파일들입니다.
+
+#### 1. 북마클 웹 대시보드 (`bookmarkhub-dashboard/src/firebase.ts`)
+
+```typescript
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "test_api_key_123456789",
+  authDomain: "test-project-12345.firebaseapp.com",
+  projectId: "test-project-12345",
+  storageBucket: "test-project-12345.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456789",
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export default app;
+```
+
+#### 2. 북마클 브라우저 확장 (`my-extension/firebase-config.js`)
+
+```javascript
+const firebaseConfig = {
+  apiKey: "test_api_key_123456789",
+  authDomain: "test-project-12345.firebaseapp.com",
+  projectId: "test-project-12345",
+  storageBucket: "test-project-12345.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456789",
+};
+
+// Firebase 초기화
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+export { auth, db };
+```
+
+#### 3. 북마클 로그인 팝업 (`signin-popup/signInWithPopup.js`)
+
+```javascript
+const firebaseConfig = {
+  apiKey: "test_api_key_123456789",
+  authDomain: "test-project-12345.firebaseapp.com",
+  projectId: "test-project-12345",
+  appId: "1:123456789:web:abcdef123456789",
+  messagingSenderId: "123456789",
+};
+
+// Firebase 초기화
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+```
+
+### 환경 변수 설정
+
+#### 북마클 웹 대시보드 환경 변수 (`.env.local`)
+
+```bash
+# Firebase 설정
+VITE_FIREBASE_API_KEY=test_api_key_123456789
+VITE_FIREBASE_AUTH_DOMAIN=test-project-12345.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=test-project-12345
+VITE_FIREBASE_STORAGE_BUCKET=test-project-12345.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
+VITE_FIREBASE_APP_ID=1:123456789:web:abcdef123456789
+
+# 앱 설정
+VITE_APP_NAME=북마클
+VITE_APP_VERSION=1.0.0
+VITE_SIGNIN_POPUP_URL=https://bookmarkhub-5ea6c-sign.web.app
+```
+
+### Firebase Hosting 설정
+
+#### 북마클 웹 대시보드 (`bookmarkhub-dashboard/firebase.json`)
+
+```json
+{
+  "hosting": {
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|jsx|ts|tsx)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### 북마클 로그인 팝업 (`signin-popup/firebase.json`)
+
+```json
+{
+  "hosting": [
+    {
+      "target": "signin",
+      "public": ".",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+    }
+  ]
+}
+```
+
+### Chrome Extension 설정
+
+#### Manifest V3 (`my-extension/manifest.json`)
+
+```json
+{
+  "manifest_version": 3,
+  "name": "북마클",
+  "version": "1.0.3",
+  "description": "웹 페이지를 쉽게 저장하고 관리하는 북마크 확장 프로그램",
+  "homepage_url": "https://chromewebstore.google.com/detail/북마클/lkkbdejelaagaipenlheijafnjggkdcm",
+  "default_locale": "ko",
+  "icons": {
+    "16": "public/bookmark.png",
+    "32": "public/bookmark.png",
+    "48": "public/bookmark.png",
+    "128": "public/bookmark.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "북마클"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["activeTab", "storage", "tabs", "scripting"],
+  "host_permissions": [
+    "https://bookmarkhub-5ea6c.web.app/*",
+    "https://bookmarkhub-5ea6c-sign.web.app/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
+```
+
+### TypeScript 설정
+
+#### 루트 TypeScript 설정 (`tsconfig.json`)
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+```
+
+### Vite 설정
+
+#### 북마클 웹 대시보드 (`bookmarkhub-dashboard/vite.config.ts`)
+
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    host: true,
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: true,
+  },
+});
+```
 
 ## 🔧 각 프로젝트별 상세 정보
 
@@ -184,7 +412,7 @@ npm run build:extension
 - Chrome Extension에서 사용
 - 배포 URL: https://bookmarkhub-5ea6c.web.app
 
-### 2. 북마크 허브 대시보드 (`bookmarkhub-dashboard/`)
+### 2. 북마클 대시보드 (`bookmarkhub-dashboard/`)
 
 - React + TypeScript + Vite 기반 웹 대시보드
 - Firebase Authentication 및 Firestore 통합

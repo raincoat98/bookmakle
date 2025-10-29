@@ -111,9 +111,9 @@ deploy_signin_popup() {
     return 0
 }
 
-# 북마크 허브 대시보드 배포 함수
+# 북마클 웹 대시보드 배포 함수
 deploy_dashboard() {
-    log_info "📊 북마크 허브 대시보드 빌드 및 준비..."
+    log_info "📊 북마클 웹 대시보드 빌드 및 준비..."
     
     if [ ! -d "bookmarkhub-dashboard" ]; then
         log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
@@ -136,9 +136,9 @@ deploy_dashboard() {
     fi
     
     # 빌드 실행
-    log_info "북마크 허브 대시보드 빌드 중..."
+    log_info "북마클 웹 대시보드 빌드 중..."
     if npm run build; then
-        log_success "북마크 허브 대시보드 빌드 완료!"
+        log_success "북마클 웹 대시보드 빌드 완료!"
         log_info "빌드된 파일은 dist/ 디렉토리에 있습니다"
         
         # Firebase CLI 설치 확인
@@ -151,18 +151,18 @@ deploy_dashboard() {
         # Firebase Hosting에 배포
         log_info "Firebase Hosting에 배포 중..."
         if firebase deploy --only hosting --message "$DEPLOY_MESSAGE"; then
-            log_success "북마크 허브 대시보드 배포 완료!"
+            log_success "북마클 웹 대시보드 배포 완료!"
             
             # 배포 URL 출력
             HOSTING_URL="https://bookmarkhub-5ea6c.web.app"
             echo -e "${GREEN}🌐 배포된 사이트: ${BLUE}$HOSTING_URL${NC}"
         else
-            log_error "북마크 허브 대시보드 배포 실패!"
+            log_error "북마클 웹 대시보드 배포 실패!"
             cd "$ROOT_DIR"
             return 1
         fi
     else
-        log_error "북마크 허브 대시보드 빌드 실패!"
+        log_error "북마클 웹 대시보드 빌드 실패!"
         cd "$ROOT_DIR"
         return 1
     fi
@@ -171,9 +171,9 @@ deploy_dashboard() {
     return 0
 }
 
-# Chrome Extension 패키징 함수
+# 북마클 브라우저 확장 패키징 함수
 deploy_my_extension() {
-    log_info "🧩 Chrome Extension 패키징..."
+    log_info "🧩 북마클 브라우저 확장 패키징..."
     
     if [ ! -d "my-extension" ]; then
         log_error "my-extension 디렉토리가 없습니다!"
@@ -208,12 +208,12 @@ deploy_my_extension() {
     zip -r "$EXTENSION_ZIP" . -x "*.DS_Store" "*.git*" "node_modules/*"
     
     if [ -f "$EXTENSION_ZIP" ]; then
-        log_success "Chrome Extension 패키징 완료!"
+        log_success "북마클 브라우저 확장 패키징 완료!"
         echo -e "${GREEN}📦 패키지 파일: ${BLUE}$EXTENSION_ZIP${NC}"
         echo -e "${GREEN}📁 빌드 디렉토리: ${BLUE}$BUILD_DIR${NC}"
         log_info "Chrome 웹 스토어 개발자 대시보드에서 업로드하세요"
     else
-        log_error "Chrome Extension 패키징 실패!"
+        log_error "북마클 브라우저 확장 패키징 실패!"
         cd "$ROOT_DIR"
         return 1
     fi

@@ -92,9 +92,9 @@ build_signin_popup() {
     return 0
 }
 
-# 북마크 허브 대시보드 빌드 함수
+# 북마클 웹 대시보드 빌드 함수
 build_dashboard() {
-    log_info "📊 북마크 허브 대시보드 빌드 시작..."
+    log_info "📊 북마클 웹 대시보드 빌드 시작..."
     
     if [ ! -d "bookmarkhub-dashboard" ]; then
         log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
@@ -137,9 +137,9 @@ build_dashboard() {
     fi
     
     # 빌드 실행
-    log_info "북마크 허브 대시보드 빌드 중..."
+    log_info "북마클 웹 대시보드 빌드 중..."
     if npm run build; then
-        log_success "북마크 허브 대시보드 빌드 완료!"
+        log_success "북마클 웹 대시보드 빌드 완료!"
         
         # 빌드 결과 확인
         if [ -d "dist" ]; then
@@ -154,7 +154,7 @@ build_dashboard() {
             log_warning "dist 디렉토리를 찾을 수 없습니다"
         fi
     else
-        log_error "북마크 허브 대시보드 빌드 실패!"
+        log_error "북마클 웹 대시보드 빌드 실패!"
         cd "$ROOT_DIR"
         return 1
     fi
@@ -163,9 +163,9 @@ build_dashboard() {
     return 0
 }
 
-# Chrome Extension 빌드 함수
+# 북마클 브라우저 확장 빌드 함수
 build_my_extension() {
-    log_info "🧩 Chrome Extension 빌드 및 패키징..."
+    log_info "🧩 북마클 브라우저 확장 빌드 및 패키징..."
     
     if [ ! -d "my-extension" ]; then
         log_error "my-extension 디렉토리가 없습니다!"
@@ -239,14 +239,14 @@ build_my_extension() {
     
     if [ -f "$EXTENSION_ZIP" ]; then
         PACKAGE_SIZE=$(du -sh "$EXTENSION_ZIP" | cut -f1)
-        log_success "Chrome Extension 빌드 완료!"
+        log_success "북마클 브라우저 확장 빌드 완료!"
         echo -e "${GREEN}📦 패키지 파일: ${BLUE}$(pwd)/$EXTENSION_ZIP${NC}"
         echo -e "${GREEN}📏 패키지 크기: ${BLUE}$PACKAGE_SIZE${NC}"
         echo -e "${GREEN}📁 빌드 디렉토리: ${BLUE}$(pwd)/my-extension${NC}"
         
         log_info "Chrome 웹 스토어 개발자 대시보드에서 업로드하세요"
     else
-        log_error "Chrome Extension 패키징 실패!"
+        log_error "북마클 브라우저 확장 패키징 실패!"
         cd "$ROOT_DIR"
         return 1
     fi
@@ -296,9 +296,9 @@ case $PROJECT in
         # 빌드 결과 요약
         echo ""
         echo -e "${BLUE}📋 빌드 결과 요약:${NC}"
-        [ -d "signin-popup" ] && echo "• SignIn Popup: 정적 파일 (배포 준비됨)"
-        [ -d "bookmarkhub-dashboard/dist" ] && echo "• 북마크 허브 대시보드: bookmarkhub-dashboard/dist/ (호스팅 준비됨)"
-        [ -f "build/my-extension-"*.zip ] && echo "• Chrome Extension: build/my-extension-*.zip (스토어 업로드 준비됨)"
+        [ -d "signin-popup" ] && echo "• 북마클 로그인 팝업: 정적 파일 (배포 준비됨)"
+        [ -d "bookmarkhub-dashboard/dist" ] && echo "• 북마클 웹 대시보드: bookmarkhub-dashboard/dist/ (호스팅 준비됨)"
+        [ -f "build/my-extension-"*.zip ] && echo "• 북마클 브라우저 확장: build/my-extension-*.zip (스토어 업로드 준비됨)"
         ;;
     *)
         log_error "알 수 없는 프로젝트: $PROJECT"

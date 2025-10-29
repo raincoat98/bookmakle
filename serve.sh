@@ -170,15 +170,15 @@ serve_signin_popup() {
     firebase serve --only hosting --port $PORT
 }
 
-# 북마크 허브 대시보드 Firebase 서버 함수 (미지원 안내)
+# 북마클 대시보드 Firebase 서버 함수 (미지원 안내)
 serve_dashboard() {
-    log_warning "📊 북마크 허브 대시보드는 Firebase 서버를 지원하지 않습니다"
+    log_warning "📊 북마클 대시보드는 Firebase 서버를 지원하지 않습니다"
     echo ""
-    echo -e "${YELLOW}북마크 허브 대시보드 개발 서버를 실행하려면:${NC}"
+    echo -e "${YELLOW}북마클 대시보드 개발 서버를 실행하려면:${NC}"
     echo "• ./dev.sh dashboard"
     echo "• cd bookmarkhub-dashboard && npm run dev"
     echo ""
-    echo -e "${YELLOW}북마크 허브 대시보드를 Firebase Hosting에 배포하려면:${NC}"
+    echo -e "${YELLOW}북마클 대시보드를 Firebase Hosting에 배포하려면:${NC}"
     echo "• ./build.sh dashboard (빌드 먼저)"
     echo "• Firebase 콘솔에서 새 호스팅 사이트 설정"
     echo ""

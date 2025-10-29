@@ -1,6 +1,6 @@
-# 🚀 북마크 허브 - 시작하기
+# 🚀 북마클 - 시작하기
 
-이 가이드는 북마크 허브를 설정하고 사용하는 방법을 설명합니다.
+이 가이드는 북마클를 설정하고 사용하는 방법을 설명합니다.
 
 ## 📋 사전 요구사항
 
@@ -40,7 +40,7 @@
 
 #### 📝 **수동 설정 방법**
 
-##### 북마크 허브 대시보드 환경변수 (`bookmarkhub-dashboard/.env.local`)
+##### 북마클 대시보드 환경변수 (`bookmarkhub-dashboard/.env.local`)
 
 ```bash
 VITE_FIREBASE_API_KEY=your_api_key_here
@@ -95,7 +95,7 @@ firebase hosting:sites:create YOUR_PROJECT_ID-sign
 npm run dev:all
 
 # 개별 실행
-npm run dev:dashboard # 북마크 허브 대시보드 (포트 3000)
+npm run dev:dashboard # 북마클 대시보드 (포트 3000)
 npm run dev:signin    # SignIn Popup (포트 8000)
 npm run serve         # Firebase 로컬 서버 (포트 5000)
 ```
@@ -116,7 +116,7 @@ npm run serve         # Firebase 로컬 서버 (포트 5000)
 npm run deploy
 
 # 개별 배포
-npm run deploy:dashboard  # 북마크 허브 대시보드
+npm run deploy:dashboard  # 북마클 대시보드
 npm run deploy:signin     # SignIn Popup
 npm run deploy:extension  # Chrome Extension (ZIP 생성)
 ```
@@ -132,7 +132,7 @@ npm run deploy:extension  # Chrome Extension (ZIP 생성)
 
 ### 기능 확장
 
-#### 북마크 허브 대시보드에 새 페이지 추가
+#### 북마클 대시보드에 새 페이지 추가
 
 ```tsx
 // src/pages/NewPage.tsx
@@ -192,7 +192,7 @@ firebase projects:list
 ```bash
 # 로그 확인
 # - Extension: chrome://extensions/ → Service Worker 클릭
-# - 북마크 허브 대시보드: 브라우저 개발자 도구
+# - 북마클 대시보드: 브라우저 개발자 도구
 # - SignIn Popup: https://YOUR_PROJECT_ID-sign.web.app 직접 접속
 ```
 

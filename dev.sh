@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# SignIn Popup + 대시보드 동시 실행 스크립트
-# 사용법: ./dev-both.sh
+# SignIn Popup + 북마클 웹 대시보드 동시 실행 스크립트
+# 사용법: ./dev.sh
 
 set -e  # 에러 발생 시 스크립트 중단
 
@@ -31,8 +31,8 @@ log_error() {
 
 # 배너 출력
 echo -e "${BLUE}"
-echo "🚀 SignIn Popup + 대시보드 동시 실행"
-echo "=================================="
+echo "🚀 북마클 로그인 팝업 + 웹 대시보드 동시 실행"
+echo "=========================================="
 echo -e "${NC}"
 
 # 루트 디렉토리 저장
@@ -59,9 +59,9 @@ cleanup_ports() {
     log_success "포트 정리 완료"
 }
 
-# SignIn Popup 서버 시작
+# 북마클 로그인 팝업 서버 시작
 start_signin_popup() {
-    log_info "📱 SignIn Popup 서버 시작..."
+    log_info "📱 북마클 로그인 팝업 서버 시작..."
     
     if [ ! -d "signin-popup" ]; then
         log_error "signin-popup 디렉토리가 없습니다!"
@@ -89,12 +89,12 @@ start_signin_popup() {
     SIGNIN_PID=$!
     
     cd "$ROOT_DIR"
-    log_success "SignIn Popup 서버 시작됨 (PID: $SIGNIN_PID)"
+    log_success "북마클 로그인 팝업 서버 시작됨 (PID: $SIGNIN_PID)"
 }
 
-# 대시보드 서버 시작
+# 북마클 웹 대시보드 서버 시작
 start_dashboard() {
-    log_info "📊 대시보드 서버 시작..."
+    log_info "📊 북마클 웹 대시보드 서버 시작..."
     
     if [ ! -d "bookmarkhub-dashboard" ]; then
         log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
@@ -121,7 +121,7 @@ start_dashboard() {
     DASHBOARD_PID=$!
     
     cd "$ROOT_DIR"
-    log_success "대시보드 서버 시작됨 (PID: $DASHBOARD_PID)"
+    log_success "북마클 웹 대시보드 서버 시작됨 (PID: $DASHBOARD_PID)"
 }
 
 # 서버 상태 확인
@@ -131,13 +131,13 @@ check_servers() {
     
     # SignIn Popup 서버 확인
     if ! kill -0 $SIGNIN_PID 2>/dev/null; then
-        log_error "SignIn Popup 서버 시작 실패"
+        log_error "북마클 로그인 팝업 서버 시작 실패"
         return 1
     fi
     
     # 대시보드 서버 확인
     if ! kill -0 $DASHBOARD_PID 2>/dev/null; then
-        log_error "대시보드 서버 시작 실패"
+        log_error "북마클 웹 대시보드 서버 시작 실패"
         return 1
     fi
     
@@ -158,8 +158,8 @@ main() {
         echo ""
         log_success "🎉 두 서버가 모두 시작되었습니다!"
         echo ""
-        echo -e "${GREEN}🌐 SignIn Popup: ${BLUE}http://localhost:8000${NC}"
-        echo -e "${GREEN}🌐 대시보드: ${BLUE}http://localhost:3000${NC}"
+        echo -e "${GREEN}🌐 북마클 로그인 팝업: ${BLUE}http://localhost:8000${NC}"
+        echo -e "${GREEN}🌐 북마클 웹 대시보드: ${BLUE}http://localhost:3000${NC}"
         echo ""
         echo -e "${YELLOW}서버를 중지하려면 Ctrl+C를 누르세요${NC}"
         echo ""
@@ -183,11 +183,11 @@ main() {
         # 서버 상태 모니터링
         while true; do
             if ! kill -0 $SIGNIN_PID 2>/dev/null; then
-                log_error "SignIn Popup 서버가 종료되었습니다"
+                log_error "북마클 로그인 팝업 서버가 종료되었습니다"
                 break
             fi
             if ! kill -0 $DASHBOARD_PID 2>/dev/null; then
-                log_error "대시보드 서버가 종료되었습니다"
+                log_error "북마클 웹 대시보드 서버가 종료되었습니다"
                 break
             fi
             sleep 1

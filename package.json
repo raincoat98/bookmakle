@@ -1,7 +1,7 @@
 {
   "name": "bookmark-hub",
   "version": "1.0.0",
-  "description": "📚 북마크 허브 - 통합 북마크 관리 시스템",
+  "description": "📚 북마클 - 통합 북마크 관리 시스템",
   "scripts": {
     "setup": "./setup-env.sh",
     "admin:set": "node set-admin.js",
@@ -34,7 +34,7 @@
     "manifest-v3",
     "dashboard"
   ],
-  "author": "북마크 허브 개발팀",
+  "author": "북마클 개발팀",
   "license": "MIT",
   "homepage": "https://github.com/bookmark-hub/bookmark-hub",
   "repository": {
