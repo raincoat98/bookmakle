@@ -58,12 +58,12 @@ ROOT_DIR=$(pwd)
 deploy_signin_popup() {
     log_info "📱 SignIn Popup 배포 시작..."
     
-    if [ ! -d "signin-popup" ]; then
-        log_error "signin-popup 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-signin-popup" ]; then
+        log_error "bookmarkle-signin-popup 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd signin-popup
+    cd bookmarkle-signin-popup
     
     # Firebase 프로젝트 확인
     if [ ! -f ".firebaserc" ]; then
@@ -115,12 +115,12 @@ deploy_signin_popup() {
 deploy_dashboard() {
     log_info "📊 북마클 웹 대시보드 빌드 및 준비..."
     
-    if [ ! -d "bookmarkhub-dashboard" ]; then
-        log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-web-dashboard" ]; then
+        log_error "bookmarkle-web-dashboard 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd bookmarkhub-dashboard
+    cd bookmarkle-web-dashboard
     
     # package.json 확인
     if [ ! -f "package.json" ]; then
@@ -175,12 +175,12 @@ deploy_dashboard() {
 deploy_my_extension() {
     log_info "🧩 북마클 브라우저 확장 패키징..."
     
-    if [ ! -d "my-extension" ]; then
-        log_error "my-extension 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-browser-extension" ]; then
+        log_error "bookmarkle-browser-extension 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd my-extension
+    cd bookmarkle-browser-extension
     
     # manifest.json 확인
     if [ ! -f "manifest.json" ]; then
@@ -202,7 +202,7 @@ deploy_my_extension() {
     mkdir -p "$BUILD_DIR"
     
     # zip 파일로 패키징
-    EXTENSION_ZIP="$BUILD_DIR/my-extension-$(date '+%Y%m%d-%H%M%S').zip"
+    EXTENSION_ZIP="$BUILD_DIR/bookmarkle-browser-extension-$(date '+%Y%m%d-%H%M%S').zip"
     log_info "확장 프로그램을 패키징 중: $(basename "$EXTENSION_ZIP")"
     
     zip -r "$EXTENSION_ZIP" . -x "*.DS_Store" "*.git*" "node_modules/*"

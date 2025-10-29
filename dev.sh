@@ -63,12 +63,12 @@ cleanup_ports() {
 start_signin_popup() {
     log_info "📱 북마클 로그인 팝업 서버 시작..."
     
-    if [ ! -d "signin-popup" ]; then
-        log_error "signin-popup 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-signin-popup" ]; then
+        log_error "bookmarkle-signin-popup 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd signin-popup
+    cd bookmarkle-signin-popup
     
     # 필수 파일 확인
     if [ ! -f "index.html" ] || [ ! -f "signInWithPopup.js" ]; then
@@ -96,12 +96,12 @@ start_signin_popup() {
 start_dashboard() {
     log_info "📊 북마클 웹 대시보드 서버 시작..."
     
-    if [ ! -d "bookmarkhub-dashboard" ]; then
-        log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-web-dashboard" ]; then
+        log_error "bookmarkle-web-dashboard 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd bookmarkhub-dashboard
+    cd bookmarkle-web-dashboard
     
     # package.json 확인
     if [ ! -f "package.json" ]; then

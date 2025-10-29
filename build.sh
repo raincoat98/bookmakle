@@ -48,12 +48,12 @@ ROOT_DIR=$(pwd)
 build_signin_popup() {
     log_info "📱 SignIn Popup 빌드 확인..."
     
-    if [ ! -d "signin-popup" ]; then
-        log_error "signin-popup 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-signin-popup" ]; then
+        log_error "bookmarkle-signin-popup 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd signin-popup
+    cd bookmarkle-signin-popup
     
     # 필수 파일 확인
     REQUIRED_FILES=("index.html" "signInWithPopup.js")
@@ -96,12 +96,12 @@ build_signin_popup() {
 build_dashboard() {
     log_info "📊 북마클 웹 대시보드 빌드 시작..."
     
-    if [ ! -d "bookmarkhub-dashboard" ]; then
-        log_error "bookmarkhub-dashboard 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-web-dashboard" ]; then
+        log_error "bookmarkle-web-dashboard 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd bookmarkhub-dashboard
+    cd bookmarkle-web-dashboard
     
     # package.json 확인
     if [ ! -f "package.json" ]; then
@@ -167,12 +167,12 @@ build_dashboard() {
 build_my_extension() {
     log_info "🧩 북마클 브라우저 확장 빌드 및 패키징..."
     
-    if [ ! -d "my-extension" ]; then
-        log_error "my-extension 디렉토리가 없습니다!"
+    if [ ! -d "bookmarkle-browser-extension" ]; then
+        log_error "bookmarkle-browser-extension 디렉토리가 없습니다!"
         return 1
     fi
     
-    cd my-extension
+    cd bookmarkle-browser-extension
     
     # manifest.json 확인
     if [ ! -f "manifest.json" ]; then
@@ -213,7 +213,7 @@ build_my_extension() {
     done
     
     # 빌드 디렉토리 생성
-    BUILD_DIR="../build/my-extension"
+    BUILD_DIR="../build/bookmarkle-browser-extension"
     rm -rf "$BUILD_DIR"
     mkdir -p "$BUILD_DIR"
     
@@ -232,17 +232,17 @@ build_my_extension() {
     
     # zip 파일로 패키징
     cd ../build
-    EXTENSION_ZIP="my-extension-$(date '+%Y%m%d-%H%M%S').zip"
+    EXTENSION_ZIP="bookmarkle-browser-extension-$(date '+%Y%m%d-%H%M%S').zip"
     log_info "확장 프로그램을 패키징 중: $EXTENSION_ZIP"
     
-    zip -r "$EXTENSION_ZIP" my-extension/ > /dev/null
+    zip -r "$EXTENSION_ZIP" bookmarkle-browser-extension/ > /dev/null
     
     if [ -f "$EXTENSION_ZIP" ]; then
         PACKAGE_SIZE=$(du -sh "$EXTENSION_ZIP" | cut -f1)
         log_success "북마클 브라우저 확장 빌드 완료!"
         echo -e "${GREEN}📦 패키지 파일: ${BLUE}$(pwd)/$EXTENSION_ZIP${NC}"
         echo -e "${GREEN}📏 패키지 크기: ${BLUE}$PACKAGE_SIZE${NC}"
-        echo -e "${GREEN}📁 빌드 디렉토리: ${BLUE}$(pwd)/my-extension${NC}"
+        echo -e "${GREEN}📁 빌드 디렉토리: ${BLUE}$(pwd)/bookmarkle-browser-extension${NC}"
         
         log_info "Chrome 웹 스토어 개발자 대시보드에서 업로드하세요"
     else
@@ -296,9 +296,9 @@ case $PROJECT in
         # 빌드 결과 요약
         echo ""
         echo -e "${BLUE}📋 빌드 결과 요약:${NC}"
-        [ -d "signin-popup" ] && echo "• 북마클 로그인 팝업: 정적 파일 (배포 준비됨)"
-        [ -d "bookmarkhub-dashboard/dist" ] && echo "• 북마클 웹 대시보드: bookmarkhub-dashboard/dist/ (호스팅 준비됨)"
-        [ -f "build/my-extension-"*.zip ] && echo "• 북마클 브라우저 확장: build/my-extension-*.zip (스토어 업로드 준비됨)"
+        [ -d "bookmarkle-signin-popup" ] && echo "• 북마클 로그인 팝업: 정적 파일 (배포 준비됨)"
+        [ -d "bookmarkle-web-dashboard/dist" ] && echo "• 북마클 웹 대시보드: bookmarkle-web-dashboard/dist/ (호스팅 준비됨)"
+        [ -f "build/bookmarkle-browser-extension-"*.zip ] && echo "• 북마클 브라우저 확장: build/bookmarkle-browser-extension-*.zip (스토어 업로드 준비됨)"
         ;;
     *)
         log_error "알 수 없는 프로젝트: $PROJECT"
